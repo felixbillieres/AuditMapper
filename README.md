@@ -9,89 +9,89 @@ Un générateur de rapports de pentests dynamique qui facilite la création de t
 - **Génération automatique** de templates de rapports de pentest
 - **Sélection dynamique** des services découverts (HTTP, SMB, FTP, etc.)
 - **Prévisualisation en temps réel** du rapport formaté en Markdown
-- **Intégration avec Obsidian** pour une documentation efficace
-- **Export en Markdown** pour une utilisation flexible
-- **Bibliothèque d'outils** avec commandes de référence
+- **Mode Assumed Breach** pour les tests avec identifiants existants
+- **Mode Exegol** pour la génération de one-liners avec variables d'environnement
+- **Bibliothèque d'outils** avec commandes prêtes à l'emploi
+- **Guide d'escalade de privilèges** avec checklists pour Linux et Windows
+- **Section Pivoting** avec commandes pour les outils de tunneling
+- **Mode Nuit** pour réduire la fatigue visuelle
+- **Compatible avec Obsidian** pour l'export direct
 
-## 📋 Comment utiliser
+## 🏗️ Structure du Template
 
-1. Saisissez le nom de la box et son adresse IP
-2. Sélectionnez le type de template (Standard ou Active Directory)
-3. Cochez les services que vous avez détectés lors de votre scan
-4. Prévisualisez le rapport généré
-5. Copiez ou téléchargez le Markdown pour l'utiliser dans votre documentation
+Le template généré inclut les sections suivantes:
+- Informations sur la box (nom, IP)
+- Récapitulatif des services ouverts
+- Sections détaillées pour chaque service sélectionné
+- Espaces pour les notes de l'attaquant
+- Checklists adaptées pour Windows ou Linux
 
-## 🛠️ Technologies utilisées
+## 💻 Installation et utilisation
 
-- HTML5, CSS3, JavaScript (vanilla)
-- Marked.js pour le rendu Markdown
-- Serveur HTTP pour le développement et les tests
-
-## 📁 Structure du projet
-
-```
-pentesting-template-generator/
-├── assets/
-│   ├── css/
-│   │   └── styles.css
-│   └── js/
-│       └── main.js
-├── exploitationDetails/
-│   ├── FTP.md
-│   ├── HTTP.md
-│   ├── LDAP.md
-│   ├── MSSQL.md
-│   ├── RPC.md
-│   ├── SMB.md
-│   └── ...
-├── pages/
-│   ├── index.html
-│   └── tools.html
-├── tools/
-│   ├── IPScan.py
-│   └── usernamegenerator.py
-├── docker-compose.yml
-├── Dockerfile
-└── README.md
-```
-
-## 🐳 Démarrage avec Docker
-
-### Option 1: Docker Compose (recommandée)
+### Option 1: Docker (recommandée)
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/your-username/pentesting-template-generator.git
+git clone https://github.com/votre-repo/pentesting-template-generator.git
 cd pentesting-template-generator
 
-# Lancer avec Docker Compose
-docker-compose up
+# Lancer l'application avec Docker Compose
+docker-compose up -d
 ```
 
-Puis visitez http://localhost:8080 dans votre navigateur.
+L'application sera accessible à l'adresse http://localhost:8081
 
-### Option 2: Docker sans Compose
+### Option 2: Serveur web standard
 
+Placez les fichiers dans votre serveur web (Apache, Nginx, etc.) et accédez-y via votre navigateur.
+
+## 🧩 Modules disponibles
+
+### Services supportés
+- HTTP/HTTPS
+- SMB
+- FTP
+- SSH
+- LDAP
+- MSSQL
+- MySQL
+- RDP
+- WinRM
+- et plus...
+
+### Pages spéciales
+- **Générateur de Rapport**: Page principale pour créer des templates
+- **Bibliothèque d'outils**: Commandes et outils prêts à l'emploi
+- **Guide d'escalade de privilèges**: Checklists pour Linux/Windows
+
+## 🔧 Fonctionnalités avancées
+
+### Mode Assumed Breach
+Permet de générer un template avec des identifiants déjà connus, utile pour:
+- Tests d'intrusion internes
+- Tests de post-exploitation
+- Tests de contrôle d'accès
+
+### Mode Exegol
+Génère automatiquement un one-liner pour définir les variables d'environnement dans Exegol:
 ```bash
-# Construire l'image
-docker build -t pentesting-template-generator .
-
-# Lancer le conteneur
-docker run -p 8080:80 pentesting-template-generator
+export USER="username" PASSWORD="p@ssw0rd" DOMAIN="contoso.local" IP="10.10.10.10"
 ```
 
-## 💻 Installation locale (sans Docker)
+### Outils de Pivoting
+Documentation prête à l'emploi pour:
+- Ligolo-ng
+- Chisel
+- SSHuttle
 
-```bash
-# Cloner le dépôt
-git clone https://github.com/your-username/pentesting-template-generator.git
-cd pentesting-template-generator
+### Mode Nuit
+Bascule entre un thème clair et sombre pour réduire la fatigue visuelle lors des sessions nocturnes.
 
-# Lancer un serveur Python
-python3 -m http.server 8080
-```
+## 🖥️ Compatibilité
 
-Puis visitez http://localhost:8080 dans votre navigateur.
+- Tous les navigateurs modernes (Chrome, Firefox, Edge, Safari)
+- Responsive design pour PC/tablettes
+- Export compatible avec Markdown standard et Obsidian
 
 ## 🤝 Contribuer
 
