@@ -58,7 +58,11 @@ image.png
 - Génération rapide de descriptions de vulnérabilités
 - Support pour les captures d'écran (drag & drop)
 - Création de tableaux récapitulatifs de vulnérabilités
-- Export en Markdown ou format Word
+- Export en Markdown ou format 
+
+image.png
+
+image.png
 
 ## Installation
 

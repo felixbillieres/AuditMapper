@@ -4,125 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pentest Tools - Accueil</title>
-    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        // Informations spécifiques à cette page
+        window.pageInfo = {
+            title: 'Pentest Tools - Accueil',
+            headerTitle: 'Pentest Tools',
+            activePage: 'home'
+        };
+    </script>
+    <script src="/assets/js/template-loader.js"></script>
 </head>
 <body>
-    <!-- Bouton pour afficher/masquer la sidebar -->
-    <button id="sidebar-toggle" class="sidebar-toggle">
-        <i>☰</i>
-    </button>
-    
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
-        </div>
+    <div id="page-content" style="display: none;">
+        <h1>PwnB4lunch - Pentest Tools & Time Saving Stuff</h1>
+        <p>Cette application contient une collection d'outils pour faciliter vos tests d'intrusion. Made with ❤️ by Elliot Belt</p>
         
-        <div class="sidebar-content">
-            <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/index.html" class="sidebar-nav-link">
-                        <i>📝</i> Générateur de Rapport
-                    </a>
-                </li>
-                
-                <div class="sidebar-category">Outils</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/tools.html" class="sidebar-nav-link">
-                        <i>🛠️</i> Bibliothèque d'outils
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/privesc.html" class="sidebar-nav-link">
-                        <i>🔑</i> Guide Privesc
-                    </a>
-                </li>
-                
-                <div class="sidebar-category">Parsers</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
-                        <i>🔍</i> Grep Master
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Header simplifié -->
-    <header id="main-header" class="main-header">
-        <div class="header-container">
-            <h1>Pentest Tools</h1>
-            <button id="toggleTheme" class="theme-toggle">
-                <i class="icon-theme">🌓</i>
-            </button>
-        </div>
-    </header>
-    
-    <!-- Contenu principal -->
-    <div id="main-content" class="main-content">
-        <div class="container">
-            <h1>PwnB4lunch - Pentest Tools & Time Saving Stuff</h1>
-            <p>Cette application contient une collection d'outils pour faciliter vos tests d'intrusion. Made with ❤️ by Elliot Belt</p>
+        <div class="card-container">
+            <a href="/pages/index.html" class="feature-card">
+                <div class="card-icon">📝</div>
+                <h2>Générateur de Rapport</h2>
+                <p>Créez facilement des rapports de test d'intrusion en Markdown</p>
+            </a>
             
-            <div class="card-container">
-                <a href="/pages/index.html" class="feature-card">
-                    <div class="card-icon">📝</div>
-                    <h2>Générateur de Rapport</h2>
-                    <p>Créez facilement des rapports de test d'intrusion en Markdown</p>
-                </a>
-                
-                <a href="/pages/tools.html" class="feature-card">
-                    <div class="card-icon">🛠️</div>
-                    <h2>Bibliothèque d'Outils</h2>
-                    <p>Accédez à une collection de commandes et outils essentiels</p>
-                </a>
-                
-                <a href="/pages/privesc.html" class="feature-card">
-                    <div class="card-icon">🔑</div>
-                    <h2>Guide Privesc</h2>
-                    <p>Checklists pour l'escalade de privilèges sur Windows et Linux</p>
-                </a>
-                
-                <a href="/pages/hostsmaker.html" class="feature-card">
-                    <div class="card-icon">🌐</div>
-                    <h2>/etc/hosts Maker</h2>
-                    <p>Générez facilement des entrées pour votre fichier hosts</p>
-                </a>
-                
-                <a href="/pages/grepmaster.html" class="feature-card">
-                    <div class="card-icon">🔍</div>
-                    <h2>Grep Master</h2>
-                    <p>Extrayez facilement des informations à partir d'outputs divers</p>
-                </a>
-                
-                <a href="/pages/vulnreport.html" class="feature-card">
-                    <div class="card-icon">🔒</div>
-                    <h2>Rapport de Vulnérabilités</h2>
-                    <p>Générez rapidement des descriptions de vulnérabilités et tableaux récapitulatifs</p>
-                </a>
-            </div>
+            <a href="/pages/tools.html" class="feature-card">
+                <div class="card-icon">🛠️</div>
+                <h2>Bibliothèque d'Outils</h2>
+                <p>Accédez à une collection de commandes et outils essentiels</p>
+            </a>
+            
+            <a href="/pages/privesc.html" class="feature-card">
+                <div class="card-icon">🔑</div>
+                <h2>Guide Privesc</h2>
+                <p>Checklists pour l'escalade de privilèges sur Windows et Linux</p>
+            </a>
+            
+            <a href="/pages/hostsmaker.html" class="feature-card">
+                <div class="card-icon">🌐</div>
+                <h2>/etc/hosts Maker</h2>
+                <p>Générez facilement des entrées pour votre fichier hosts</p>
+            </a>
+            
+            <a href="/pages/grepmaster.html" class="feature-card">
+                <div class="card-icon">🔍</div>
+                <h2>Grep Master</h2>
+                <p>Extrayez facilement des informations à partir d'outputs divers</p>
+            </a>
+            
+            <a href="/pages/vulnreport.html" class="feature-card">
+                <div class="card-icon">🔒</div>
+                <h2>Rapport de Vulnérabilités</h2>
+                <p>Générez rapidement des descriptions de vulnérabilités et tableaux récapitulatifs</p>
+            </a>
+            
+            <a href="/pages/goat.html" class="feature-card">
+                <div class="card-icon">🐐</div>
+                <h2>GOAT - Password Tools</h2>
+                <p>Outils avancés pour la génération et l'analyse de mots de passe et d'identifiants</p>
+            </a>
         </div>
     </div>
-    
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
-        </div>
-    </footer>
-    
-    <script src="/assets/js/sidebar.js"></script>
-    <script src="/assets/js/theme.js"></script>
 </body>
 </html> 

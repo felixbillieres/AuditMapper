@@ -4,74 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outils de Pentest</title>
-    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        // Informations spécifiques à cette page
+        window.pageInfo = {
+            title: 'Outils de Pentest',
+            headerTitle: 'Bibliothèque d\'Outils de Pentest',
+            activePage: 'tools'
+        };
+    </script>
+    <script src="/assets/js/template-loader.js"></script>
 </head>
 <body>
-    <!-- Bouton pour afficher/masquer la sidebar -->
-    <button id="sidebar-toggle" class="sidebar-toggle">
-        <i>☰</i>
-    </button>
-    
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
-        </div>
-        
-        <div class="sidebar-content">
-            <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/index.html" class="sidebar-nav-link">
-                        <i>📝</i> Générateur de Rapport
-                    </a>
-                </li>
-                
-                <div class="sidebar-category">Outils</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/tools.html" class="sidebar-nav-link">
-                        <i>🛠️</i> Bibliothèque d'outils
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/privesc.html" class="sidebar-nav-link">
-                        <i>🔑</i> Guide Privesc
-                    </a>
-                </li>
-                
-                <div class="sidebar-category">Parsers</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
-                        <i>🔍</i> Grep Master
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Header simplifié -->
-    <header id="main-header" class="main-header">
-        <div class="header-container">
-            <h1>Bibliothèque d'Outils de Pentest</h1>
-            <button id="toggleTheme" class="theme-toggle">
-                <i class="icon-theme">🌓</i>
-            </button>
-        </div>
-    </header>
-    
-    <!-- Contenu principal -->
-    <div id="main-content" class="main-content">
+    <div id="page-content" style="display: none;">
         <h1>Outils de Pentest</h1>
         <div class="tool-section">
             <h2>Outils disponibles</h2>
@@ -141,14 +85,5 @@ sudo ip route add [RÉSEAU_CIBLE] dev ligolo</code>
             </div>
         </div>
     </div>
-    
-    <footer class="main-footer">
-        <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
-        </div>
-    </footer>
-    
-    <script src="/assets/js/sidebar.js"></script>
-    <script src="/assets/js/theme.js"></script>
 </body>
 </html> 

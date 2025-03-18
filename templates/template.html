@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de /etc/hosts</title>
+    <title>{{PAGE_TITLE}}</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    {{ADDITIONAL_HEAD}}
 </head>
 <body>
     <!-- Bouton pour afficher/masquer la sidebar -->
@@ -23,37 +24,42 @@
             <ul class="sidebar-nav">
                 <div class="sidebar-category">Générateur</div>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/index.html" class="sidebar-nav-link">
+                    <a href="/pages/index.html" class="sidebar-nav-link {{ACTIVE_GENERATOR}}">
                         <i>📝</i> Générateur de Rapport
                     </a>
                 </li>
                 
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                    <a href="/pages/tools.html" class="sidebar-nav-link {{ACTIVE_TOOLS}}">
                         <i>🛠️</i> Bibliothèque d'outils
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link {{ACTIVE_PRIVESC}}">
                         <i>🔑</i> Guide Privesc
                     </a>
                 </li>
                 
                 <div class="sidebar-category">Parsers</div>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link {{ACTIVE_HOSTS}}">
                         <i>🌐</i> /etc/hosts Maker
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link {{ACTIVE_GREP}}">
                         <i>🔍</i> Grep Master
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
+                    <a href="/pages/vulnreport.html" class="sidebar-nav-link {{ACTIVE_VULN}}">
                         <i>🔒</i> Rapport de Vulnérabilités
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/goat.html" class="sidebar-nav-link {{ACTIVE_GOAT}}">
+                        <i>🐐</i> GOAT - Password Tools
                     </a>
                 </li>
             </ul>
@@ -63,9 +69,9 @@
     <!-- Header simplifié -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>Générateur de /etc/hosts</h1>
+            <h1>{{HEADER_TITLE}}</h1>
             <div class="header-controls">
-                <!-- Ajout du sélecteur de langue -->
+                <!-- Sélecteur de langue -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
                         <i class="icon-language">🌍</i>
@@ -99,40 +105,7 @@
     
     <!-- Contenu principal -->
     <div id="main-content" class="main-content">
-        <div class="form-section">
-            <h2>Générateur d'entrées pour /etc/hosts</h2>
-            <p>Collez la sortie de votre scan nxc (p.ex. <code>nxc smb 10.10.10.0/24</code>) ci-dessous :</p>
-            
-            <div class="form-group">
-                <textarea id="nxcOutput" class="nxc-output" rows="10" placeholder="SMB         192.168.1.101    445    DC2012A          [*] Windows Server 2012 R2 Standard 9600 x64 (name:DC2012A) (domain:OCEAN) (signing:True) (SMBv1:True)"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>Options :</label>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeComments" checked>
-                    <label for="includeComments">Inclure les commentaires</label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeHeader" checked>
-                    <label for="includeHeader">Inclure l'en-tête</label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeDomainOnly">
-                    <label for="includeDomainOnly">Ajouter une entrée pour le domaine uniquement</label>
-                </div>
-            </div>
-            
-            <button id="generateHosts" class="action-button">Générer les entrées /etc/hosts</button>
-        </div>
-        
-        <div id="hostsOutput" class="form-section" style="display: none;">
-            <h2>Entrées générées pour /etc/hosts</h2>
-            <div class="copy-container">
-                <button id="copyHosts" class="action-button">Copier</button>
-            </div>
-            <pre id="hostsContent" class="hosts-content"></pre>
-        </div>
+        {{MAIN_CONTENT}}
     </div>
     
     <footer class="main-footer">
@@ -141,9 +114,10 @@
         </div>
     </footer>
     
+    <!-- Scripts communs -->
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
-    <script src="/assets/js/hostsmaker.js"></script>
+    {{ADDITIONAL_SCRIPTS}}
 </body>
 </html> 

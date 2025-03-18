@@ -15,10 +15,10 @@
     
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-header">
             <h2>Pentest Tools</h2>
             <p>Suite d'outils pour pentest</p>
-        </div>
+        </a>
         
         <div class="sidebar-content">
             <ul class="sidebar-nav">
@@ -65,9 +65,36 @@
     <header id="main-header" class="main-header">
         <div class="header-container">
             <h1>Générateur de Rapport de Pentest</h1>
-            <button id="toggleTheme" class="theme-toggle">
-                <i class="icon-theme">🌓</i>
-            </button>
+            <div class="header-controls">
+                <!-- Ajout du sélecteur de langue -->
+                <div class="language-selector">
+                    <button id="languageDropdown" class="language-dropdown">
+                        <i class="icon-language">🌍</i>
+                        <span id="currentLanguage">Français</span>
+                        <i class="dropdown-arrow">▼</i>
+                    </button>
+                    <div id="languageMenu" class="language-menu">
+                        <div class="language-option" data-lang="fr">
+                            <span class="language-flag">🇫🇷</span>Français
+                        </div>
+                        <div class="language-option" data-lang="en">
+                            <span class="language-flag">🇬🇧</span>English
+                        </div>
+                        <div class="language-option" data-lang="ru">
+                            <span class="language-flag">🇷🇺</span>Русский
+                        </div>
+                        <div class="language-option" data-lang="zh">
+                            <span class="language-flag">🇨🇳</span>中文
+                        </div>
+                        <div class="language-option" data-lang="ja">
+                            <span class="language-flag">🇯🇵</span>日本語
+                        </div>
+                    </div>
+                </div>
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌓</i>
+                </button>
+            </div>
         </div>
     </header>
     
@@ -237,6 +264,7 @@
     
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/language.js"></script>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/debug.js"></script>
 </body>
