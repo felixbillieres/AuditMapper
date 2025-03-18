@@ -105,6 +105,70 @@ async function updatePreview(boxName, ipAddress, serviceCheckboxes) {
     markdownPreview.setAttribute('data-raw-markdown', template);
 }
 
+console.log("====== DÉBUT DE L'INITIALISATION ======");
+
+// Test de base pour vérifier que les événements fonctionnent
+document.addEventListener('click', function() {
+    console.log("Document clicked - événements de base OK");
+});
+
+// Récupération et vérification explicite des éléments
+const assumedBreachCheckbox = document.getElementById('assumedBreach');
+console.log("Élément assumedBreachCheckbox trouvé:", !!assumedBreachCheckbox);
+
+const breachCredentials = document.getElementById('breachCredentials');
+console.log("Élément breachCredentials trouvé:", !!breachCredentials);
+
+const exegolModeCheckbox = document.getElementById('exegolMode');
+console.log("Élément exegolModeCheckbox trouvé:", !!exegolModeCheckbox);
+
+const exegolOutput = document.getElementById('exegolOutput');
+console.log("Élément exegolOutput trouvé:", !!exegolOutput);
+
+// Réimplémentation directe des gestionnaires d'événements
+if (assumedBreachCheckbox) {
+    console.log("Attachement de l'événement change à assumedBreachCheckbox");
+    
+    // Test d'événement direct avec inline function
+    assumedBreachCheckbox.onclick = function() {
+        console.log("CLICK sur assumedBreach détecté!");
+    };
+    
+    // Utiliser addEventListener pour change
+    assumedBreachCheckbox.addEventListener('change', function(event) {
+        console.log("CHANGE sur assumedBreach détecté! Nouvelle valeur:", this.checked);
+        
+        if (breachCredentials) {
+            breachCredentials.style.display = this.checked ? 'block' : 'none';
+            console.log("breachCredentials display set to:", breachCredentials.style.display);
+        } else {
+            console.error("breachCredentials n'est pas trouvé!");
+        }
+    });
+}
+
+if (exegolModeCheckbox) {
+    console.log("Attachement de l'événement change à exegolModeCheckbox");
+    
+    exegolModeCheckbox.onclick = function() {
+        console.log("CLICK sur exegolMode détecté!");
+    };
+    
+    exegolModeCheckbox.addEventListener('change', function(event) {
+        console.log("CHANGE sur exegolMode détecté! Nouvelle valeur:", this.checked);
+        
+        // Mise à jour simplifiée pour déboguer
+        if (exegolOutput) {
+            exegolOutput.style.display = (this.checked && assumedBreachCheckbox && assumedBreachCheckbox.checked) ? 'block' : 'none';
+            console.log("exegolOutput display set to:", exegolOutput.style.display);
+        } else {
+            console.error("exegolOutput n'est pas trouvé!");
+        }
+    });
+}
+
+console.log("====== FIN DE L'INITIALISATION ======");
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM chargé, initialisation de l'application");
     
@@ -116,6 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const serviceCheckboxes = document.querySelectorAll('.service-checkbox');
     const copyMarkdownBtn = document.getElementById('copyMarkdown');
     const downloadMarkdownBtn = document.getElementById('downloadMarkdown');
+    
+    // Éléments pour Assumed Breach et Exegol Mode
+    const oneLinerElement = document.getElementById('oneLiner');
+    const copyOneLinerBtn = document.getElementById('copyOneLiner');
     
     // Événement pour le bouton "Générer le template"
     generateTemplateBtn.addEventListener('click', async function() {
@@ -259,5 +327,101 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Mise à jour du one-liner quand les champs changent
+    const usernameInput = document.getElementById('breachUsername');
+    const passwordInput = document.getElementById('breachPassword');
+    const domainInput = document.getElementById('breachDomain');
+
+    if (usernameInput) usernameInput.addEventListener('input', updateExegolOutput);
+    if (passwordInput) passwordInput.addEventListener('input', updateExegolOutput);
+    if (domainInput) domainInput.addEventListener('input', updateExegolOutput);
+
+    // Fonction pour afficher/masquer le mot de passe
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🔒';
+        });
+    }
+
+    // Fonction pour générer et afficher le one-liner Exegol
+    function updateExegolOutput() {
+        if (!assumedBreachCheckbox || !exegolModeCheckbox || !exegolOutput || !oneLinerElement) return;
+        
+        const isAssumedBreach = assumedBreachCheckbox.checked;
+        const isExegolMode = exegolModeCheckbox.checked;
+        
+        if (isAssumedBreach && isExegolMode) {
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value.trim() : '';
+            const domain = domainInput ? domainInput.value.trim() : '';
+            
+            if (username && password) {
+                // Générer le one-liner
+                let oneLinerText = `export USER="${username}" PASSWORD="${password}"`;
+                
+                if (domain) {
+                    oneLinerText += ` DOMAIN="${domain}"`;
+                }
+                
+                // Ajouter des variables supplémentaires utiles pour Exegol
+                const ipAddress = ipAddressInput ? ipAddressInput.value.trim() : '';
+                if (ipAddress) {
+                    oneLinerText += ` IP="${ipAddress}"`;
+                }
+                
+                // Afficher le one-liner
+                oneLinerElement.textContent = oneLinerText;
+                exegolOutput.style.display = 'block';
+            } else {
+                exegolOutput.style.display = 'none';
+            }
+        } else {
+            exegolOutput.style.display = 'none';
+        }
+    }
+
+    // Copier le one-liner dans le presse-papier
+    if (copyOneLinerBtn) {
+        copyOneLinerBtn.addEventListener('click', function() {
+            const oneLinerText = oneLinerElement.textContent;
+            
+            navigator.clipboard.writeText(oneLinerText)
+                .then(() => {
+                    alert('One-liner copié dans le presse-papier !');
+                })
+                .catch(err => {
+                    console.error('Erreur lors de la copie:', err);
+                    // Alternative pour les navigateurs qui ne supportent pas clipboard API
+                    const textarea = document.createElement('textarea');
+                    textarea.value = oneLinerText;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('One-liner copié dans le presse-papier !');
+                });
+        });
+    }
+    
     console.log("Initialisation terminée");
+
+    // Ajouter ceci à la fin de votre fonction DOMContentLoaded
+    console.log("État des éléments au chargement:");
+    console.log("- assumedBreachCheckbox:", assumedBreachCheckbox);
+    console.log("- breachCredentials:", breachCredentials);
+    console.log("- exegolModeCheckbox:", exegolModeCheckbox);
+    console.log("- exegolOutput:", exegolOutput);
+
+    // Test forcé de l'affichage (temporaire pour débugger)
+    if (breachCredentials) {
+        console.log("Test: forcer l'affichage des credentials");
+        breachCredentials.style.display = 'block';
+        setTimeout(() => {
+            console.log("Test: revenir à l'état normal");
+            breachCredentials.style.display = assumedBreachCheckbox && assumedBreachCheckbox.checked ? 'block' : 'none';
+        }, 3000);
+    }
 }); 

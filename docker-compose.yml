@@ -1,1 +1,14 @@
- 
+version: '3'
+
+services:
+  pentesting-template-generator:
+    build: .
+    container_name: pentesting-template-generator
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/usr/share/nginx/html
+    restart: unless-stopped
+
+volumes:
+  pentesting-template-generator: 

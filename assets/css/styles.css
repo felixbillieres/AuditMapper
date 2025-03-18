@@ -203,11 +203,12 @@ details pre {
 }
 
 .credentials-container {
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
     margin-top: 10px;
+    padding: 15px;
+    background-color: #f0f8ff;
+    border: 1px solid #cce0ff;
+    border-radius: 4px;
+    position: relative;
 }
 
 .toggle-password {
@@ -222,6 +223,17 @@ details pre {
 
 .form-group {
     position: relative;
+}
+
+/* Assurer que les champs d'identifiants s'affichent correctement */
+.credentials-container .form-group {
+    margin-bottom: 12px;
+}
+
+.credentials-container input[type="password"],
+.credentials-container input[type="text"] {
+    width: 100%;
+    padding-right: 40px; /* Espace pour le bouton toggle */
 }
 
 /* Ajouter les styles pour la section outils */
@@ -565,4 +577,220 @@ details pre {
 .footer-content p {
     margin: 0;
     font-size: 1rem;
+}
+
+/* Styles pour le mode Exegol */
+.exegol-output {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.one-liner {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+.toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 33px;
+    padding: 0;
+    font-size: 16px;
+}
+
+/* Styles pour le bouton de changement de thème */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 15px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Styles pour le mode sombre */
+.dark-theme {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+.dark-theme .form-section,
+.dark-theme .output-section,
+.dark-theme .tool-item,
+.dark-theme .tool-card {
+    background-color: #2a2a2a;
+    border-color: #444;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme h1, 
+.dark-theme h2, 
+.dark-theme h3 {
+    color: #e0e0e0;
+}
+
+.dark-theme h2 {
+    border-bottom-color: #3498db;
+}
+
+.dark-theme input[type="text"],
+.dark-theme input[type="password"] {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+.dark-theme input[type="text"]::placeholder,
+.dark-theme input[type="password"]::placeholder {
+    color: #888;
+}
+
+.dark-theme .credentials-container {
+    background-color: #333;
+    border-color: #444;
+}
+
+.dark-theme .markdown-preview {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme .markdown-preview pre {
+    background-color: #1a1a1a;
+    color: #ddd;
+}
+
+.dark-theme .markdown-preview code {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+.dark-theme .exegol-output {
+    background-color: #333;
+    border-color: #444;
+}
+
+.dark-theme .one-liner {
+    background-color: #1a1a1a;
+    color: #ddd;
+}
+
+.dark-theme .tool-list .tool-item {
+    border-color: #444;
+}
+
+.dark-theme code {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+/* Styles pour la page Privilege Escalation */
+.os-selector {
+    margin-bottom: 20px;
+}
+
+.os-selector label {
+    margin-right: 20px;
+    padding: 10px 20px;
+    border-radius: 4px;
+    background-color: #f0f2f5;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.os-selector input:checked + label {
+    background-color: #3498db;
+    color: white;
+}
+
+.privesc-section {
+    margin-bottom: 30px;
+}
+
+.copy-container {
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+.checklist-pre {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.privesc-guide {
+    background-color: #f0f7ff;
+    padding: 20px;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
+}
+
+.privesc-guide h3 {
+    color: #2c3e50;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.privesc-guide ol, .privesc-guide ul {
+    padding-left: 20px;
+}
+
+.privesc-guide li {
+    margin-bottom: 8px;
+}
+
+/* Styles pour le mode sombre de la page Privesc */
+.dark-theme .os-selector label {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+.dark-theme .os-selector input:checked + label {
+    background-color: #3498db;
+    color: white;
+}
+
+.dark-theme .checklist-pre {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme .privesc-guide {
+    background-color: #2a2a2a;
+    border-left-color: #3498db;
 }

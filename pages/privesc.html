@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide d'Escalade de Privilèges</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <h1>Guide d'Escalade de Privilèges</h1>
+            <nav class="main-nav">
+                <a href="/pages/index.html" class="tool-link">
+                    <i class="icon-tools">📝</i>
+                    <span>Générateur de Rapport</span>
+                </a>
+                <a href="/pages/tools.html" class="tool-link">
+                    <i class="icon-tools">🛠️</i>
+                    <span>Bibliothèque d'outils</span>
+                </a>
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌓</i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Sélection du système</h2>
+            <div class="radio-group os-selector">
+                <input type="radio" id="osLinux" name="osType" value="linux" checked>
+                <label for="osLinux">Linux</label>
+                
+                <input type="radio" id="osWindows" name="osType" value="windows">
+                <label for="osWindows">Windows</label>
+            </div>
+            
+            <button id="showChecklist" class="action-button">Afficher la checklist</button>
+        </div>
+
+        <!-- Checklist Linux -->
+        <div id="linuxChecklist" class="privesc-section">
+            <div class="form-section">
+                <h2>Checklist d'Escalade de Privilèges Linux</h2>
+                <div class="copy-container">
+                    <button id="copyLinuxChecklist" class="action-button">Copier la checklist</button>
+                </div>
+                <div class="privesc-content">
+                    <pre class="checklist-pre">
+## Enumération du système
+
+### Informations de base
+- [ ] `id` - Vérifier l'utilisateur et ses groupes
+- [ ] `hostname` - Nom de la machine
+- [ ] `uname -a` - Version du noyau
+- [ ] `cat /etc/os-release` - Distribution
+- [ ] `cat /proc/version` - Informations sur le kernel
+- [ ] `ps aux` - Processus en cours d'exécution
+
+### Enumération des utilisateurs et permissions
+- [ ] `cat /etc/passwd | cut -d: -f1` - Liste des utilisateurs
+- [ ] `grep -v -E "^#" /etc/passwd | awk -F: '$3 == 0 { print $1}'` - Comptes avec UID 0
+- [ ] `ls -la /home/` - Répertoires utilisateurs accessibles
+- [ ] `sudo -l` - Commandes exécutables avec sudo
+- [ ] `find / -perm -u=s -type f 2>/dev/null` - Fichiers SUID
+- [ ] `find / -perm -g=s -type f 2>/dev/null` - Fichiers SGID
+- [ ] `find / -type f -perm -o=w 2>/dev/null` - Fichiers world-writable
+
+### Informations réseau
+- [ ] `ifconfig` ou `ip a` - Interfaces réseau
+- [ ] `ip route` ou `route` - Table de routage
+- [ ] `netstat -antup` - Connexions établies et ports ouverts
+- [ ] `iptables -L` - Règles de pare-feu
+
+### Recherche de fichiers sensibles
+- [ ] `find / -name "*.conf" 2>/dev/null` - Fichiers de configuration
+- [ ] `find / -name "*.log" 2>/dev/null` - Fichiers de log
+- [ ] `find / -name "id_rsa*" 2>/dev/null` - Clés SSH privées
+- [ ] `find / -name "authorized_keys" 2>/dev/null` - Clés SSH autorisées
+- [ ] `find / -name ".bash_history" 2>/dev/null` - Historique bash
+- [ ] `grep -r "password" /etc/ 2>/dev/null` - Mots de passe dans /etc
+
+### Services et applications
+- [ ] `dpkg -l` ou `rpm -qa` - Packages installés
+- [ ] `find / -perm -o=x -type f 2>/dev/null` - Executables
+- [ ] `ls -la /opt` - Applications dans /opt
+- [ ] `ls -la /var/www` - Applications web
+- [ ] `ls -la /var/lib/mysql` - Bases de données MySQL
+- [ ] `ls -la /root` - Contenu de /root (si accessible)
+
+## Vecteurs d'exploitation courants
+
+### Kernel exploits
+- [ ] Rechercher des exploits pour la version du kernel
+- [ ] Utiliser searchsploit pour trouver des exploits
+
+### Exploits de services locaux
+- [ ] Vérifier les versions des services pour vulnérabilités connues
+- [ ] Chercher des exploits via searchsploit ou exploitdb
+
+### Exécution non standard
+- [ ] Vérifier les scripts dans les crontabs
+- [ ] Examiner les processus en cours
+
+### Problèmes de configuration
+- [ ] Fichiers de configuration mal configurés
+- [ ] Permissions incorrectes sur des fichiers sensibles
+</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist Windows -->
+        <div id="windowsChecklist" class="privesc-section" style="display: none;">
+            <div class="form-section">
+                <h2>Checklist d'Escalade de Privilèges Windows</h2>
+                <div class="copy-container">
+                    <button id="copyWindowsChecklist" class="action-button">Copier la checklist</button>
+                </div>
+                <div class="privesc-content">
+                    <pre class="checklist-pre">
+## Enumération du système Windows
+
+### Informations de base
+- [ ] `systeminfo` - Informations système détaillées
+- [ ] `hostname` - Nom de la machine
+- [ ] `whoami /all` - Informations sur l'utilisateur, groupes et privilèges
+- [ ] `net user` - Liste des utilisateurs locaux
+- [ ] `net localgroup administrators` - Membres du groupe admin local
+- [ ] `tasklist /v` - Processus en cours d'exécution
+
+### Enumération réseau
+- [ ] `ipconfig /all` - Interfaces réseau et DNS
+- [ ] `route print` - Table de routage
+- [ ] `netstat -ano` - Connexions établies et ports ouverts
+- [ ] `netsh firewall show state` - État du pare-feu
+- [ ] `net share` - Partages réseau
+- [ ] `net use` - Sessions réseau actives
+
+### Recherche d'informations sensibles
+- [ ] `dir /s *pass* == *cred* == *vnc* == *.config*` - Recherche de fichiers contenant des mots-clés sensibles
+- [ ] `findstr /si password *.xml *.ini *.txt` - Recherche de mots de passe
+- [ ] `reg query HKLM /f password /t REG_SZ /s` - Recherche de mots de passe dans le registre
+- [ ] `reg query HKCU /f password /t REG_SZ /s` - Recherche dans HKCU
+- [ ] `reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon"` - Identifiants autologon
+
+### Privilèges et vulnérabilités
+- [ ] `wmic qfe get Caption,Description,HotFixID,InstalledOn` - Patches de sécurité installés
+- [ ] `wmic product get name,version,vendor` - Logiciels installés
+- [ ] `accesschk.exe -uwcqv "Authenticated Users" *` - Services modifiables
+- [ ] `accesschk.exe -ucqv [service_name]` - Permissions sur un service
+- [ ] `icacls [file_or_directory]` - Permissions sur un fichier ou dossier
+- [ ] `schtasks /query /fo LIST /v` - Tâches planifiées
+
+### Active Directory (si applicable)
+- [ ] `net group /domain` - Groupes du domaine
+- [ ] `net user /domain` - Utilisateurs du domaine
+- [ ] `net group "Domain Admins" /domain` - Membres des admins du domaine
+- [ ] `nltest /dclist:[domain]` - Liste des contrôleurs de domaine
+
+## Vecteurs d'exploitation courants
+
+### Kernel Exploits
+- [ ] Vérifier les exploits connus pour la version Windows (MS16-032, etc.)
+- [ ] Utiliser Windows-Exploit-Suggester ou Sherlock pour identifier les vulnérabilités
+
+### Problèmes de configuration
+- [ ] Permissions incorrectes sur les services
+- [ ] Exécutables vulnérables avec des chemins sans guillemets
+- [ ] DLL Hijacking
+- [ ] AlwaysInstallElevated
+
+### Identifiants stockés
+- [ ] Identifiants dans les fichiers de configuration
+- [ ] Identifiants dans le registre
+- [ ] Identifiants dans les fichiers d'historique PowerShell
+</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide d'exploitation -->
+        <div class="form-section">
+            <h2>Guide d'Escalade de Privilèges</h2>
+            <div class="privesc-guide">
+                <h3>Méthode générale</h3>
+                <ol>
+                    <li>Commencer par une énumération complète du système</li>
+                    <li>Identifier les vecteurs potentiels d'escalade de privilèges</li>
+                    <li>Utiliser les outils appropriés selon la plateforme (PEASS-ng, etc.)</li>
+                    <li>Tester les vecteurs trouvés par ordre de probabilité</li>
+                    <li>Documenter toutes les étapes pour le rapport final</li>
+                </ol>
+
+                <h3>Outils recommandés</h3>
+                <ul>
+                    <li><strong>LinPEAS/WinPEAS</strong> - Scripts d'énumération automatisée</li>
+                    <li><strong>PSPY</strong> - Pour surveiller les processus sur Linux</li>
+                    <li><strong>PowerUp</strong> - Script PowerShell pour l'énumération Windows</li>
+                    <li><strong>LinEnum/Windows-privesc-check</strong> - Scripts d'énumération</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/privesc.js"></script>
+</body>
+</html> 

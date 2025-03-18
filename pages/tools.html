@@ -4,9 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outils de Pentest</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
+    <header class="main-header">
+        <div class="header-container">
+            <h1>Bibliothèque d'Outils de Pentest</h1>
+            <nav class="main-nav">
+                <a href="/pages/index.html" class="tool-link">
+                    <i class="icon-tools">📝</i>
+                    <span>Générateur de Rapport</span>
+                </a>
+                <a href="/pages/privesc.html" class="tool-link">
+                    <i class="icon-tools">🔑</i>
+                    <span>Guide Privesc</span>
+                </a>
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌓</i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
     <div class="container">
         <h1>Outils de Pentest</h1>
         <div class="tool-section">
@@ -39,6 +58,50 @@
                 </div>
             </div>
         </div>
+        <div class="tool-section">
+            <h2>Outils de Pivoting</h2>
+            <div class="tool-list">
+                <div class="tool-item">
+                    <h3>Ligolo-ng</h3>
+                    <p>Outil de pivoting moderne pour le tunneling.</p>
+                    <h4>Installation Agent</h4>
+                    <code>wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_agent_0.5.1_linux_amd64.tar.gz</code>
+                    <h4>Configuration du Proxy</h4>
+                    <code>sudo ip tuntap add user $(whoami) mode tun ligolo
+sudo ip link set ligolo up
+sudo ip route add [RÉSEAU_CIBLE] dev ligolo</code>
+                </div>
+                
+                <div class="tool-item">
+                    <h3>Chisel</h3>
+                    <p>Outil de tunneling TCP/UDP sur HTTP.</p>
+                    <h4>Installation</h4>
+                    <code>wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz</code>
+                    <h4>Utilisation</h4>
+                    <code># Sur la machine attaquante (serveur)
+./chisel server -p 8080 --reverse
+
+# Sur la machine cible (client)
+./chisel client [IP_ATTAQUANT]:8080 R:8001:127.0.0.1:8001</code>
+                </div>
+                
+                <div class="tool-item">
+                    <h3>Sshuttle</h3>
+                    <p>VPN transparent via SSH.</p>
+                    <h4>Installation</h4>
+                    <code>apt-get install sshuttle</code>
+                    <h4>Utilisation</h4>
+                    <code>sshuttle -r user@target_host 0.0.0.0/0 -x target_host</code>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+    <script src="/assets/js/theme.js"></script>
 </body>
 </html> 

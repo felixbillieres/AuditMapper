@@ -16,6 +16,13 @@
                     <i class="icon-tools">🛠️</i>
                     <span>Bibliothèque d'outils</span>
                 </a>
+                <a href="/pages/privesc.html" class="tool-link">
+                    <i class="icon-tools">🔑</i>
+                    <span>Guide Privesc</span>
+                </a>
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌓</i>
+                </button>
             </nav>
         </div>
     </header>
@@ -44,25 +51,51 @@
             </div>
 
             <div class="form-group">
+                <label>Système d'exploitation:</label>
+                <div class="radio-group">
+                    <input type="radio" id="osLinux" name="osType" value="linux" checked>
+                    <label for="osLinux">Linux</label>
+                    
+                    <input type="radio" id="osWindows" name="osType" value="windows">
+                    <label for="osWindows">Windows</label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px;">
+                <h3>Mode d'utilisation</h3>
+                
                 <div class="checkbox-container">
-                    <input type="checkbox" id="assumedBreach" name="assumedBreach">
+                    <input type="checkbox" id="assumedBreach" name="assumedBreach" onclick="document.getElementById('breachCredentials').style.display = this.checked ? 'block' : 'none';">
                     <label for="assumedBreach">Assumed Breach (j'ai déjà des identifiants)</label>
                 </div>
                 
-                <div id="breachCredentials" class="credentials-container" style="display: none;">
+                <div id="breachCredentials" class="credentials-container" style="display: none; padding: 15px; background: #f5f5f5;">
                     <div class="form-group">
                         <label for="breachUsername">Nom d'utilisateur:</label>
                         <input type="text" id="breachUsername" placeholder="Entrez le nom d'utilisateur">
                     </div>
                     <div class="form-group">
                         <label for="breachPassword">Mot de passe:</label>
-                        <input type="password" id="breachPassword" placeholder="Entrez le mot de passe">
-                        <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                        <div style="position: relative;">
+                            <input type="password" id="breachPassword" placeholder="Entrez le mot de passe">
+                            <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="breachDomain">Domaine (optionnel):</label>
                         <input type="text" id="breachDomain" placeholder="Entrez le domaine">
                     </div>
+                </div>
+                
+                <div class="checkbox-container" style="margin-top: 15px;">
+                    <input type="checkbox" id="exegolMode" name="exegolMode">
+                    <label for="exegolMode">Exegol Mode (générer un one-liner)</label>
+                </div>
+                
+                <div id="exegolOutput" class="exegol-output" style="display: none;">
+                    <h4>One-liner pour Exegol:</h4>
+                    <pre id="oneLiner" class="one-liner"></pre>
+                    <button id="copyOneLiner" class="action-button">Copier</button>
                 </div>
             </div>
             
@@ -155,5 +188,7 @@
         </div>
     </footer>
     <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/debug.js"></script>
+    <script src="/assets/js/theme.js"></script>
 </body>
 </html>
