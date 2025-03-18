@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Rapport de Vulnérabilités</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+    <!-- Bouton pour afficher/masquer la sidebar -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/index.html" class="sidebar-nav-link">
+                        <i>📝</i> Générateur de Rapport
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/vulnreport.html" class="sidebar-nav-link active">
+                        <i>🔒</i> Rapport de Vulnérabilités
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Header simplifié -->
+    <header id="main-header" class="main-header">
+        <div class="header-container">
+            <h1>Générateur de Rapport de Vulnérabilités</h1>
+            <button id="toggleTheme" class="theme-toggle">
+                <i class="icon-theme">🌓</i>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-content">
+        <div class="vuln-tabs">
+            <button class="tab-button active" data-tab="single-vuln">Vulnérabilité unique</button>
+            <button class="tab-button" data-tab="vuln-table">Tableau de vulnérabilités</button>
+        </div>
+        
+        <!-- Onglet 1: Générateur de vulnérabilité unique -->
+        <div id="single-vuln" class="tab-content active">
+            <div class="form-section">
+                <h2>Générateur de description de vulnérabilité</h2>
+                <p>Créez rapidement une description de vulnérabilité pour votre rapport.</p>
+                
+                <div class="form-group">
+                    <label for="vulnTitle">Titre de la vulnérabilité</label>
+                    <input type="text" id="vulnTitle" class="text-input" placeholder="Ex: Injection SQL dans le formulaire de connexion">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vulnSeverity">Criticité</label>
+                    <select id="vulnSeverity" class="select-input">
+                        <option value="critical">Critique</option>
+                        <option value="high">Élevée</option>
+                        <option value="medium" selected>Moyenne</option>
+                        <option value="low">Faible</option>
+                        <option value="info">Informative</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vulnCVSS">Score CVSS (optionnel)</label>
+                    <input type="text" id="vulnCVSS" class="text-input" placeholder="Ex: 7.5">
+                </div>
+                
+                <div class="form-group">
+                    <label>Captures d'écran</label>
+                    <div id="screenshotDropzone" class="screenshot-dropzone">
+                        <p>Déposez vos captures d'écran ici ou <button id="browseScreenshots" class="browse-button">parcourez</button></p>
+                        <input type="file" id="screenshotInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div id="screenshotPreview" class="screenshot-preview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customDescription">Description personnalisée (optionnel)</label>
+                    <textarea id="customDescription" class="text-area" rows="4" placeholder="Laissez vide pour utiliser du texte générique"></textarea>
+                </div>
+                
+                <button id="generateVuln" class="action-button">Générer la description</button>
+            </div>
+            
+            <div id="vulnOutput" class="form-section" style="display: none;">
+                <h2>Rapport généré</h2>
+                <div class="output-tabs">
+                    <button class="output-tab active" data-format="markdown">Markdown</button>
+                    <button class="output-tab" data-format="word">Format Word</button>
+                </div>
+                
+                <div class="copy-container">
+                    <button id="copyVuln" class="action-button">Copier</button>
+                    <button id="downloadVuln" class="action-button">Télécharger</button>
+                </div>
+                
+                <div id="vulnMarkdown" class="vuln-content code-block markdown-format active"></div>
+                <div id="vulnWord" class="vuln-content word-format"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 2: Générateur de tableau de vulnérabilités -->
+        <div id="vuln-table" class="tab-content">
+            <div class="form-section">
+                <h2>Générateur de tableau des vulnérabilités</h2>
+                <p>Créez un tableau récapitulatif des vulnérabilités pour votre rapport.</p>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="criticalCount">Critique</label>
+                        <input type="number" id="criticalCount" class="number-input" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="highCount">Élevée</label>
+                        <input type="number" id="highCount" class="number-input" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mediumCount">Moyenne</label>
+                        <input type="number" id="mediumCount" class="number-input" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lowCount">Faible</label>
+                        <input type="number" id="lowCount" class="number-input" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="infoCount">Informative</label>
+                        <input type="number" id="infoCount" class="number-input" value="0" min="0">
+                    </div>
+                </div>
+                
+                <button id="generateTable" class="action-button">Générer le tableau</button>
+            </div>
+            
+            <div id="tableOutput" class="form-section" style="display: none;">
+                <h2>Tableau généré</h2>
+                <div class="output-tabs">
+                    <button class="output-tab active" data-format="markdown">Markdown</button>
+                    <button class="output-tab" data-format="word">Format Word</button>
+                </div>
+                
+                <div class="copy-container">
+                    <button id="copyTable" class="action-button">Copier</button>
+                    <button id="downloadTable" class="action-button">Télécharger</button>
+                </div>
+                
+                <div id="tableMarkdown" class="vuln-content code-block markdown-format active"></div>
+                <div id="tableWord" class="vuln-content word-format"></div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+    
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/vulnreport.js"></script>
+</body>
+</html> 

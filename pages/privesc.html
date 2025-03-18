@@ -7,26 +7,66 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
-    <header class="main-header">
+    <!-- Bouton pour afficher/masquer la sidebar -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/index.html" class="sidebar-nav-link">
+                        <i>📝</i> Générateur de Rapport
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Header simplifié -->
+    <header id="main-header" class="main-header">
         <div class="header-container">
             <h1>Guide d'Escalade de Privilèges</h1>
-            <nav class="main-nav">
-                <a href="/pages/index.html" class="tool-link">
-                    <i class="icon-tools">📝</i>
-                    <span>Générateur de Rapport</span>
-                </a>
-                <a href="/pages/tools.html" class="tool-link">
-                    <i class="icon-tools">🛠️</i>
-                    <span>Bibliothèque d'outils</span>
-                </a>
-                <button id="toggleTheme" class="theme-toggle">
-                    <i class="icon-theme">🌓</i>
-                </button>
-            </nav>
+            <button id="toggleTheme" class="theme-toggle">
+                <i class="icon-theme">🌓</i>
+            </button>
         </div>
     </header>
-
-    <div class="container">
+    
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-content">
         <div class="form-section">
             <h2>Sélection du système</h2>
             <div class="radio-group os-selector">
@@ -210,6 +250,8 @@
             <p>Made with ❤️ by Elliot Belt</p>
         </div>
     </footer>
+    
+    <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/privesc.js"></script>
 </body>

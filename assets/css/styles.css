@@ -512,20 +512,27 @@ details pre {
 
 /* Styles pour le header amélioré */
 .main-header {
-    background: linear-gradient(to right, #2c3e50, #3498db);
-    color: white;
-    padding: 1.5rem 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    height: 60px;
+    z-index: 80;
+    transition: left 0.3s ease;
+}
+
+.main-header.full-width {
+    left: 0;
 }
 
 .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 100%;
+    padding: 0 20px;
 }
 
 .main-header h1 {
@@ -562,10 +569,15 @@ details pre {
     background-color: #2c3e50;
     color: white;
     padding: 1rem 0;
-    margin-top: 3rem;
+    margin-top: auto;
     text-align: center;
     border-top: 3px solid #3498db;
     width: 100%;
+    transition: margin-left 0.3s ease;
+}
+
+.main-footer.full-width {
+    margin-left: 0;
 }
 
 .footer-content {
@@ -614,23 +626,8 @@ details pre {
 .theme-toggle {
     background: none;
     border: none;
-    color: white;
-    font-size: 1.5rem;
     cursor: pointer;
-    margin-left: 15px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.15);
-    transition: background-color 0.3s;
-}
-
-.theme-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.25);
+    font-size: 20px;
 }
 
 /* Styles pour le mode sombre */
@@ -793,4 +790,368 @@ details pre {
 .dark-theme .privesc-guide {
     background-color: #2a2a2a;
     border-left-color: #3498db;
+}
+
+/* Styles pour la page Hosts Generator */
+.nxc-output {
+    width: 100%;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    resize: vertical;
+}
+
+.hosts-content {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Style pour le mode sombre */
+.dark-theme .nxc-output {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme .hosts-content {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+/* Styles pour Grep Master Parser */
+.grep-output {
+    width: 100%;
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    resize: vertical;
+}
+
+.extraction-content {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.extraction-buttons {
+    margin-top: 20px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.select-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    font-size: 14px;
+}
+
+.extraction-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.accordion {
+    margin-top: 15px;
+}
+
+.accordion-item {
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #f0f2f5;
+    border: none;
+    text-align: left;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.accordion-header:after {
+    content: "+";
+    font-size: 18px;
+}
+
+.accordion-header.active:after {
+    content: "−";
+}
+
+.accordion-content {
+    display: none;
+    padding: 15px;
+    background-color: #fff;
+}
+
+/* Mode sombre pour le Grep Master */
+.dark-theme .grep-output,
+.dark-theme .select-input {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme .extraction-content {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme .accordion-item {
+    border-color: #444;
+}
+
+.dark-theme .accordion-header {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+.dark-theme .accordion-content {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Styles pour la sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 250px;
+    background-color: #2c3e50;
+    color: #fff;
+    padding-top: 60px;
+    transition: transform 0.3s ease;
+    z-index: 90;
+    overflow-y: auto;
+}
+
+.sidebar-hidden {
+    transform: translateX(-250px);
+}
+
+.sidebar-toggle {
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.sidebar-toggle i {
+    font-size: 20px;
+}
+
+.sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-header h2 {
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+}
+
+.sidebar-content {
+    padding: 20px 0;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav-item {
+    margin-bottom: 5px;
+}
+
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.sidebar-nav-link:hover {
+    background-color: #34495e;
+}
+
+.sidebar-nav-link.active {
+    background-color: #3498db;
+}
+
+.sidebar-nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-category {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #99aabb;
+    text-transform: uppercase;
+    margin-top: 15px;
+}
+
+/* Ajustement du contenu principal pour la sidebar */
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    padding-top: 80px;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.full-width {
+    margin-left: 0;
+}
+
+/* Ajustements pour le mode responsive */
+@media screen and (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-250px);
+    }
+    
+    .sidebar-visible {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .main-header {
+        left: 0;
+    }
+}
+
+/* Mode sombre pour la sidebar */
+.dark-theme .sidebar {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+.dark-theme .sidebar-nav-link:hover {
+    background-color: #333;
+}
+
+.dark-theme .sidebar-nav-link.active {
+    background-color: #2980b9;
+}
+
+.dark-theme .main-header {
+    background-color: #222;
+    color: #e0e0e0;
+}
+
+.dark-theme .theme-toggle {
+    color: #e0e0e0;
+}
+
+/* Styles pour la page d'accueil */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.feature-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    text-decoration: none;
+    color: #333;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.feature-card h2 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.feature-card p {
+    margin: 0;
+    color: #666;
+}
+
+/* Mode sombre pour les cartes */
+.dark-theme .feature-card {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+.dark-theme .feature-card h2 {
+    color: #ecf0f1;
+}
+
+.dark-theme .feature-card p {
+    color: #bbb;
 }

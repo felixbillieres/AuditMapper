@@ -8,177 +8,219 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <header class="main-header">
+    <!-- Bouton pour afficher/masquer la sidebar -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/index.html" class="sidebar-nav-link">
+                        <i>📝</i> Générateur de Rapport
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Header simplifié -->
+    <header id="main-header" class="main-header">
         <div class="header-container">
             <h1>Générateur de Rapport de Pentest</h1>
-            <nav class="main-nav">
-                <a href="/pages/tools.html" class="tool-link">
-                    <i class="icon-tools">🛠️</i>
-                    <span>Bibliothèque d'outils</span>
-                </a>
-                <a href="/pages/privesc.html" class="tool-link">
-                    <i class="icon-tools">🔑</i>
-                    <span>Guide Privesc</span>
-                </a>
-                <button id="toggleTheme" class="theme-toggle">
-                    <i class="icon-theme">🌓</i>
-                </button>
-            </nav>
+            <button id="toggleTheme" class="theme-toggle">
+                <i class="icon-theme">🌓</i>
+            </button>
         </div>
     </header>
-
-    <div class="container">
-        <div class="form-section">
-            <h2>Informations de base</h2>
-            <div class="form-group">
-                <label for="boxName">Nom de la box:</label>
-                <input type="text" id="boxName" placeholder="Entrez le nom de la box">
-            </div>
-            <div class="form-group">
-                <label for="ipAddress">Adresse IP:</label>
-                <input type="text" id="ipAddress" placeholder="Entrez l'adresse IP">
-            </div>
-            
-            <div class="form-group">
-                <label>Type de template:</label>
-                <div class="radio-group">
-                    <input type="radio" id="templateStandard" name="templateType" value="standard" checked>
-                    <label for="templateStandard">Template Standard</label>
-                    
-                    <input type="radio" id="templateAD" name="templateType" value="ad">
-                    <label for="templateAD">Template Active Directory</label>
+    
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-content">
+        <div class="container">
+            <div class="form-section">
+                <h2>Informations de base</h2>
+                <div class="form-group">
+                    <label for="boxName">Nom de la box:</label>
+                    <input type="text" id="boxName" placeholder="Entrez le nom de la box">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label>Système d'exploitation:</label>
-                <div class="radio-group">
-                    <input type="radio" id="osLinux" name="osType" value="linux" checked>
-                    <label for="osLinux">Linux</label>
-                    
-                    <input type="radio" id="osWindows" name="osType" value="windows">
-                    <label for="osWindows">Windows</label>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px;">
-                <h3>Mode d'utilisation</h3>
-                
-                <div class="checkbox-container">
-                    <input type="checkbox" id="assumedBreach" name="assumedBreach" onclick="document.getElementById('breachCredentials').style.display = this.checked ? 'block' : 'none';">
-                    <label for="assumedBreach">Assumed Breach (j'ai déjà des identifiants)</label>
+                <div class="form-group">
+                    <label for="ipAddress">Adresse IP:</label>
+                    <input type="text" id="ipAddress" placeholder="Entrez l'adresse IP">
                 </div>
                 
-                <div id="breachCredentials" class="credentials-container" style="display: none; padding: 15px; background: #f5f5f5;">
-                    <div class="form-group">
-                        <label for="breachUsername">Nom d'utilisateur:</label>
-                        <input type="text" id="breachUsername" placeholder="Entrez le nom d'utilisateur">
+                <div class="form-group">
+                    <label>Type de template:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="templateStandard" name="templateType" value="standard" checked>
+                        <label for="templateStandard">Template Standard</label>
+                        
+                        <input type="radio" id="templateAD" name="templateType" value="ad">
+                        <label for="templateAD">Template Active Directory</label>
                     </div>
-                    <div class="form-group">
-                        <label for="breachPassword">Mot de passe:</label>
-                        <div style="position: relative;">
-                            <input type="password" id="breachPassword" placeholder="Entrez le mot de passe">
-                            <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Système d'exploitation:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="osLinux" name="osType" value="linux" checked>
+                        <label for="osLinux">Linux</label>
+                        
+                        <input type="radio" id="osWindows" name="osType" value="windows">
+                        <label for="osWindows">Windows</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px; border: 1px solid #eee; padding: 15px;">
+                    <h3>Mode d'utilisation</h3>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="assumedBreach" name="assumedBreach" onclick="document.getElementById('breachCredentials').style.display = this.checked ? 'block' : 'none';">
+                        <label for="assumedBreach">Assumed Breach (j'ai déjà des identifiants)</label>
+                    </div>
+                    
+                    <div id="breachCredentials" class="credentials-container" style="display: none; padding: 15px; background: #f5f5f5;">
+                        <div class="form-group">
+                            <label for="breachUsername">Nom d'utilisateur:</label>
+                            <input type="text" id="breachUsername" placeholder="Entrez le nom d'utilisateur">
+                        </div>
+                        <div class="form-group">
+                            <label for="breachPassword">Mot de passe:</label>
+                            <div style="position: relative;">
+                                <input type="password" id="breachPassword" placeholder="Entrez le mot de passe">
+                                <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="breachDomain">Domaine (optionnel):</label>
+                            <input type="text" id="breachDomain" placeholder="Entrez le domaine">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="breachDomain">Domaine (optionnel):</label>
-                        <input type="text" id="breachDomain" placeholder="Entrez le domaine">
+                    
+                    <div class="checkbox-container" style="margin-top: 15px;">
+                        <input type="checkbox" id="exegolMode" name="exegolMode">
+                        <label for="exegolMode">Exegol Mode (générer un one-liner)</label>
+                    </div>
+                    
+                    <div id="exegolOutput" class="exegol-output" style="display: none;">
+                        <h4>One-liner pour Exegol:</h4>
+                        <pre id="oneLiner" class="one-liner"></pre>
+                        <button id="copyOneLiner" class="action-button">Copier</button>
                     </div>
                 </div>
                 
-                <div class="checkbox-container" style="margin-top: 15px;">
-                    <input type="checkbox" id="exegolMode" name="exegolMode">
-                    <label for="exegolMode">Exegol Mode (générer un one-liner)</label>
+                <button id="generateTemplate">Générer le template</button>
+            </div>
+
+            <div id="serviceSection" class="form-section">
+                <h2>Services détectés</h2>
+                <p>Cochez les services découverts lors de votre scan Nmap:</p>
+                
+                <div class="service-list">
+                    <div class="service-item">
+                        <input type="checkbox" id="http" class="service-checkbox" data-service="http">
+                        <label for="http">HTTP/HTTPS</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="ftp" class="service-checkbox" data-service="ftp">
+                        <label for="ftp">FTP</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="ssh" class="service-checkbox" data-service="ssh">
+                        <label for="ssh">SSH</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="smb" class="service-checkbox" data-service="smb">
+                        <label for="smb">SMB/Samba</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="mysql" class="service-checkbox" data-service="mysql">
+                        <label for="mysql">MySQL</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="dns" class="service-checkbox" data-service="dns">
+                        <label for="dns">DNS</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="rpc" class="service-checkbox" data-service="rpc">
+                        <label for="rpc">RPC</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="mssql" class="service-checkbox" data-service="mssql">
+                        <label for="mssql">MSSQL</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="ldap" class="service-checkbox" data-service="ldap">
+                        <label for="ldap">LDAP</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="activedirectory" class="service-checkbox" data-service="activedirectory">
+                        <label for="activedirectory">Active Directory</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="snmp" class="service-checkbox" data-service="snmp">
+                        <label for="snmp">SNMP</label>
+                    </div>
+                    <div class="service-item">
+                        <input type="checkbox" id="smtp" class="service-checkbox" data-service="smtp">
+                        <label for="smtp">SMTP</label>
+                    </div>
                 </div>
                 
-                <div id="exegolOutput" class="exegol-output" style="display: none;">
-                    <h4>One-liner pour Exegol:</h4>
-                    <pre id="oneLiner" class="one-liner"></pre>
-                    <button id="copyOneLiner" class="action-button">Copier</button>
-                </div>
+                <button id="updateReport">Mettre à jour le rapport</button>
             </div>
-            
-            <button id="generateTemplate">Générer le template</button>
-        </div>
 
-        <div id="serviceSection" class="form-section">
-            <h2>Services détectés</h2>
-            <p>Cochez les services découverts lors de votre scan Nmap:</p>
-            
-            <div class="service-list">
-                <div class="service-item">
-                    <input type="checkbox" id="http" class="service-checkbox" data-service="http">
-                    <label for="http">HTTP/HTTPS</label>
+            <!-- Nouvelle section de prévisualisation -->
+            <div id="templatePreviewSection" class="form-section" style="display: none;">
+                <h2>Prévisualisation du Template</h2>
+                <div class="buttons-row">
+                    <button id="copyMarkdown" class="action-button">Copier le Markdown</button>
+                    <button id="copyObsidian" class="action-button">Copier pour Obsidian</button>
+                    <button id="downloadMarkdown" class="action-button">Télécharger le Markdown</button>
                 </div>
-                <div class="service-item">
-                    <input type="checkbox" id="ftp" class="service-checkbox" data-service="ftp">
-                    <label for="ftp">FTP</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="ssh" class="service-checkbox" data-service="ssh">
-                    <label for="ssh">SSH</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="smb" class="service-checkbox" data-service="smb">
-                    <label for="smb">SMB/Samba</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="mysql" class="service-checkbox" data-service="mysql">
-                    <label for="mysql">MySQL</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="dns" class="service-checkbox" data-service="dns">
-                    <label for="dns">DNS</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="rpc" class="service-checkbox" data-service="rpc">
-                    <label for="rpc">RPC</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="mssql" class="service-checkbox" data-service="mssql">
-                    <label for="mssql">MSSQL</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="ldap" class="service-checkbox" data-service="ldap">
-                    <label for="ldap">LDAP</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="activedirectory" class="service-checkbox" data-service="activedirectory">
-                    <label for="activedirectory">Active Directory</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="snmp" class="service-checkbox" data-service="snmp">
-                    <label for="snmp">SNMP</label>
-                </div>
-                <div class="service-item">
-                    <input type="checkbox" id="smtp" class="service-checkbox" data-service="smtp">
-                    <label for="smtp">SMTP</label>
-                </div>
+                <div id="markdownPreview" class="markdown-preview"></div>
             </div>
-            
-            <button id="updateReport">Mettre à jour le rapport</button>
-        </div>
 
-        <!-- Nouvelle section de prévisualisation -->
-        <div id="templatePreviewSection" class="form-section" style="display: none;">
-            <h2>Prévisualisation du Template</h2>
-            <div class="buttons-row">
-                <button id="copyMarkdown" class="action-button">Copier le Markdown</button>
-                <button id="copyObsidian" class="action-button">Copier pour Obsidian</button>
-                <button id="downloadMarkdown" class="action-button">Télécharger le Markdown</button>
+            <div id="reportOutput" class="output-section">
+                <!-- Le contenu Markdown sera injecté ici -->
             </div>
-            <div id="markdownPreview" class="markdown-preview"></div>
-        </div>
 
-        <div id="reportOutput" class="output-section">
-            <!-- Le contenu Markdown sera injecté ici -->
-        </div>
-
-        <div class="form-section">
-            <h2>Test de chargement</h2>
-            <button id="testMarkdown">Tester le chargement Markdown</button>
-            <div id="testOutput" style="margin-top: 15px;"></div>
+            <div class="form-section">
+                <h2>Test de chargement</h2>
+                <button id="testMarkdown">Tester le chargement Markdown</button>
+                <div id="testOutput" style="margin-top: 15px;"></div>
+            </div>
         </div>
     </div>
     
@@ -187,8 +229,10 @@
             <p>Made with ❤️ by Elliot Belt</p>
         </div>
     </footer>
+    
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/main.js"></script>
     <script src="/assets/js/debug.js"></script>
-    <script src="/assets/js/theme.js"></script>
 </body>
 </html>

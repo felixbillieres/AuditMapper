@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pentest Tools - Accueil</title>
+    <title>Générateur de /etc/hosts</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
@@ -58,7 +58,7 @@
     <!-- Header simplifié -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>Pentest Tools</h1>
+            <h1>Générateur de /etc/hosts</h1>
             <button id="toggleTheme" class="theme-toggle">
                 <i class="icon-theme">🌓</i>
             </button>
@@ -67,41 +67,39 @@
     
     <!-- Contenu principal -->
     <div id="main-content" class="main-content">
-        <div class="container">
-            <h1>Bienvenue dans la boîte à outils de pentest</h1>
-            <p>Cette application contient une collection d'outils pour faciliter vos tests d'intrusion.</p>
+        <div class="form-section">
+            <h2>Générateur d'entrées pour /etc/hosts</h2>
+            <p>Collez la sortie de votre scan nxc (p.ex. <code>nxc smb 10.10.10.0/24</code>) ci-dessous :</p>
             
-            <div class="card-container">
-                <a href="/pages/index.html" class="feature-card">
-                    <div class="card-icon">📝</div>
-                    <h2>Générateur de Rapport</h2>
-                    <p>Créez facilement des rapports de test d'intrusion en Markdown</p>
-                </a>
-                
-                <a href="/pages/tools.html" class="feature-card">
-                    <div class="card-icon">🛠️</div>
-                    <h2>Bibliothèque d'Outils</h2>
-                    <p>Accédez à une collection de commandes et outils essentiels</p>
-                </a>
-                
-                <a href="/pages/privesc.html" class="feature-card">
-                    <div class="card-icon">🔑</div>
-                    <h2>Guide Privesc</h2>
-                    <p>Checklists pour l'escalade de privilèges sur Windows et Linux</p>
-                </a>
-                
-                <a href="/pages/hostsmaker.html" class="feature-card">
-                    <div class="card-icon">🌐</div>
-                    <h2>/etc/hosts Maker</h2>
-                    <p>Générez facilement des entrées pour votre fichier hosts</p>
-                </a>
-                
-                <a href="/pages/grepmaster.html" class="feature-card">
-                    <div class="card-icon">🔍</div>
-                    <h2>Grep Master</h2>
-                    <p>Extrayez facilement des informations à partir d'outputs divers</p>
-                </a>
+            <div class="form-group">
+                <textarea id="nxcOutput" class="nxc-output" rows="10" placeholder="SMB         192.168.1.101    445    DC2012A          [*] Windows Server 2012 R2 Standard 9600 x64 (name:DC2012A) (domain:OCEAN) (signing:True) (SMBv1:True)"></textarea>
             </div>
+            
+            <div class="form-group">
+                <label>Options :</label>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeComments" checked>
+                    <label for="includeComments">Inclure les commentaires</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeHeader" checked>
+                    <label for="includeHeader">Inclure l'en-tête</label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeDomainOnly">
+                    <label for="includeDomainOnly">Ajouter une entrée pour le domaine uniquement</label>
+                </div>
+            </div>
+            
+            <button id="generateHosts" class="action-button">Générer les entrées /etc/hosts</button>
+        </div>
+        
+        <div id="hostsOutput" class="form-section" style="display: none;">
+            <h2>Entrées générées pour /etc/hosts</h2>
+            <div class="copy-container">
+                <button id="copyHosts" class="action-button">Copier</button>
+            </div>
+            <pre id="hostsContent" class="hosts-content"></pre>
         </div>
     </div>
     
@@ -113,5 +111,6 @@
     
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/hostsmaker.js"></script>
 </body>
 </html> 

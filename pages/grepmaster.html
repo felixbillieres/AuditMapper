@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grep Master Parser</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+    <!-- Bouton pour afficher/masquer la sidebar -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </div>
+        
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/index.html" class="sidebar-nav-link">
+                        <i>📝</i> Générateur de Rapport
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Header simplifié -->
+    <header id="main-header" class="main-header">
+        <div class="header-container">
+            <h1>Grep Master Parser</h1>
+            <button id="toggleTheme" class="theme-toggle">
+                <i class="icon-theme">🌓</i>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-content">
+        <div class="form-section">
+            <h2>Analyseur intelligent d'outputs</h2>
+            <p>Collez votre output brut ci-dessous et sélectionnez le type pour extraire les informations utiles:</p>
+            
+            <div class="form-group">
+                <label for="outputType">Type d'output:</label>
+                <select id="outputType" class="select-input">
+                    <option value="secretsdump">Secretsdump</option>
+                    <option value="sam">SAM dump</option>
+                    <option value="lsass">LSASS dump</option>
+                    <option value="rpcclient">RPC Enum (enumdomusers)</option>
+                    <option value="hashcat">Hashcat potfile</option>
+                    <option value="ldap">LDAP query</option>
+                    <option value="passwd">Linux /etc/passwd</option>
+                    <option value="shadow">Linux /etc/shadow</option>
+                    <option value="generic">Output générique</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <textarea id="rawOutput" class="grep-output" rows="12" placeholder="Collez ici l'output brut de votre commande..."></textarea>
+            </div>
+            
+            <div class="extraction-buttons">
+                <h3>Extractions disponibles:</h3>
+                <div class="button-group">
+                    <button id="extractUsers" class="action-button">
+                        <i class="fas fa-user"></i> Extraire les utilisateurs
+                    </button>
+                    <button id="extractHashes" class="action-button">
+                        <i class="fas fa-key"></i> Extraire les hashes
+                    </button>
+                    <button id="extractPasswords" class="action-button">
+                        <i class="fas fa-unlock"></i> Extraire les mots de passe
+                    </button>
+                    <button id="extractIps" class="action-button">
+                        <i class="fas fa-network-wired"></i> Extraire les IPs
+                    </button>
+                    <button id="extractEmails" class="action-button">
+                        <i class="fas fa-envelope"></i> Extraire les emails
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="extractionOutput" class="form-section" style="display: none;">
+            <h2 id="extractionTitle">Résultat de l'extraction</h2>
+            <div class="extraction-info">
+                <p id="extractionCount">0 élément(s) trouvé(s)</p>
+                <div class="copy-container">
+                    <button id="copyExtraction" class="action-button">Copier</button>
+                    <button id="saveExtraction" class="action-button">Télécharger</button>
+                </div>
+            </div>
+            <pre id="extractionContent" class="extraction-content"></pre>
+        </div>
+        
+        <div class="form-section">
+            <h2>Référence des formats reconnus</h2>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-header">Secretsdump - Format des hashes NT/NTLM</button>
+                    <div class="accordion-content">
+                        <p>Exemple: <code>Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</code></p>
+                        <p>Format: <code>username:rid:lm-hash:nt-hash:::</code></p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">RPC Enum - Format des utilisateurs</button>
+                    <div class="accordion-content">
+                        <p>Exemple: <code>user:[0x3e8] rid:0x3e9 User: Alice</code></p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">Linux /etc/passwd</button>
+                    <div class="accordion-content">
+                        <p>Exemple: <code>user:x:1000:1000:User Name,,,:/home/user:/bin/bash</code></p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">Hashcat potfile</button>
+                    <div class="accordion-content">
+                        <p>Exemple: <code>31d6cfe0d16ae931b73c59d7e0c089c0:password123</code></p>
+                        <p>Format: <code>hash:plaintext</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+    
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/grepmaster.js"></script>
+</body>
+</html> 
