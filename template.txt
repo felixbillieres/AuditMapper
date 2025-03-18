@@ -1,0 +1,19 @@
+# Service Name
+
+## Description
+Brève description du service et de son importance.
+
+## Commandes
+Liste des commandes utiles pour l'exploitation du service.
+
+```bash
+# Commande 1
+commande --option
+
+# Commande 2
+autre_commande --option
+```
+
+## Étapes d'exploitation
+1. Étape 1: Description de l'étape.
+2. Étape 2: Description de l'étape.

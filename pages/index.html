@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Rapport de Pentest</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <h1>Générateur de Rapport de Pentest</h1>
+            <nav class="main-nav">
+                <a href="/pages/tools.html" class="tool-link">
+                    <i class="icon-tools">🛠️</i>
+                    <span>Bibliothèque d'outils</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Informations de base</h2>
+            <div class="form-group">
+                <label for="boxName">Nom de la box:</label>
+                <input type="text" id="boxName" placeholder="Entrez le nom de la box">
+            </div>
+            <div class="form-group">
+                <label for="ipAddress">Adresse IP:</label>
+                <input type="text" id="ipAddress" placeholder="Entrez l'adresse IP">
+            </div>
+            
+            <div class="form-group">
+                <label>Type de template:</label>
+                <div class="radio-group">
+                    <input type="radio" id="templateStandard" name="templateType" value="standard" checked>
+                    <label for="templateStandard">Template Standard</label>
+                    
+                    <input type="radio" id="templateAD" name="templateType" value="ad">
+                    <label for="templateAD">Template Active Directory</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="assumedBreach" name="assumedBreach">
+                    <label for="assumedBreach">Assumed Breach (j'ai déjà des identifiants)</label>
+                </div>
+                
+                <div id="breachCredentials" class="credentials-container" style="display: none;">
+                    <div class="form-group">
+                        <label for="breachUsername">Nom d'utilisateur:</label>
+                        <input type="text" id="breachUsername" placeholder="Entrez le nom d'utilisateur">
+                    </div>
+                    <div class="form-group">
+                        <label for="breachPassword">Mot de passe:</label>
+                        <input type="password" id="breachPassword" placeholder="Entrez le mot de passe">
+                        <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="breachDomain">Domaine (optionnel):</label>
+                        <input type="text" id="breachDomain" placeholder="Entrez le domaine">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generateTemplate">Générer le template</button>
+        </div>
+
+        <div id="serviceSection" class="form-section">
+            <h2>Services détectés</h2>
+            <p>Cochez les services découverts lors de votre scan Nmap:</p>
+            
+            <div class="service-list">
+                <div class="service-item">
+                    <input type="checkbox" id="http" class="service-checkbox" data-service="http">
+                    <label for="http">HTTP/HTTPS</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="ftp" class="service-checkbox" data-service="ftp">
+                    <label for="ftp">FTP</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="ssh" class="service-checkbox" data-service="ssh">
+                    <label for="ssh">SSH</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="smb" class="service-checkbox" data-service="smb">
+                    <label for="smb">SMB/Samba</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="mysql" class="service-checkbox" data-service="mysql">
+                    <label for="mysql">MySQL</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="dns" class="service-checkbox" data-service="dns">
+                    <label for="dns">DNS</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="rpc" class="service-checkbox" data-service="rpc">
+                    <label for="rpc">RPC</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="mssql" class="service-checkbox" data-service="mssql">
+                    <label for="mssql">MSSQL</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="ldap" class="service-checkbox" data-service="ldap">
+                    <label for="ldap">LDAP</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="activedirectory" class="service-checkbox" data-service="activedirectory">
+                    <label for="activedirectory">Active Directory</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="snmp" class="service-checkbox" data-service="snmp">
+                    <label for="snmp">SNMP</label>
+                </div>
+                <div class="service-item">
+                    <input type="checkbox" id="smtp" class="service-checkbox" data-service="smtp">
+                    <label for="smtp">SMTP</label>
+                </div>
+            </div>
+            
+            <button id="updateReport">Mettre à jour le rapport</button>
+        </div>
+
+        <!-- Nouvelle section de prévisualisation -->
+        <div id="templatePreviewSection" class="form-section" style="display: none;">
+            <h2>Prévisualisation du Template</h2>
+            <div class="buttons-row">
+                <button id="copyMarkdown" class="action-button">Copier le Markdown</button>
+                <button id="copyObsidian" class="action-button">Copier pour Obsidian</button>
+                <button id="downloadMarkdown" class="action-button">Télécharger le Markdown</button>
+            </div>
+            <div id="markdownPreview" class="markdown-preview"></div>
+        </div>
+
+        <div id="reportOutput" class="output-section">
+            <!-- Le contenu Markdown sera injecté ici -->
+        </div>
+
+        <div class="form-section">
+            <h2>Test de chargement</h2>
+            <button id="testMarkdown">Tester le chargement Markdown</button>
+            <div id="testOutput" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>
