@@ -638,79 +638,456 @@ details pre {
 
 /* Styles pour le mode sombre */
 .dark-theme {
-    background-color: var(--dark-body-bg, #212529); /* Fond principal */
-    color: var(--dark-text-color, #e0e0e0); /* Texte par défaut */
+    /* Couleurs de base */
+    --dark-bg-color: #1e1e1e; /* Fond principal plus sombre */
+    --dark-text-color: #e0e0e0; /* Texte principal clair */
+    --dark-text-color-muted: #adb5bd; /* Texte secondaire/gris */
+    --dark-text-color-emphasis: #ffffff; /* Texte très contrasté (titres, actif) */
+    --dark-heading-color: #ffffff; /* Couleur des titres principaux */
+
+    /* Couleurs des panneaux/cartes */
+    --dark-card-bg: #2c2f33; /* Fond des cartes/sections */
+    --dark-panel-bg: #25282c; /* Fond des panneaux latéraux */
+    --dark-panel-section-bg: #36393f; /* Fond sections internes panneaux (ex: credentials) */
+
+    /* Couleurs des bordures */
+    --dark-border-color: #40444b; /* Bordure principale (cartes, etc.) */
+    --dark-border-color-light: #5a6268; /* Bordure plus claire (inputs, etc.) */
+
+    /* Couleurs des inputs/formulaires */
+    --dark-input-bg-color: #40444b; /* Fond des inputs */
+    --dark-input-border-color: var(--dark-border-color-light);
+    --dark-input-text-color: var(--dark-text-color);
+    --dark-input-placeholder-color: var(--dark-text-color-muted);
+
+    /* Couleurs des boutons */
+    --dark-primary-color: #0d6efd; /* Bleu Bootstrap */
+    --dark-primary-border: #0d6efd;
+    --dark-primary-hover-bg: #0b5ed7;
+    --dark-primary-hover-border: #0a58ca;
+
+    --dark-secondary-color: #6c757d; /* Gris Bootstrap */
+    --dark-secondary-border: #6c757d;
+    --dark-secondary-hover-bg: #5c636a;
+    --dark-secondary-hover-border: #565e64;
+    --dark-button-secondary-bg: var(--dark-secondary-color); /* Alias pour compatibilité */
+    --dark-button-secondary-color: #ffffff;
+
+    --dark-danger-color: #dc3545; /* Rouge Bootstrap */
+    --dark-danger-border: #dc3545;
+    --dark-danger-hover-bg: #bb2d3b;
+    --dark-danger-hover-border: #b02a37;
+
+    --dark-success-color: #198754; /* Vert Bootstrap */
+    --dark-success-border: #198754;
+    --dark-success-hover-bg: #157347;
+    --dark-success-hover-border: #146c43;
+
+    --dark-info-color: #0dcaf0; /* Cyan Bootstrap */
+    --dark-info-border: #0dcaf0;
+    --dark-info-hover-bg: #31d2f2;
+    --dark-info-hover-border: #25cff2;
+
+    /* Couleurs spécifiques UI */
+    --dark-link-color: #58a6ff; /* Liens clairs */
+    --dark-link-hover-color: #80baff;
+    --dark-tab-hover-bg: #36393f; /* Survol onglet */
+    --dark-code-bg: #282c34; /* Fond blocs de code */
+    --dark-code-text: #abb2bf; /* Texte blocs de code */
+    --dark-blockquote-border: var(--dark-border-color-light);
+    --dark-blockquote-text: var(--dark-text-color-muted);
+    --dark-table-border: var(--dark-border-color-light);
+    --dark-table-stripe-bg: var(--dark-panel-section-bg);
+
+    /* Application des couleurs de base */
+    background-color: var(--dark-bg-color);
+    color: var(--dark-text-color);
 }
 
-.dark-theme .form-section,
-.dark-theme .output-section,
-.dark-theme .tool-item,
-.dark-theme .tool-card {
-    background-color: var(--dark-panel-bg-color, #2f3136);
-    border-color: var(--dark-border-color, #40444b);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+/* --- Styles Généraux Dark --- */
+body.dark-theme h1, body.dark-theme h2, body.dark-theme h3, body.dark-theme h4, body.dark-theme h5, body.dark-theme h6 {
+    color: var(--dark-heading-color);
+}
+body.dark-theme a {
+    color: var(--dark-link-color);
+}
+body.dark-theme a:hover {
+    color: var(--dark-link-hover-color);
+}
+body.dark-theme hr {
+    border-top-color: var(--dark-border-color);
+}
+body.dark-theme code { /* Code inline */
+    color: #e8bf6a; /* Couleur spécifique pour code inline */
+    background-color: rgba(171, 178, 191, 0.1); /* Fond très léger */
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+body.dark-theme pre { /* Blocs de code */
+    background-color: var(--dark-code-bg);
+    color: var(--dark-code-text);
+    border: 1px solid var(--dark-border-color);
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+body.dark-theme pre code { /* Code dans un bloc pre */
+    background-color: transparent; /* Pas de fond distinct */
+    color: inherit; /* Hérite couleur du pre */
+    padding: 0;
+    border-radius: 0;
+}
+body.dark-theme blockquote {
+    border-left: 4px solid var(--dark-blockquote-border);
+    color: var(--dark-blockquote-text);
+    background-color: rgba(0,0,0,0.05); /* Léger fond pour distinguer */
+    padding: 0.5em 1em;
+    margin-left: 0;
+    margin-right: 0;
+}
+body.dark-theme table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+body.dark-theme th, body.dark-theme td {
+    border: 1px solid var(--dark-table-border);
+    padding: 0.5rem;
+    text-align: left;
+}
+body.dark-theme th {
+    background-color: var(--dark-panel-section-bg); /* Fond entête tableau */
+    font-weight: 600;
+}
+body.dark-theme tr:nth-child(even) {
+    background-color: var(--dark-table-stripe-bg); /* Lignes alternées */
 }
 
-.dark-theme h1, 
-.dark-theme h2, 
-.dark-theme h3 {
-    color: var(--dark-text-color-emphasis, #f8f9fa);
+/* --- Styles Composants Dark --- */
+
+/* Conteneurs principaux */
+body.dark-theme .container, body.dark-theme .main-content {
+    /* Pas de changement de couleur spécifique nécessaire si body a la bonne couleur */
+}
+body.dark-theme .form-section, body.dark-theme .card {
+    background-color: var(--dark-card-bg);
+    border: 1px solid var(--dark-border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.dark-theme h2 {
-    border-bottom-color: var(--dark-border-color, #40444b);
+/* Sidebar */
+body.dark-theme .sidebar {
+    background-color: var(--dark-panel-bg);
+    border-right-color: var(--dark-border-color);
+}
+body.dark-theme .sidebar-header h2 { color: var(--dark-heading-color); }
+body.dark-theme .sidebar-header p { color: var(--dark-text-color-muted); }
+body.dark-theme .sidebar-category { color: var(--dark-text-color-muted); border-top-color: var(--dark-border-color); }
+body.dark-theme .sidebar-nav-link { color: var(--dark-text-color); }
+body.dark-theme .sidebar-nav-link:hover, body.dark-theme .sidebar-nav-link.active {
+    background-color: var(--dark-panel-section-bg);
+    color: var(--dark-text-color-emphasis);
+}
+body.dark-theme #sidebar-toggle {
+    background-color: var(--dark-panel-bg);
+    color: var(--dark-text-color);
+    border-color: var(--dark-border-color);
 }
 
-.dark-theme input[type="text"],
-.dark-theme input[type="password"] {
-    background-color: var(--dark-input-bg-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
-    border-color: var(--dark-border-color-light, #5a6268);
+/* Formulaires */
+body.dark-theme label {
+    color: var(--dark-text-color-muted);
+}
+body.dark-theme .form-control,
+body.dark-theme input[type="text"],
+body.dark-theme input[type="password"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="number"],
+body.dark-theme input[type="search"],
+body.dark-theme textarea,
+body.dark-theme select {
+    background-color: var(--dark-input-bg-color);
+    color: var(--dark-input-text-color);
+    border: 1px solid var(--dark-input-border-color);
+}
+body.dark-theme .form-control::placeholder,
+body.dark-theme input::placeholder,
+body.dark-theme textarea::placeholder {
+    color: var(--dark-input-placeholder-color);
+    opacity: 1; /* Firefox */
+}
+body.dark-theme .form-control:focus,
+body.dark-theme input:focus,
+body.dark-theme textarea:focus,
+body.dark-theme select:focus {
+    border-color: var(--dark-primary-color); /* Couleur focus */
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); /* Ombre focus */
+    background-color: var(--dark-input-bg-color); /* Garder le fond */
+    color: var(--dark-input-text-color); /* Garder la couleur texte */
+}
+body.dark-theme .custom-file-label { /* Pour input type file Bootstrap */
+    background-color: var(--dark-input-bg-color);
+    color: var(--dark-text-color-muted);
+    border-color: var(--dark-input-border-color);
+}
+body.dark-theme .custom-file-label::after { /* Bouton "Browse" */
+    background-color: var(--dark-secondary-color);
+    color: var(--dark-button-secondary-color);
+    border-left-color: var(--dark-input-border-color);
 }
 
-.dark-theme input[type="text"]::placeholder,
-.dark-theme input[type="password"]::placeholder {
-    color: var(--dark-text-color-muted, #adb5bd);
+/* Boutons */
+body.dark-theme .btn { /* Style de base pour tous les boutons */
+    color: var(--dark-text-color); /* Couleur texte par défaut */
+}
+body.dark-theme .btn-primary {
+    background-color: var(--dark-primary-color);
+    border-color: var(--dark-primary-border);
+    color: #ffffff;
+}
+body.dark-theme .btn-primary:hover {
+    background-color: var(--dark-primary-hover-bg);
+    border-color: var(--dark-primary-hover-border);
+}
+body.dark-theme .btn-secondary {
+    background-color: var(--dark-secondary-color);
+    border-color: var(--dark-secondary-border);
+    color: var(--dark-button-secondary-color);
+}
+body.dark-theme .btn-secondary:hover {
+    background-color: var(--dark-secondary-hover-bg);
+    border-color: var(--dark-secondary-hover-border);
+}
+body.dark-theme .btn-danger {
+    background-color: var(--dark-danger-color);
+    border-color: var(--dark-danger-border);
+    color: #ffffff;
+}
+body.dark-theme .btn-danger:hover {
+    background-color: var(--dark-danger-hover-bg);
+    border-color: var(--dark-danger-hover-border);
+}
+body.dark-theme .btn-success {
+    background-color: var(--dark-success-color);
+    border-color: var(--dark-success-border);
+    color: #ffffff;
+}
+body.dark-theme .btn-success:hover {
+    background-color: var(--dark-success-hover-bg);
+    border-color: var(--dark-success-hover-border);
+}
+body.dark-theme .btn-info {
+    background-color: var(--dark-info-color);
+    border-color: var(--dark-info-border);
+    color: #000000; /* Texte noir pour contraste sur cyan clair */
+}
+body.dark-theme .btn-info:hover {
+    background-color: var(--dark-info-hover-bg);
+    border-color: var(--dark-info-hover-border);
+}
+body.dark-theme .btn-light { /* Bouton "clair" devient sombre */
+    background-color: #495057;
+    border-color: #495057;
+    color: #ffffff;
+}
+body.dark-theme .btn-light:hover {
+    background-color: #5a6268;
+    border-color: #5a6268;
+}
+body.dark-theme .btn-dark { /* Bouton "sombre" devient clair */
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: #000000;
+}
+body.dark-theme .btn-dark:hover {
+    background-color: #ced4da;
+    border-color: #ced4da;
+}
+body.dark-theme .btn-link {
+    color: var(--dark-link-color);
+}
+body.dark-theme .btn-link:hover {
+    color: var(--dark-link-hover-color);
 }
 
-.dark-theme .credentials-container {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    border-color: var(--dark-border-color, #40444b);
+/* --- Styles Spécifiques Hostmanager Dark --- */
+
+/* Onglets Catégories */
+body.dark-theme #categoryTabsContainer {
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme .category-tab {
+    color: var(--dark-text-color-muted);
+    border-color: transparent; /* Bordure seulement si active */
+}
+body.dark-theme .category-tab:hover {
+    background-color: var(--dark-tab-hover-bg);
+    color: var(--dark-text-color);
+    border-bottom-color: var(--dark-border-color-light); /* Légère bordure au survol */
+}
+body.dark-theme .category-tab.active {
+    border-color: var(--dark-border-color-light);
+    border-bottom-color: var(--dark-bg-color); /* Masque la bordure du container */
+    background-color: var(--dark-bg-color); /* Fond identique au body */
+    color: var(--dark-text-color-emphasis);
+}
+body.dark-theme .category-tab .category-settings-btn,
+body.dark-theme .category-tab .remove-category-btn {
+    color: var(--dark-text-color-muted);
+}
+body.dark-theme .category-tab .category-settings-btn:hover {
+    color: var(--dark-link-color); /* Couleur lien pour settings */
+}
+body.dark-theme .category-tab .remove-category-btn:hover {
+    color: var(--dark-danger-color); /* Rouge pour supprimer */
 }
 
-.dark-theme .markdown-preview {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    border-color: var(--dark-border-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
+/* Contenu Catégorie (Cartes Hôte) */
+body.dark-theme .category-content .card { /* Surcharge si nécessaire */
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-border-color);
+}
+body.dark-theme .category-content .card-header {
+    background-color: var(--dark-panel-section-bg); /* Fond header carte */
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme .category-content .card-title {
+    color: var(--dark-text-color-emphasis);
+}
+body.dark-theme .category-content .card-text {
+    color: var(--dark-text-color);
+}
+body.dark-theme .category-content .text-muted {
+    color: var(--dark-text-color-muted) !important; /* Forcer si Bootstrap override */
+}
+body.dark-theme .category-content .badge { /* Badges (tags) */
+    background-color: var(--dark-secondary-color);
+    color: var(--dark-button-secondary-color);
 }
 
-.dark-theme .markdown-preview pre {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: var(--dark-text-color, #e0e0e0);
+/* Carte Réseau */
+body.dark-theme #network-map {
+    border-color: var(--dark-border-color);
+    /* Le fond des noeuds/canvas est géré par Vis.js, mais le conteneur peut avoir un fond */
+    background-color: var(--dark-card-bg);
+}
+/* Styles pour les boutons de navigation Vis.js si nécessaire */
+body.dark-theme .vis-navigation .vis-button {
+    background-color: var(--dark-input-bg-color);
+    border-color: var(--dark-border-color-light);
+    color: var(--dark-text-color);
+    box-shadow: none;
+}
+body.dark-theme .vis-navigation .vis-button:hover {
+    background-color: var(--dark-panel-section-bg);
+    box-shadow: none;
 }
 
-.dark-theme .markdown-preview code {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: var(--dark-text-color, #e0e0e0);
+
+/* Panneaux Latéraux (Edit, Settings) */
+body.dark-theme .edit-panel,
+body.dark-theme .category-settings-panel {
+    background-color: var(--dark-panel-bg);
+    color: var(--dark-text-color);
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.5); /* Ombre plus prononcée */
+}
+body.dark-theme .edit-panel .close-panel-btn {
+    color: var(--dark-text-color-muted);
+}
+body.dark-theme .edit-panel .close-panel-btn:hover {
+    color: var(--dark-text-color-emphasis);
+}
+body.dark-theme .edit-panel h3 {
+    color: var(--dark-heading-color);
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme .edit-panel h4 {
+    color: var(--dark-link-color); /* Utiliser couleur lien pour sous-titres */
+}
+/* Inputs dans les panneaux héritent déjà des styles globaux .form-control */
+body.dark-theme .credential-group {
+    background-color: var(--dark-panel-section-bg);
+    border-color: var(--dark-border-color);
+}
+body.dark-theme #existingEdgesList .edge-item {
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme .edit-panel-actions {
+    border-top-color: var(--dark-border-color);
+}
+/* Boutons dans les panneaux héritent déjà des styles globaux .btn-* */
+
+/* Section Rapport Killchain */
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link {
+    color: var(--dark-text-color-muted);
+    border-color: transparent;
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link:hover {
+    border-color: var(--dark-border-color-light);
+    border-bottom-color: var(--dark-border-color);
+    color: var(--dark-text-color);
+}
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link.active {
+    color: var(--dark-text-color-emphasis);
+    background-color: var(--dark-card-bg); /* Fond de l'onglet actif */
+    border-color: var(--dark-border-color);
+    border-bottom-color: var(--dark-card-bg); /* Masque la bordure en bas */
+}
+body.dark-theme #killchainReportContainer .tab-content {
+    background-color: var(--dark-card-bg); /* Fond du contenu */
+    border: 1px solid var(--dark-border-color);
+    border-top: none; /* La bordure est sur l'onglet actif */
+    padding: 1rem;
+}
+body.dark-theme #killchainReportPreview { /* Textarea éditeur */
+    background-color: var(--dark-input-bg-color);
+    color: var(--dark-input-text-color);
+    border-color: var(--dark-input-border-color);
+    font-family: monospace; /* Police pour code */
+}
+body.dark-theme #killchainReportRenderedPreview { /* Aperçu rendu */
+    /* Les styles markdown généraux s'appliquent ici */
+}
+body.dark-theme .markdown-body { /* Styles spécifiques pour l'aperçu si nécessaire */
+    color: var(--dark-text-color);
+}
+/* Surcharger les styles markdown si besoin DANS le contexte .markdown-body */
+body.dark-theme .markdown-body h1, body.dark-theme .markdown-body h2, /* etc. */ {
+    color: var(--dark-heading-color);
+    border-bottom-color: var(--dark-border-color);
+}
+body.dark-theme .markdown-body pre {
+    background-color: var(--dark-code-bg);
+    color: var(--dark-code-text);
+    border-color: var(--dark-border-color-light);
+}
+body.dark-theme .markdown-body blockquote {
+    border-left-color: var(--dark-blockquote-border);
+    color: var(--dark-blockquote-text);
+    background-color: rgba(0,0,0,0.1); /* Fond légèrement plus sombre */
+}
+body.dark-theme .markdown-body table th, body.dark-theme .markdown-body table td {
+    border-color: var(--dark-table-border);
+}
+body.dark-theme .markdown-body table tr:nth-child(even) {
+    background-color: var(--dark-table-stripe-bg);
 }
 
-.dark-theme .exegol-output {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    border-color: var(--dark-border-color, #40444b);
-}
 
-.dark-theme .one-liner {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: var(--dark-text-color, #e0e0e0);
+/* Filtres et Actions globales */
+body.dark-theme #globalActionsContainer {
+    background-color: rgba(0,0,0,0.2); /* Fond légèrement plus sombre que le body */
+    border-top-color: var(--dark-border-color);
+    border-bottom-color: var(--dark-border-color);
 }
+/* Inputs et boutons dans ce container héritent des styles globaux */
 
-.dark-theme .tool-list .tool-item {
-    border-color: var(--dark-border-color, #40444b);
-}
-
-.dark-theme code {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: var(--dark-text-color, #e0e0e0);
+/* Footer */
+body.dark-theme .main-footer {
+    background-color: var(--dark-panel-bg); /* Même fond que sidebar/panneaux */
+    color: var(--dark-text-color-muted);
+    border-top-color: var(--dark-border-color);
 }
 
 /* Styles pour la page Privilege Escalation */
@@ -1342,296 +1719,186 @@ body.dark-theme #network-map {
     background-color: var(--dark-card-bg, #343a40);
 }
 
-/* --- Panneaux Latéraux (Edit & Settings) --- */
-/* Styles de base pour les panneaux */
+/* --- Panneau d'Édition Latéral (Sidebar Droite) --- */
 .edit-panel {
-    position: fixed; /* Positionné par rapport à la fenêtre */
-    top: 60px; /* Hauteur de votre header, ajustez si besoin */
-    right: -450px; /* Caché sur le côté (largeur + marge/padding) - Ajustez la largeur si besoin */
-    width: 400px; /* Largeur du panneau - Ajustez si besoin */
-    height: calc(100vh - 60px); /* Hauteur restante sous le header */
-    background-color: var(--panel-bg-color, #fff);
-    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 450px; /* Largeur ajustable */
+    max-width: 90%; /* Max sur petits écrans */
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.15);
     padding: 20px;
-    overflow-y: auto; /* Permet le scroll si contenu dépasse */
-    transition: right 0.3s ease-in-out; /* Animation douce */
+    padding-top: 50px; /* Espace pour le bouton fermer */
+    overflow-y: auto;
     z-index: 1050; /* Au-dessus de la plupart des éléments */
-    border-left: 1px solid var(--border-color, #dee2e6);
-    /* NE PAS METTRE display: none; ici si on utilise la transition 'right' */
+    transform: translateX(100%); /* Caché par défaut (hors écran à droite) */
+    transition: transform 0.3s ease-in-out;
+    visibility: hidden; /* Caché et non interactif par défaut */
 }
 
-/* Classe pour rendre le panneau visible */
-.edit-panel.visible {
-    right: 0; /* Le fait apparaître */
+/* Style quand le panneau est ouvert */
+.edit-panel.open {
+    transform: translateX(0); /* Revient à sa position normale */
+    visibility: visible; /* Rendre visible et interactif */
 }
 
-/* Styles spécifiques pour le panneau des settings si nécessaire */
-.category-settings-panel {
-    /* Peut avoir des styles additionnels si besoin */
-}
-
-/* Styles pour le bouton de fermeture 'X' */
 .edit-panel .close-panel-btn {
     position: absolute;
     top: 10px;
     right: 15px;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #6c757d;
     background: none;
     border: none;
-    font-size: 1.8rem; /* Taille du 'X' */
-    line-height: 1;
-    padding: 0;
     cursor: pointer;
-    color: var(--text-color-muted, #aaa);
-    opacity: 0.7;
+    padding: 0;
+    line-height: 1;
 }
 .edit-panel .close-panel-btn:hover {
-    color: var(--text-color, #333);
-    opacity: 1;
+    color: #343a40;
 }
 
-/* Styles pour les titres dans les panneaux */
 .edit-panel h3 {
     margin-top: 0;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color-light, #eee);
-    font-size: 1.25rem;
-}
-.edit-panel h4 {
-     color: var(--text-color-emphasis, #495057);
-     margin-top: 1.5rem;
-     padding-bottom: 0.5rem;
-     border-bottom: 1px solid var(--border-color-light, #eee);
-     font-size: 1.1rem;
-     font-weight: 600;
+    margin-bottom: 20px;
+    color: #34495e;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
-/* Styles pour les groupes de formulaires */
+.edit-panel h4 {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #3498db;
+}
+
+/* Styles pour les formulaires dans le panneau */
 .edit-panel .form-group {
     margin-bottom: 1rem;
 }
+.edit-panel .form-control {
+    font-size: 0.9rem; /* Taille de police légèrement réduite */
+}
+.edit-panel .form-control-sm {
+    font-size: 0.8rem; /* Encore plus petit pour les inline */
+}
+.edit-panel label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
 
-/* Styles pour les actions en bas du panneau d'édition */
-#editPanel .edit-panel-actions {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color, #eee);
+/* Groupe de credentials */
+.credential-group {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 10px; /* Remplacé par mb-2 sur l'élément */
+    display: flex; /* Utiliser flex pour aligner */
+    flex-wrap: wrap; /* Permettre le retour à la ligne */
+    gap: 10px; /* Espacement entre les éléments */
+}
+.credential-group input, .credential-group select {
+    flex: 1 1 150px; /* Permet aux inputs de grandir et rétrécir, base 150px */
+    min-width: 120px; /* Empêche d'être trop petit */
+}
+.credential-group .btn-danger {
+    flex-basis: 40px; /* Largeur fixe pour le bouton */
+    flex-grow: 0; /* Ne grandit pas */
+    padding: 0.25rem 0.5rem; /* Taille bouton réduite */
+    font-size: 0.75rem;
+    line-height: 1.5;
+    align-self: center; /* Centrer verticalement */
+}
+
+/* Liste des edges existants */
+#existingEdgesList .edge-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9rem;
+}
+#existingEdgesList .edge-item span {
+    margin-right: 10px;
+}
+#existingEdgesList .edge-item .btn-danger {
+     padding: 0.1rem 0.4rem;
+     font-size: 0.7rem;
+     line-height: 1.2;
 }
 
-/* === HOST MANAGER SPECIFIC STYLES - DARK THEME === */
-
-/* Conteneur principal pour forcer le fond si nécessaire */
-body.dark-theme #main-content {
-    background-color: transparent; /* Doit hériter du body ou être défini explicitement */
+/* Boutons d'action en bas */
+.edit-panel-actions {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px; /* Espace entre les boutons */
 }
 
-/* Cartes (vérification) */
-body.dark-theme .card {
-    background-color: var(--dark-card-bg, #2c2f33); /* Fond de carte légèrement différent du body */
-    border-color: var(--dark-border-color, #40444b);
+/* --- Panneau Paramètres Catégorie (Styles similaires) --- */
+.category-settings-panel {
+    /* Hérite de .edit-panel mais peut avoir des surcharges */
+    width: 350px; /* Moins large peut-être */
+}
+
+/* --- Styles Dark Theme pour les panneaux --- */
+body.dark-theme .edit-panel,
+body.dark-theme .category-settings-panel {
+    background-color: var(--dark-panel-bg, #25282c); /* Variable CSS pour fond panneau */
+    color: var(--dark-text-color, #e0e0e0);
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.4);
+}
+body.dark-theme .edit-panel .close-panel-btn {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme .edit-panel .close-panel-btn:hover {
     color: var(--dark-text-color, #e0e0e0);
 }
-body.dark-theme .card-header {
-    background-color: var(--dark-panel-section-bg, #36393f); /* Fond d'en-tête de carte */
+body.dark-theme .edit-panel h3 {
+    color: var(--dark-heading-color, #ffffff);
     border-bottom-color: var(--dark-border-color, #40444b);
-    color: var(--dark-text-color-emphasis, #f8f9fa); /* Titre plus clair */
 }
-body.dark-theme .card-body {
-     /* S'assurer qu'il n'y a pas de fond blanc hérité */
-     background-color: transparent;
+body.dark-theme .edit-panel h4 {
+    color: var(--dark-primary-color-light, #58a6ff); /* Couleur primaire claire */
 }
-
-/* Onglets Catégorie */
-body.dark-theme .category-tabs {
-    border-bottom-color: var(--dark-border-color, #40444b);
-}
-body.dark-theme .category-tab {
-    color: var(--dark-text-color-muted, #adb5bd);
-    border-color: transparent;
-}
-body.dark-theme .category-tab:hover {
-    background-color: var(--dark-tab-hover-bg, #36393f); /* Fond au survol */
-    color: var(--dark-text-color, #e0e0e0);
-}
-body.dark-theme .category-tab.active {
-    border-color: var(--dark-border-color, #40444b);
-    background-color: var(--dark-card-bg, #2c2f33); /* Fond de l'onglet actif (comme la carte) */
-    color: var(--dark-text-color-emphasis, #f8f9fa);
-}
-body.dark-theme .category-tab .category-settings-btn,
-body.dark-theme .category-tab .remove-category-btn {
-    color: var(--dark-text-color-muted, #adb5bd);
-}
-body.dark-theme .category-tab .category-settings-btn:hover {
-    color: var(--dark-text-color, #e0e0e0);
-}
-body.dark-theme .category-tab .remove-category-btn:hover {
-    color: var(--dark-danger-color, #f67f89);
-}
-
-/* Contenu de la catégorie (cartes d'hôtes) */
-body.dark-theme .host-card {
-    background-color: var(--dark-panel-section-bg, #36393f); /* Fond carte hôte */
-    border-color: var(--dark-border-color-light, #5a6268);
-}
-body.dark-theme .host-card .card-title {
-    color: var(--dark-text-color-emphasis, #f8f9fa);
-}
-body.dark-theme .host-card .card-subtitle {
-    color: var(--dark-text-color-muted, #adb5bd);
-}
-body.dark-theme .host-card .host-actions .btn-sm { /* Boutons Editer/Supprimer sur carte */
-    background-color: var(--dark-button-secondary-bg, #40444b);
-    border-color: var(--dark-border-color-light, #5a6268);
-    color: var(--dark-button-secondary-color, #ccc);
-}
-body.dark-theme .host-card .host-actions .btn-sm:hover {
-    background-color: var(--dark-button-secondary-hover-bg, #5a6268);
-    border-color: var(--dark-border-color, #6c757d);
-    color: var(--dark-text-color, #e0e0e0);
-}
-body.dark-theme .host-card .host-actions .btn-danger:hover { /* Spécifique pour Supprimer */
-     background-color: var(--dark-danger-color, #a02c37);
-     border-color: var(--dark-danger-border, #80232c);
-     color: white;
-}
-
-/* Panneaux Latéraux (Edit & Settings) - Vérification */
-body.dark-theme .edit-panel {
-    background-color: var(--dark-panel-bg-color, #2f3136);
-    border-left-color: var(--dark-border-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
-}
-/* Assurer que les inputs/textareas/selects DANS les panneaux sont sombres */
 body.dark-theme .edit-panel .form-control {
     background-color: var(--dark-input-bg-color, #40444b);
     color: var(--dark-text-color, #e0e0e0);
     border-color: var(--dark-border-color-light, #5a6268);
 }
-body.dark-theme .edit-panel .form-control::placeholder {
-    color: var(--dark-text-color-muted, #adb5bd);
-    opacity: 0.7;
-}
 body.dark-theme .edit-panel label {
     color: var(--dark-text-color-muted, #adb5bd);
 }
-body.dark-theme .edit-panel .form-text.text-muted { /* Petit texte sous les inputs */
-     color: var(--dark-text-color-muted, #999) !important; /* Forcer si besoin */
+body.dark-theme .credential-group {
+    background-color: var(--dark-panel-section-bg, #36393f); /* Fond section légèrement différent */
+    border-color: var(--dark-border-color, #40444b);
 }
-/* Groupe de credentials dans le panneau */
-body.dark-theme #editPanel .credential-group {
-    border-color: var(--dark-border-color-light, #5a6268);
-    background-color: var(--dark-panel-section-bg, #36393f);
-}
-/* Liste des edges dans le panneau */
-body.dark-theme #editPanel .existing-edge-item {
-    border-color: var(--dark-border-color-light, #5a6268);
-    background-color: var(--dark-panel-section-bg, #36393f);
-}
-
-/* Données Agrégées */
-body.dark-theme .aggregated-data-section pre {
-    background-color: var(--dark-input-bg-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
-    border: 1px solid var(--dark-border-color-light, #5a6268);
-}
-body.dark-theme .aggregated-data-section pre:hover {
-    background-color: var(--dark-primary-color-light, #3b5a8a);
-}
-
-/* Zone de rapport Killchain */
-body.dark-theme #killchainReportContainer .nav-tabs .nav-link {
-    color: var(--dark-text-color-muted, #adb5bd);
-    border-color: transparent transparent var(--dark-border-color, #40444b);
-}
-body.dark-theme #killchainReportContainer .nav-tabs .nav-link:hover {
-    border-color: transparent transparent var(--dark-border-color-light, #5a6268);
-    color: var(--dark-text-color, #e0e0e0);
-}
-body.dark-theme #killchainReportContainer .nav-tabs .nav-link.active {
-    color: var(--dark-text-color-emphasis, #f8f9fa);
-    background-color: var(--dark-card-bg, #2c2f33); /* Fond de la carte */
-    border-color: var(--dark-border-color, #40444b) var(--dark-border-color, #40444b) var(--dark-card-bg, #2c2f33);
-}
-body.dark-theme #killchainReportPreview { /* Textarea éditeur */
-    background-color: var(--dark-input-bg-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
-    border-color: var(--dark-border-color-light, #5a6268);
-}
-body.dark-theme #killchainReportRenderedPreview { /* Div rendu */
-     background-color: var(--dark-card-bg, #2c2f33); /* Fond similaire à la carte */
-     border: 1px solid var(--dark-border-color, #40444b); /* Ajouter une bordure */
-     padding: 1rem; /* Ajouter du padding */
-}
-body.dark-theme .markdown-body { /* Styles spécifiques au contenu rendu */
-    color: var(--dark-text-color, #e0e0e0);
-}
-body.dark-theme .markdown-body h1, body.dark-theme .markdown-body h2, body.dark-theme .markdown-body h3, body.dark-theme .markdown-body h4 {
-    border-bottom-color: var(--dark-border-color-light, #5a6268);
-    color: var(--dark-text-color-emphasis, #f8f9fa);
-}
-body.dark-theme .markdown-body code {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: #ffcc80; /* Couleur différente pour le code inline */
-}
-body.dark-theme .markdown-body pre {
-    background-color: var(--dark-panel-section-bg, #36393f);
-    color: var(--dark-text-color, #e0e0e0); /* Texte dans les blocs pre */
-}
-body.dark-theme .markdown-body pre code {
-    color: inherit; /* Hériter la couleur du pre */
-    background: none; /* Pas de fond différent pour code dans pre */
-}
-body.dark-theme .markdown-body blockquote {
-    border-left-color: var(--dark-border-color-light, #5a6268);
-    color: var(--dark-text-color-muted, #adb5bd);
-}
-body.dark-theme .markdown-body table th, body.dark-theme .markdown-body table td {
-    border-color: var(--dark-border-color-light, #5a6268);
-}
-body.dark-theme .markdown-body table tr:nth-child(2n) {
-    background-color: var(--dark-panel-section-bg, #36393f); /* Lignes alternées */
-}
-
-/* Filtres et Actions globales */
-body.dark-theme #globalActionsContainer {
-    background-color: rgba(0,0,0,0.15); /* Fond légèrement plus sombre */
-    border-top-color: var(--dark-border-color, #40444b);
+body.dark-theme #existingEdgesList .edge-item {
     border-bottom-color: var(--dark-border-color, #40444b);
 }
-body.dark-theme #globalActionsContainer label {
-    color: var(--dark-text-color-muted, #adb5bd);
+body.dark-theme .edit-panel-actions {
+    border-top-color: var(--dark-border-color, #40444b);
 }
-body.dark-theme #globalActionsContainer .form-control {
-    background-color: var(--dark-input-bg-color, #40444b);
-    color: var(--dark-text-color, #e0e0e0);
-    border-color: var(--dark-border-color-light, #5a6268);
-}
-/* Boutons globaux */
-body.dark-theme #globalActionsContainer .btn-primary {
-    /* Utiliser les variables si définies */
+/* Styles spécifiques pour les boutons dans le thème sombre si nécessaire */
+body.dark-theme .edit-panel .btn-primary {
     background-color: var(--dark-primary-color, #0d6efd);
     border-color: var(--dark-primary-border, #0d6efd);
     color: white;
 }
-body.dark-theme #globalActionsContainer .btn-secondary {
+body.dark-theme .edit-panel .btn-secondary {
     background-color: var(--dark-button-secondary-bg, #5a6268);
     border-color: var(--dark-border-color, #6c757d);
     color: var(--dark-button-secondary-color, #fff);
 }
-body.dark-theme #globalActionsContainer .btn-info {
-    background-color: var(--dark-info-color, #0dcaf0);
-    border-color: var(--dark-info-border, #0dcaf0);
-    color: black; /* Ou blanc selon le contraste */
-}
-body.dark-theme #globalActionsContainer .btn-success {
-    background-color: var(--dark-success-color, #198754);
-    border-color: var(--dark-success-border, #198754);
-    color: white;
-}
-body.dark-theme #globalActionsContainer .btn-danger {
+body.dark-theme .edit-panel .btn-danger {
     background-color: var(--dark-danger-color, #dc3545);
     border-color: var(--dark-danger-border, #dc3545);
     color: white;
