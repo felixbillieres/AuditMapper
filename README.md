@@ -1,86 +1,83 @@
-# Pentest Tools
+# Pentest Tools Suite
 
-![Pentesting Template Generator](screenshot.png)
+Une collection d'outils web conçue pour assister les professionnels de la sécurité lors des tests d'intrusion. Ce projet vise à rationaliser les tâches courantes telles que la génération de rapports, la gestion des données collectées et l'exécution de commandes répétitives.
 
-Un générateur de rapports de pentests dynamique qui facilite la création de templates Markdown pour documenter vos tests d'intrusion.
+## Fonctionnalités Principales
 
-image.png
+*   **Générateur de Rapports Dynamique** : Créez des templates de rapports de pentest au format Markdown. Sélectionnez les services découverts pour inclure automatiquement les checklists et commandes pertinentes (`assets/js/main.js` lignes 27-89).
+*   **Host Manager Avancé** : Gérez les hôtes découverts, leurs informations (notes, services, credentials), visualisez les relations sous forme de carte réseau, agrégez les credentials et générez des rapports "killchain" (`assets/js/hostmanager_v2.js`, `pages/hostmanager.html`).
+*   **Grep Master** : Analysez et extrayez des informations spécifiques (utilisateurs, hashes, mots de passe, IPs, emails) à partir des outputs bruts de divers outils de pentest (Secretsdump, LSASS dump, NXC, etc.) (`assets/js/grepmaster.js`, `pages/grepmaster.html` lignes 105-127).
+*   **`/etc/hosts` Maker** : Convertissez rapidement la sortie des scans réseau (ex: NXC SMB) en entrées formatées pour le fichier `/etc/hosts` (`assets/js/hostsmaker.js` lignes 11-73).
+*   **Bibliothèque d'Outils** : Accédez à une collection de commandes utiles pour différentes phases du pentest (reconnaissance, exploitation, post-exploitation), prêtes à être copiées (`pages/tools.html` lignes 20-42).
+*   **Guides d'Escalade de Privilèges** : Consultez des checklists pour les techniques d'escalade de privilèges sous Windows et Linux (`pages/privesc.html`).
+*   **Générateur de Noms d'Utilisateur** : Script Python pour générer des listes de noms d'utilisateur potentielles basées sur des formats courants (`tools/usernamegenerator.py` lignes 33-53).
+*   **Scanner de Reconnaissance (IPScan.py)** : Script Python pour l'énumération initiale et l'analyse des versions des services (`tools/IPScan.py` lignes 76-99).
+*   **Rapporteur de Vulnérabilités** : Facilite la création de descriptions standardisées de vulnérabilités et de tableaux récapitulatifs (`pages/vulnreport.html`).
+*   **Support Docker** : Déployez facilement l'application à l'aide de Docker (`Dockerfile` lignes 1-15).
+*   **Mode Nuit** : Thème sombre disponible pour réduire la fatigue visuelle.
 
-## 🚀 Fonctionnalités
+## Structure de l'Application
 
-- **Génération automatique** de templates de rapports de pentest
-- **Sélection dynamique** des services découverts (HTTP, SMB, FTP, etc.)
-- **Prévisualisation en temps réel** du rapport formaté en Markdown
-- **Mode Assumed Breach** pour les tests avec identifiants existants
-- **Mode Exegol** pour la génération de one-liners avec variables d'environnement
-- **Bibliothèque d'outils** avec commandes prêtes à l'emploi
-- **Guide d'escalade de privilèges** avec checklists pour Linux et Windows
-- **Section Pivoting** avec commandes pour les outils de tunneling
-- **Mode Nuit** pour réduire la fatigue visuelle
-- **Compatible avec Obsidian** pour l'export direct
+L'application est principalement accessible via une interface web. Les différentes fonctionnalités sont organisées en sections distinctes :
 
-## Plus de détails:
+*   **Accueil (`index.html`)** : Présentation générale et accès aux différents modules.
+*   **Générateur de Rapport (`pages/index.html`)** : Module principal pour la création de rapports Markdown.
+*   **Host Manager (`pages/hostmanager.html`)** : Outil avancé de gestion des hôtes et de cartographie.
+*   **Outils (`pages/tools.html`, `pages/privesc.html`)** : Bibliothèques de commandes et guides.
+*   **Parsers (`pages/hostsmaker.html`, `pages/grepmaster.html`)** : Outils d'analyse et de formatage de données.
+*   **Rapport de Vulnérabilités (`pages/vulnreport.html`)** : Aide à la rédaction de sections de vulnérabilités.
 
-### Générateur de Rapport
-- Création de rapports au format Markdown avec des templates
-- Gestion des éléments de preuve (captures d'écran, code, etc.)
-- Export en différents formats
-
-image.png
-
-image.png
-
-### Bibliothèque d'Outils
-- Collection de commandes utiles pour les tests d'intrusion
-- Outils classés par catégorie (reconnaissance, exploitation, post-exploitation)
-- Commandes prêtes à être copiées-collées
-
-### Guide Privesc
-- Checklist pour l'escalade de privilèges sur Windows et Linux
-- Ressources et 
-
-image.png
-
-### /etc/hosts Maker
-- Convertit les outputs de scan (ex: CrackMapExec) en entrées pour /etc/hosts
-- Facilite la gestion des noms d'hôtes pour les engagements internes
-
-image.png
-
-### Grep Master
-- Analyse intelligente d'outputs de commandes de pentest
-- Extraction automatique d'informations pertinentes
-- Formatage des résultats pour inclusion dans des rapports
-
-image.png
-
-### Rapport de Vulnérabilités
-- Génération rapide de descriptions de vulnérabilités
-- Support pour les captures d'écran (drag & drop)
-- Création de tableaux récapitulatifs de vulnérabilités
-- Export en Markdown ou format 
-
-image.png
-
-image.png
+Des scripts Python complémentaires (`tools/`) peuvent être utilisés en ligne de commande.
 
 ## Installation
 
-```bash
-git clone https://github.com/your-username/pentest-tools.git
-cd pentest-tools
-# Lancer avec un serveur web simple comme Python HTTP Server
-python3 -m http.server
-```
+### Méthode 1 : Serveur Web Simple (Python)
+
+1.  Clonez le dépôt :
+    ```bash
+    git clone https://github.com/your-username/pentest-tools.git
+    cd pentest-tools
+    ```
+2.  Lancez un serveur web local :
+    ```bash
+    python3 -m http.server 8000
+    # Ou pour Python 2: python -m SimpleHTTPServer 8000
+    ```
+3.  Accédez à l'application dans votre navigateur via `http://localhost:8000`.
+
+### Méthode 2 : Docker
+
+1.  Assurez-vous que Docker est installé et en cours d'exécution.
+2.  Clonez le dépôt (si ce n'est pas déjà fait) :
+    ```bash
+    git clone https://github.com/your-username/pentest-tools.git
+    cd pentest-tools
+    ```
+3.  Construisez l'image Docker :
+    ```bash
+    docker build -t pentest-tools-suite .
+    ```
+4.  Lancez un conteneur :
+    ```bash
+    docker run -d -p 8080:80 --name pentest-tools-app pentest-tools-suite
+    ```
+5.  Accédez à l'application dans votre navigateur via `http://localhost:8080`.
 
 ## Utilisation
 
-Accédez à `http://localhost:8000` dans votre navigateur pour commencer à utiliser les outils.
+Une fois l'application lancée (via Python ou Docker), ouvrez votre navigateur web et accédez à l'URL correspondante (`http://localhost:8000` ou `http://localhost:8080` par défaut). Naviguez entre les différentes sections à l'aide de la barre latérale pour utiliser les outils souhaités.
+
+## Technologies Utilisées
+
+*   Frontend : HTML5, CSS3, JavaScript (ES6+)
+*   Bibliothèques JS : Vis.js (pour la cartographie), Marked.js (rendu Markdown), DOMPurify (sécurité)
+*   Backend/Scripts : Python 3 (pour les outils en ligne de commande)
+*   Conteneurisation : Docker, Nginx (image de base)
 
 ## Contribution
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+Les contributions sont les bienvenues ! Si vous souhaitez améliorer le projet, n'hésitez pas à ouvrir une *issue* pour discuter des changements ou à soumettre une *pull request*.
 
 ## Licence
 
-Ce projet est sous licence MIT. 
+Ce projet est distribué sous la licence MIT. Voir le fichier `LICENSE` pour plus de détails. 

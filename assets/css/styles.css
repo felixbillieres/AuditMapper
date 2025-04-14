@@ -1700,3 +1700,42 @@ details pre {
     border-color: #555;
     color: #e0e0e0;
 }
+
+/* --- Section Rapport Killchain --- */
+.killchain-report-section {
+    margin-top: 30px; /* Espace supplémentaire */
+}
+
+#killchainReportPreview {
+    width: 100%;
+    min-height: 600px; /* Hauteur conséquente pour le rapport */
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace; /* Police adaptée au Markdown */
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    background-color: #f8f8f8;
+}
+
+#exportKillchainBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- Styles Dark Theme pour Rapport Killchain --- */
+.dark-theme .killchain-report-section {
+    /* Pas de changement de fond nécessaire si hérite de .form-section */
+}
+
+.dark-theme #killchainReportPreview {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+.dark-theme #exportKillchainBtn:disabled {
+    background-color: #555;
+    color: #999;
+}

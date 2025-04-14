@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <!-- Inclure Vis.js -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Inclure Marked.js pour le rendu Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Inclure DOMPurify pour la sanitization (sécurité pour le rendu HTML) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.10/purify.min.js"></script>
     <style>
         /* Styles spécifiques pour la cartographie et le panneau latéral */
         #network-map {
@@ -130,6 +134,122 @@
             background-color: #2a2a2a;
             border-color: #444;
         }
+
+        /* Styles pour l'aperçu Markdown */
+        .killchain-preview-container {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .killchain-preview-tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            background-color: #f0f2f5;
+        }
+        .killchain-preview-tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-right: 1px solid #ccc;
+            background-color: #f0f2f5;
+            color: #555;
+        }
+        .killchain-preview-tab:last-child {
+            border-right: none;
+        }
+        .killchain-preview-tab.active {
+            background-color: white;
+            font-weight: bold;
+            color: #333;
+        }
+        .killchain-preview-content {
+            padding: 15px;
+            background-color: white;
+            min-height: 600px; /* Hauteur minimale */
+            max-height: 80vh; /* Hauteur maximale pour éviter un scroll excessif de la page */
+            overflow-y: auto; /* Scroll interne si nécessaire */
+        }
+        #killchainReportPreview { /* La textarea d'édition */
+            width: 100%;
+            height: 600px; /* Correspond à min-height du conteneur */
+            border: none;
+            outline: none;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none; /* Pas de redimensionnement manuel, géré par le conteneur */
+            display: none; /* Caché par défaut */
+        }
+        #killchainReportRenderedPreview { /* Le div pour le rendu */
+             /* Styles spécifiques au contenu rendu si nécessaire */
+             line-height: 1.6;
+        }
+        #killchainReportRenderedPreview h1,
+        #killchainReportRenderedPreview h2,
+        #killchainReportRenderedPreview h3,
+        #killchainReportRenderedPreview h4 {
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
+            font-weight: 600;
+        }
+        #killchainReportRenderedPreview h1 { font-size: 1.8em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        #killchainReportRenderedPreview h2 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        #killchainReportRenderedPreview h3 { font-size: 1.25em; }
+        #killchainReportRenderedPreview h4 { font-size: 1.1em; }
+        #killchainReportRenderedPreview p { margin-bottom: 1em; }
+        #killchainReportRenderedPreview code {
+            background-color: #f0f0f0;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        #killchainReportRenderedPreview pre code {
+            display: block;
+            padding: 1em;
+            overflow-x: auto;
+        }
+        #killchainReportRenderedPreview table {
+            border-collapse: collapse;
+            margin-bottom: 1em;
+            width: 100%; /* Ou ajuster selon besoin */
+            border: 1px solid #ddd;
+        }
+        #killchainReportRenderedPreview th,
+        #killchainReportRenderedPreview td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #killchainReportRenderedPreview th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        #killchainReportRenderedPreview hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 1.5em 0;
+        }
+        #killchainReportRenderedPreview ul,
+        #killchainReportRenderedPreview ol {
+            margin-left: 20px;
+            margin-bottom: 1em;
+        }
+
+        /* Styles Dark Theme pour l'aperçu */
+        .dark-theme .killchain-preview-container { border-color: #444; }
+        .dark-theme .killchain-preview-tabs { background-color: #333; border-bottom-color: #444; }
+        .dark-theme .killchain-preview-tab { background-color: #333; color: #bbb; border-right-color: #444; }
+        .dark-theme .killchain-preview-tab.active { background-color: #2a2a2a; color: #e0e0e0; }
+        .dark-theme .killchain-preview-content { background-color: #2a2a2a; color: #e0e0e0; }
+        .dark-theme #killchainReportPreview { background-color: #2a2a2a; color: #e0e0e0; }
+        .dark-theme #killchainReportRenderedPreview h1,
+        .dark-theme #killchainReportRenderedPreview h2 { border-bottom-color: #444; }
+        .dark-theme #killchainReportRenderedPreview code { background-color: #3a3a3a; color: #eee; }
+        .dark-theme #killchainReportRenderedPreview table { border-color: #555; }
+        .dark-theme #killchainReportRenderedPreview th,
+        .dark-theme #killchainReportRenderedPreview td { border-color: #555; }
+        .dark-theme #killchainReportRenderedPreview th { background-color: #383838; }
+        .dark-theme #killchainReportRenderedPreview hr { border-top-color: #444; }
+
     </style>
 </head>
 <body>
@@ -266,6 +386,32 @@
                 <label for="importSessionInput" class="action-button">Importer Session (JSON)</label>
                 <input type="file" id="importSessionInput" accept=".json" style="display: none;">
                 <button id="removeAllDataBtn" class="action-button danger-button">Supprimer Toutes les Données</button>
+            </div>
+        </div>
+
+        <!-- Section Génération Rapport Killchain -->
+        <div class="form-section killchain-report-section">
+            <h2>Génération du Rapport Killchain (Markdown)</h2>
+            <p>Générez et prévisualisez un rapport technique basé sur la cartographie.</p>
+            <div class="button-group" style="margin-bottom: 15px;">
+                <button id="generateKillchainBtn" class="action-button">Générer / Actualiser Rapport</button>
+                <button id="exportKillchainBtn" class="action-button" disabled>Exporter Rapport (.md)</button>
+            </div>
+            <!-- Conteneur pour l'éditeur/prévisualisation -->
+            <div class="killchain-preview-container">
+                <div class="killchain-preview-tabs">
+                    <button id="showPreviewTab" class="killchain-preview-tab active">Aperçu</button>
+                    <button id="showEditorTab" class="killchain-preview-tab">Éditeur Markdown</button>
+                </div>
+                <div class="killchain-preview-content">
+                    <!-- Zone pour l'aperçu rendu -->
+                    <div id="killchainReportRenderedPreview">
+                        <!-- Le HTML rendu apparaîtra ici -->
+                        <p style="color: #888;">Cliquez sur "Générer / Actualiser Rapport" pour commencer.</p>
+                    </div>
+                    <!-- Zone pour l'édition brute (initialement cachée) -->
+                    <textarea id="killchainReportPreview" placeholder="Le Markdown brut apparaîtra ici..."></textarea>
+                </div>
             </div>
         </div>
 

@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const editEdgeLabelInput = document.getElementById('editEdgeLabel');
     const addEdgeBtn = document.getElementById('addEdgeBtn');
     const existingEdgesListDiv = document.getElementById('existingEdgesList');
+    const generateKillchainBtn = document.getElementById('generateKillchainBtn');
+    const killchainReportPreview = document.getElementById('killchainReportPreview');
+    const killchainReportRenderedPreview = document.getElementById('killchainReportRenderedPreview');
+    const exportKillchainBtn = document.getElementById('exportKillchainBtn');
+    const showPreviewTab = document.getElementById('showPreviewTab');
+    const showEditorTab = document.getElementById('showEditorTab');
 
     const STORAGE_KEY = 'pentestHostData_v2';
     let hostData = {
@@ -37,6 +43,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     let activeCategory = null;
     let network = null; // Instance Vis.js
+
+    // Vérification rapide que les éléments existent au chargement
+    if (!killchainReportPreview || !killchainReportRenderedPreview || !showPreviewTab || !showEditorTab) {
+        console.error("ERREUR: Un ou plusieurs éléments DOM pour l'aperçu Markdown sont introuvables ! Vérifiez les IDs dans hostmanager.html.");
+        // On pourrait vouloir arrêter l'initialisation ici ou désactiver la fonctionnalité
+    }
 
     // --- Fonctions de Gestion des Données ---
 
@@ -86,6 +98,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const temp = document.createElement('div');
         temp.textContent = str;
         return temp.innerHTML;
+    }
+
+    // --- Fonctions Utilitaires ---
+
+    // Nouvelle fonction pour obtenir la date actuelle formatée (REMISE EN PLACE)
+    function getCurrentDateFormatted() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Mise à jour pour échapper le Markdown dans les cellules de tableau si nécessaire (REMISE EN PLACE)
+    function sanitizeForMarkdownTable(str) {
+        if (!str) return '';
+        // Échapper les barres verticales (|) qui cassent les tableaux Markdown
+        // Remplacer aussi les sauts de ligne par <br> pour l'affichage HTML dans les cellules
+        return sanitizeInput(str).replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+    }
+
+    // Nouvelle fonction utilitaire pour formater les credentials pour le Markdown (REMISE EN PLACE)
+    function formatCredentialsForMarkdown(credentials) {
+        if (!credentials || credentials.length === 0) {
+            return '(aucun)';
+        }
+        return credentials.map(cred => {
+            let parts = [];
+            // Utiliser sanitizeInput pour les valeurs avant de les mettre dans les backticks
+            if (cred.username) parts.push(`User: \`${sanitizeInput(cred.username)}\``);
+            if (cred.password) parts.push(`Pass: \`${sanitizeInput(cred.password)}\``);
+            if (cred.hash) parts.push(`Hash: \`${sanitizeInput(cred.hash)}\``);
+            return parts.join(', ');
+        }).join('<br>'); // Utiliser <br> pour les sauts de ligne dans les cellules de tableau Markdown rendu en HTML
     }
 
     // --- Fonctions de Rendu ---
@@ -818,13 +864,259 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+    // --- Fonctions de Génération et Prévisualisation du Rapport Killchain ---
+
+    function updateMarkdownPreview() {
+        console.log("updateMarkdownPreview: Début"); // Log de début
+        if (!killchainReportPreview || !killchainReportRenderedPreview) {
+            console.error("updateMarkdownPreview: Textarea ou Div d'aperçu non trouvé.");
+            return;
+        }
+
+        const markdownText = killchainReportPreview.value;
+        console.log("updateMarkdownPreview: Markdown brut récupéré (longueur):", markdownText.length);
+
+        // Vérifier si marked et DOMPurify sont chargés
+        if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+             console.error("ERREUR: marked.js ou DOMPurify n'est pas chargé ! Vérifiez les balises <script> dans hostmanager.html.");
+             killchainReportRenderedPreview.innerHTML = `<p style="color: red;">Erreur: Bibliothèques manquantes (marked/DOMPurify).</p>`;
+             return;
+        }
+
+        try {
+            console.log("updateMarkdownPreview: Appel de marked.parse()...");
+            const dirtyHtml = marked.parse(markdownText);
+            console.log("updateMarkdownPreview: HTML après marked (longueur):", dirtyHtml.length);
+
+            console.log("updateMarkdownPreview: Appel de DOMPurify.sanitize()...");
+            const cleanHtml = DOMPurify.sanitize(dirtyHtml);
+            console.log("updateMarkdownPreview: HTML après DOMPurify (longueur):", cleanHtml.length);
+
+            // Vérification cruciale : le HTML nettoyé est-il vide ?
+            if (markdownText.length > 0 && cleanHtml.length === 0) {
+                console.warn("updateMarkdownPreview: DOMPurify a supprimé tout le contenu HTML. Le Markdown d'origine était peut-être invalide ou considéré comme dangereux.");
+                killchainReportRenderedPreview.innerHTML = `<p style="color: orange;">Avertissement: Le contenu Markdown a été entièrement filtré par le sanitiseur.</p>`;
+            } else {
+                killchainReportRenderedPreview.innerHTML = cleanHtml;
+                console.log("updateMarkdownPreview: innerHTML du div d'aperçu mis à jour.");
+            }
+
+        } catch (error) {
+            console.error("ERREUR lors de la conversion Markdown ou de la sanitization:", error);
+            // Afficher l'erreur dans l'aperçu pour un feedback direct
+            killchainReportRenderedPreview.innerHTML = `<p style="color: red;">Erreur lors du rendu Markdown :<br><pre>${error.message}</pre></p>`;
+        }
+        console.log("updateMarkdownPreview: Fin");
+    }
+
+    function generateKillchainReport() {
+        console.log("generateKillchainReport: Début");
+        if (Object.keys(hostData.categories).length === 0 && hostData.edges.length === 0) {
+            alert("Aucune donnée disponible pour générer le rapport.");
+            killchainReportPreview.value = '';
+            updateMarkdownPreview(); // Mettre à jour l'aperçu (qui sera vide)
+            exportKillchainBtn.disabled = true;
+            return;
+        }
+
+        // --- Demander des informations ---
+        const targetName = prompt("Entrez le nom de la cible/mission pour le rapport :", "Projet X");
+        if (targetName === null) { console.log("Génération annulée (cible)"); return; }
+        const authorName = prompt("Entrez le nom de l'auteur :", "Pentester Senior");
+        if (authorName === null) { console.log("Génération annulée (auteur)"); return; }
+        const summary = prompt("Entrez un bref résumé du pentest :", "Audit de sécurité interne visant à évaluer la posture de sécurité et les chemins d'attaque potentiels.");
+        if (summary === null) { console.log("Génération annulée (résumé)"); return; }
+
+
+        let markdown = '';
+
+        // --- 1. Frontmatter YAML ---
+        markdown += `---
+title: "Rapport Killchain - Pentest ${targetName || 'Inconnu'}"
+date: "${getCurrentDateFormatted()}"
+author: "${authorName || 'Inconnu'}"
+summary: "${summary || 'Analyse des chemins d\'attaque découverts lors du pentest.'}"
+---\n\n`;
+
+        // --- 2. Titre Principal ---
+        markdown += `# Rapport d'Analyse Killchain - ${targetName || 'Pentest'}\n\n`;
+        markdown += `**Date:** ${getCurrentDateFormatted()}  \n`;
+        markdown += `**Auteur:** ${authorName || 'Inconnu'}  \n\n`;
+
+        // --- 3. Introduction ---
+        markdown += `## Introduction\n\n`;
+        markdown += `Ce document détaille la séquence d'exploitation (killchain) observée lors de l'audit de sécurité pour ${targetName || 'la cible'}. Il décrit les étapes suivies, depuis la reconnaissance initiale jusqu'aux actions post-exploitation, en mettant en évidence les pivots et les techniques utilisées pour progresser dans le réseau cible.\n\n`;
+        markdown += `Le scope de l'audit incluait **[À compléter : décrire le scope ici]**. Les objectifs principaux étaient **[À compléter : lister les objectifs]**.\n\n`;
+
+        // --- 4. Développement de la Killchain ---
+        markdown += `## Développement de la Killchain\n\n`;
+        markdown += `Cette section détaille chaque hôte compromis ou utilisé comme pivot durant l'audit.\n\n`;
+
+        let hostCounter = 0;
+        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
+            if (categoryData.hosts) {
+                Object.entries(categoryData.hosts).sort().forEach(([hostId, host]) => {
+                    hostCounter++;
+                    markdown += `### ${hostCounter}. Hôte : ${sanitizeInput(hostId)} (${sanitizeInput(categoryName)})\n\n`;
+
+                    // --- 4.1 Tableau Technique ---
+                    markdown += `#### Informations Techniques\n\n`;
+                    const outgoingEdges = hostData.edges.filter(edge => edge.from === hostId);
+                    const techniques = outgoingEdges.map(edge => `\`${sanitizeInput(edge.label || 'Pivot')}\` vers \`${sanitizeInput(edge.to)}\``).join('<br>');
+                    const tags = host.tags ? host.tags.map(tag => `\`${sanitizeInput(tag)}\``).join(', ') : '(aucun)';
+
+                    markdown += `| Élément              | Détail                                                                 |\n`;
+                    markdown += `|----------------------|------------------------------------------------------------------------|\n`;
+                    markdown += `| IP / Nom             | \`${sanitizeInput(hostId)}\`                                            |\n`;
+                    markdown += `| Catégorie / Tags     | ${sanitizeInput(categoryName)} / ${tags}                               |\n`;
+                    markdown += `| Services Détectés    | ${host.services ? `\`${sanitizeInput(host.services)}\`` : '(non spécifié)'} |\n`;
+                    markdown += `| Credentials Trouvés  | ${formatCredentialsForMarkdown(host.credentials)}                      |\n`;
+                    markdown += `| Techniques / Pivots  | ${techniques || '(aucun pivot sortant défini)'}                         |\n`;
+                    markdown += `| Notes / Observations | ${host.notes ? sanitizeForMarkdownTable(host.notes) : '(aucune)'}        |\n\n`;
+
+
+                    // --- 4.2 Analyse et Exploitation (Narration) ---
+                    markdown += `#### Analyse et Exploitation\n\n`;
+                    let narration = `L'hôte \`${sanitizeInput(hostId)}\` appartenant à la catégorie **${sanitizeInput(categoryName)}**`;
+                    if (host.services) {
+                        narration += ` exposant les services ${host.services ? `\`${sanitizeInput(host.services)}\`` : ''}`;
+                    }
+                    narration += ` a été analysé. `;
+
+                    if (host.credentials && host.credentials.length > 0) {
+                        narration += `Les credentials suivants y ont été découverts : ${formatCredentialsForMarkdown(host.credentials)}. `;
+                    } else {
+                        narration += `Aucun credential spécifique n'a été enregistré pour cet hôte. `;
+                    }
+
+                    if (outgoingEdges.length > 0) {
+                        narration += `Depuis cet hôte, les pivots suivants ont été établis : ${outgoingEdges.map(edge => `**${sanitizeInput(edge.label || 'Pivot')}** vers \`${sanitizeInput(edge.to)}\``).join(', ')}. `;
+                    } else {
+                        narration += `Aucun pivot sortant n'a été défini depuis cet hôte dans la cartographie. `;
+                    }
+
+                    if (host.notes) {
+                         narration += `\n\n**Notes supplémentaires :**\n${sanitizeInput(host.notes)}\n`; // Afficher les notes brutes ici
+                    }
+
+                    markdown += `${narration}\n\n`;
+                    markdown += `*([À compléter : Ajouter des détails spécifiques sur la méthode d'exploitation, les vulnérabilités utilisées, ou les commandes clés exécutées sur cet hôte si nécessaire]*)\n\n`;
+
+                });
+            }
+        });
+
+        if (hostCounter === 0) {
+            markdown += `*Aucun hôte n'a été ajouté aux catégories.*\n\n`;
+        }
+
+        // --- 5. Récapitulatif Global des Credentials ---
+        markdown += `## Récapitulatif Global des Credentials\n\n`;
+        markdown += `| Hôte Source          | Username             | Password             | Hash                 |\n`;
+        markdown += `|----------------------|----------------------|----------------------|----------------------|\n`;
+        let credCount = 0;
+        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
+            if (categoryData.hosts) {
+                Object.entries(categoryData.hosts).forEach(([hostId, host]) => {
+                    if (host.credentials && host.credentials.length > 0) {
+                        host.credentials.forEach(cred => {
+                            markdown += `| \`${sanitizeInput(hostId)}\` | ${cred.username ? `\`${sanitizeInput(cred.username)}\`` : ''} | ${cred.password ? `\`${sanitizeInput(cred.password)}\`` : ''} | ${cred.hash ? `\`${sanitizeInput(cred.hash)}\`` : ''} |\n`;
+                            credCount++;
+                        });
+                    }
+                });
+            }
+        });
+
+        if (credCount === 0) {
+            markdown += `| (Aucun credential trouvé) |                      |                      |                      |\n`;
+        }
+        markdown += `\n`;
+
+        // --- 6. Conclusion / Lessons Learned ---
+        markdown += `## Conclusion et Recommandations\n\n`;
+        markdown += `L'analyse de la killchain a mis en évidence plusieurs chemins d'attaque et vulnérabilités au sein du réseau de ${targetName || 'la cible'}. Les points clés incluent : \n`;
+        markdown += `*   **[À compléter : Point clé 1, ex: Faiblesse critique dans la gestion des mots de passe administrateur]**\n`;
+        markdown += `*   **[À compléter : Point clé 2, ex: Exposition de services obsolètes et vulnérables sur le périmètre externe]**\n`;
+        markdown += `*   **[À compléter : Point clé 3, ex: Absence de segmentation efficace entre les zones réseau]**\n\n`;
+        markdown += `Les techniques de pivot les plus efficaces observées ont été **[À compléter : ex: l'exploitation de credentials réutilisés, les tunnels SSH via des hôtes compromis, l'abus de relations de confiance AD]**.\n\n`;
+        markdown += `### Recommandations Principales\n\n`;
+        markdown += `1.  **[À compléter : Recommandation 1, ex: Mettre en place une politique de mots de passe robuste et unique pour les comptes à privilèges (LAPS, etc.)]**\n`;
+        markdown += `2.  **[À compléter : Recommandation 2, ex: Effectuer un inventaire des services exposés et désactiver/mettre à jour/filtrer les services non essentiels ou vulnérables]**\n`;
+        markdown += `3.  **[À compléter : Recommandation 3, ex: Revoir et renforcer la segmentation du réseau (pare-feu, VLANs) pour limiter les mouvements latéraux]**\n\n`;
+        markdown += `--- Fin du Rapport ---`;
+
+
+        // --- Afficher dans la Textarea et Mettre à jour l'Aperçu ---
+        console.log("generateKillchainReport: Markdown généré (longueur):", markdown.length);
+        killchainReportPreview.value = markdown; // Mettre à jour la textarea d'abord
+
+        console.log("generateKillchainReport: Appel de updateMarkdownPreview()...");
+        updateMarkdownPreview(); // Mettre à jour le rendu HTML ensuite
+
+        exportKillchainBtn.disabled = false; // Activer le bouton d'export
+
+        console.log("generateKillchainReport: Appel de switchToPreviewTab()...");
+        switchToPreviewTab(); // Assurer que l'onglet Aperçu est visible
+
+        alert("Rapport Killchain généré et prévisualisé ! Vérifiez l'onglet 'Aperçu'.");
+        console.log("generateKillchainReport: Fin");
+    }
+
+    function handleExportKillchain() {
+        const markdownContent = killchainReportPreview.value; // Exporter depuis la textarea (source de vérité)
+        if (!markdownContent) {
+            alert("Aucun rapport à exporter. Veuillez d'abord générer le rapport.");
+            return;
+        }
+        // ... (logique d'export via Blob inchangée) ...
+        try {
+            const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const titleMatch = markdownContent.match(/title: "Rapport Killchain - Pentest ([^"]+)"/);
+            const filenameBase = titleMatch && titleMatch[1] ? sanitizeInput(titleMatch[1]).replace(/ /g, '_') : 'killchain_report';
+            a.download = `${filenameBase}_${timestamp}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Erreur lors de l'exportation Markdown:", e);
+            alert("Erreur lors de la création du fichier d'exportation Markdown.");
+        }
+    }
+
+    // --- Logique des Onglets Aperçu/Éditeur ---
+    function switchToPreviewTab() {
+        console.log("switchToPreviewTab: Activation");
+        if (!killchainReportRenderedPreview || !killchainReportPreview || !showPreviewTab || !showEditorTab) return;
+        killchainReportRenderedPreview.style.display = 'block';
+        killchainReportPreview.style.display = 'none';
+        showPreviewTab.classList.add('active');
+        showEditorTab.classList.remove('active');
+    }
+
+    function switchToEditorTab() {
+        console.log("switchToEditorTab: Activation");
+        if (!killchainReportRenderedPreview || !killchainReportPreview || !showPreviewTab || !showEditorTab) return;
+        killchainReportRenderedPreview.style.display = 'none';
+        killchainReportPreview.style.display = 'block';
+        showPreviewTab.classList.remove('active');
+        showEditorTab.classList.add('active');
+    }
+
+
     // --- Initialisation et Écouteurs d'Événements ---
 
     function initialize() {
+        console.log("Initialisation Host Manager v2...");
         loadData();
         renderAll();
 
-        // Écouteurs statiques
+        // ... (Écouteurs existants pour catégories, hôtes, panel, edges, actions globales) ...
         addCategoryBtn.addEventListener('click', () => addCategory());
         applyFiltersBtn.addEventListener('click', () => {
             renderAggregatedData(filterCategorySelect.value, filterTagInput.value.trim());
@@ -834,22 +1126,43 @@ document.addEventListener('DOMContentLoaded', function() {
         removeAllDataBtn.addEventListener('click', handleRemoveAllData);
         closePanelBtn.addEventListener('click', closeEditPanel);
         editHostForm.addEventListener('submit', handleSaveHostFromPanel);
-        addCredentialBtn.addEventListener('click', () => addCredentialInputs()); // Ajoute une ligne vide
+        addCredentialBtn.addEventListener('click', () => addCredentialInputs());
         deleteHostFromPanelBtn.addEventListener('click', handleDeleteHostFromPanel);
         addEdgeBtn.addEventListener('click', handleAddEdge);
-
-        // Écouteur pour les boutons de copie des données agrégées (délégation)
         document.querySelector('.aggregated-data-section').addEventListener('click', handleCopyAggregatedData);
 
-        // Re-render la map si le thème change (pour les couleurs de police etc.)
-        const themeToggle = document.getElementById('toggleTheme');
+
+        // Nouveaux écouteurs pour le rapport Killchain
+        if (generateKillchainBtn) {
+            generateKillchainBtn.addEventListener('click', generateKillchainReport);
+        } else { console.error("Bouton generateKillchainBtn non trouvé !"); }
+
+        if (exportKillchainBtn) {
+            exportKillchainBtn.addEventListener('click', handleExportKillchain);
+        } else { console.error("Bouton exportKillchainBtn non trouvé !"); }
+
+        if (showPreviewTab) {
+            showPreviewTab.addEventListener('click', switchToPreviewTab);
+        } else { console.error("Onglet showPreviewTab non trouvé !"); }
+
+        if (showEditorTab) {
+            showEditorTab.addEventListener('click', switchToEditorTab);
+        } else { console.error("Onglet showEditorTab non trouvé !"); }
+
+        // Mettre à jour l'aperçu en temps réel lors de l'édition
+        if (killchainReportPreview) {
+            killchainReportPreview.addEventListener('input', updateMarkdownPreview);
+        } else { console.error("Textarea killchainReportPreview non trouvée !"); }
+
+
+        // ... (Observer pour le thème) ...
+         const themeToggle = document.getElementById('toggleTheme');
          if (themeToggle) {
             const observer = new MutationObserver((mutationsList) => {
                 for(let mutation of mutationsList) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target === document.body) {
-                        // Le thème a changé, re-render la map pour appliquer les styles
                         if (network) {
-                            renderNetworkMap();
+                            renderNetworkMap(); // Re-render pour les couleurs
                         }
                         break;
                     }
@@ -857,6 +1170,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             observer.observe(document.body, { attributes: true });
          }
+
+         // Initialiser l'état des onglets et du bouton export
+         switchToPreviewTab(); // Afficher l'aperçu par défaut
+         if (exportKillchainBtn) exportKillchainBtn.disabled = true; // Désactiver l'export initialement
+         updateMarkdownPreview(); // Afficher le placeholder initial ou le contenu existant
+         console.log("Initialisation terminée.");
     }
 
     initialize();
