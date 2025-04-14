@@ -1,9 +1,17 @@
+console.log("hostmanager_v2.js: Script start parsing."); // LOG 1
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("hostmanager_v2.js: DOMContentLoaded event fired."); // LOG 2
+
     // --- Références DOM ---
+    console.log("Getting DOM references...");
     const categoryTabsContainer = document.getElementById('categoryTabs');
     const addCategoryBtn = document.getElementById('addCategoryBtn');
     const categoryContentContainer = document.getElementById('categoryContentContainer');
     const networkMapDiv = document.getElementById('network-map');
+    const importSessionInput = document.getElementById('importSessionInput');
+    const editPanel = document.getElementById('editPanel');
+    const generateKillchainBtn = document.getElementById('generateKillchainBtn');
     const allUsernamesPre = document.getElementById('allUsernames');
     const allPasswordsPre = document.getElementById('allPasswords');
     const allHashesPre = document.getElementById('allHashes');
@@ -11,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterTagInput = document.getElementById('filterTag');
     const applyFiltersBtn = document.getElementById('applyFiltersBtn');
     const exportSessionBtn = document.getElementById('exportSessionBtn');
-    const importSessionInput = document.getElementById('importSessionInput');
     const removeAllDataBtn = document.getElementById('removeAllDataBtn');
-    const editPanel = document.getElementById('editPanel');
     const closePanelBtn = document.getElementById('closePanelBtn');
     const editHostForm = document.getElementById('editHostForm');
     const editHostIdInput = document.getElementById('editHostId');
@@ -29,1154 +35,1681 @@ document.addEventListener('DOMContentLoaded', function() {
     const editEdgeLabelInput = document.getElementById('editEdgeLabel');
     const addEdgeBtn = document.getElementById('addEdgeBtn');
     const existingEdgesListDiv = document.getElementById('existingEdgesList');
-    const generateKillchainBtn = document.getElementById('generateKillchainBtn');
-    const killchainReportPreview = document.getElementById('killchainReportPreview');
-    const killchainReportRenderedPreview = document.getElementById('killchainReportRenderedPreview');
+    const killchainReportPreviewTextarea = document.getElementById('killchainReportPreview');
+    const killchainReportRenderedPreviewDiv = document.getElementById('killchainReportRenderedPreview');
     const exportKillchainBtn = document.getElementById('exportKillchainBtn');
     const showPreviewTab = document.getElementById('showPreviewTab');
     const showEditorTab = document.getElementById('showEditorTab');
+    const updateCurrentReportBtn = document.getElementById('updateCurrentReportBtn');
+    const categorySettingsPanel = document.getElementById('categorySettingsPanel');
+    const closeCategorySettingsPanelBtn = document.getElementById('closeCategorySettingsPanelBtn');
+    const categorySettingsPanelTitle = document.getElementById('categorySettingsPanelTitle');
+    const settingsCategoryNameInput = document.getElementById('settingsCategoryName');
+    const categoryTemplateTypeSelect = document.getElementById('categoryTemplateTypeSelect');
+    const saveCategorySettingsBtn = document.getElementById('saveCategorySettingsBtn');
+    console.log("DOM references obtained.");
 
+    // --- Constantes et Configuration ---
     const STORAGE_KEY = 'pentestHostData_v2';
-    let hostData = {
-        categories: {}, // { "categoryName": { hosts: { "hostId": { ... } } } }
-        edges: []       // { from: "hostId1", to: "hostId2", label: "..." }
+    const TEMPLATE_CONFIG = {
+        'AD': '/templates/ad.md',
+        'Windows': '/templates/windows.md',
+        'Linux': '/templates/linux.md',
+        'Web': '/templates/web.md',
+        'Custom': '/templates/custom.md', // Assurez-vous que ce fichier existe si vous le référencez
     };
+
+    // --- Variables Globales ---
+    let hostData = { categories: {}, edges: [] };
+    let network = null;
     let activeCategory = null;
-    let network = null; // Instance Vis.js
+    let currentFilters = { category: '', tag: '' };
+    let killchainReportContent = '';
 
-    // Vérification rapide que les éléments existent au chargement
-    if (!killchainReportPreview || !killchainReportRenderedPreview || !showPreviewTab || !showEditorTab) {
-        console.error("ERREUR: Un ou plusieurs éléments DOM pour l'aperçu Markdown sont introuvables ! Vérifiez les IDs dans hostmanager.html.");
-        // On pourrait vouloir arrêter l'initialisation ici ou désactiver la fonctionnalité
-    }
-
-    // --- Fonctions de Gestion des Données ---
-
+    // --- Fonctions de Persistance des Données ---
     function loadData() {
         const storedData = localStorage.getItem(STORAGE_KEY);
         if (storedData) {
             try {
                 hostData = JSON.parse(storedData);
-                // Assurer que la structure de base existe si le storage est corrompu ou ancien
                 if (!hostData.categories) hostData.categories = {};
                 if (!hostData.edges) hostData.edges = [];
+                console.log("Données chargées depuis localStorage.");
             } catch (e) {
-                console.error("Erreur lors du chargement des données depuis localStorage:", e);
-                // Initialiser avec une structure vide en cas d'erreur
+                console.error("Erreur parsing localStorage:", e);
                 hostData = { categories: {}, edges: [] };
-                alert("Erreur lors du chargement des données. Les données pourraient être corrompues. Initialisation à vide.");
             }
+        } else {
+            console.log("Aucune donnée localStorage trouvée.");
+            hostData = { categories: {}, edges: [] };
         }
-        // S'il n'y a pas de catégories, en créer une par défaut
-        if (Object.keys(hostData.categories).length === 0) {
-            addCategory("Default"); // Ajoute une catégorie par défaut si vide
+        // Assurer la structure minimale pour chaque catégorie
+        for (const catName in hostData.categories) {
+            if (!hostData.categories[catName]) { // Vérifier si la catégorie elle-même est valide
+                 console.warn(`Catégorie invalide trouvée et ignorée: ${catName}`);
+                 delete hostData.categories[catName];
+                 continue;
+            }
+            if (!hostData.categories[catName].hosts) {
+                hostData.categories[catName].hosts = {};
+            }
+             if (hostData.categories[catName].templateType === undefined) { // Assurer présence templateType
+                 hostData.categories[catName].templateType = null;
+             }
         }
-        // Définir la première catégorie comme active
-        activeCategory = Object.keys(hostData.categories)[0];
     }
 
     function saveData() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(hostData));
+            console.log("Données sauvegardées.");
+            renderAll(); // Mettre à jour l'UI après sauvegarde
         } catch (e) {
-            console.error("Erreur lors de la sauvegarde des données dans localStorage:", e);
-            alert("Erreur lors de la sauvegarde des données. Vérifiez l'espace disponible dans le localStorage.");
+            console.error("Erreur sauvegarde localStorage:", e);
+            alert("Erreur sauvegarde. Vérifiez console.");
         }
     }
 
-    function getHostById(hostId) {
-        for (const categoryName in hostData.categories) {
-            if (hostData.categories[categoryName].hosts && hostData.categories[categoryName].hosts[hostId]) {
-                return { host: hostData.categories[categoryName].hosts[hostId], category: categoryName };
+    // --- Fonctions de Gestion des Templates ---
+    async function fetchTemplate(templateName) {
+        if (!templateName) return null;
+        const path = TEMPLATE_CONFIG[templateName];
+        if (!path) {
+            console.log(`fetchTemplate: Pas de chemin pour "${templateName}".`);
+            return null;
+        }
+        console.log(`[DEBUG] fetchTemplate: Fetching "${templateName}" from "${path}"`);
+        try {
+            const response = await fetch(path);
+            console.log(`[DEBUG] fetchTemplate: Response for "${path}", Status: ${response.status}`);
+            if (!response.ok) {
+                // Gérer 404 spécifiquement
+                if (response.status === 404) {
+                     console.warn(`fetchTemplate: Template file not found at ${path}.`);
+                     alert(`Le fichier template pour "${templateName}" (${path}) n'a pas été trouvé. Assurez-vous qu'il existe.`);
+                } else {
+                    console.error(`fetchTemplate: Failed fetch for ${path}. Status: ${response.status} ${response.statusText}`);
+                    alert(`Erreur lors du chargement du template "${templateName}". Statut: ${response.status}`);
+                }
+                return null;
+            }
+            const templateContent = await response.text();
+            console.log(`[DEBUG] fetchTemplate: Content for "${templateName}" length: ${templateContent.length}`);
+            return templateContent;
+        } catch (error) {
+            console.error(`fetchTemplate: Network or other error fetching ${path}:`, error);
+            alert(`Erreur réseau lors du chargement du template "${templateName}". Vérifiez la console.`);
+            return null;
+        }
+    }
+
+    // --- Fonctions de Génération de Rapport Killchain ---
+
+    function analyzeOverallData(data) {
+        console.log(">>> analyzeOverallData: START");
+        let stats = {
+            hostCount: 0,
+            credCount: 0,
+            pivotCount: data.edges?.length || 0,
+            categories: {},
+            zones: {},
+            systems: {},
+            compromiseLevels: {},
+            commonTechniques: {},
+            commonVulns: {},
+            passwordReuseDetected: false,
+            exposedServices: {}
+        };
+        let allCredentials = []; // Pour détecter la réutilisation (simpliste)
+
+        if (!data || !data.categories) {
+             console.warn("analyzeOverallData: No categories found in data.");
+             return stats; // Retourner stats vides si pas de données
+        }
+
+
+        for (const categoryName in data.categories) {
+            const category = data.categories[categoryName];
+            if (!category || !category.hosts) continue; // Ignorer catégorie invalide
+
+            const hostCountInCategory = Object.keys(category.hosts).length;
+            stats.categories[categoryName] = hostCountInCategory;
+
+            for (const hostName in category.hosts) {
+                stats.hostCount++;
+                const host = { ...category.hosts[hostName], ipName: hostName }; // Inclure ipName
+
+                // Compter Systèmes, Zones, Niveaux de Compromission
+                if (host.system) stats.systems[host.system] = (stats.systems[host.system] || 0) + 1;
+                if (host.zone) stats.zones[host.zone] = (stats.zones[host.zone] || 0) + 1;
+                if (host.compromiseLevel) stats.compromiseLevels[host.compromiseLevel] = (stats.compromiseLevels[host.compromiseLevel] || 0) + 1;
+
+                // Compter Credentials et collecter pour détection réutilisation
+                if (host.credentials && host.credentials.length > 0) {
+                    stats.credCount += host.credentials.length;
+                    host.credentials.forEach(cred => {
+                        if (cred.password) allCredentials.push(cred.password);
+                        if (cred.hash) allCredentials.push(cred.hash); // Inclure les hashs
+                    });
+                }
+
+                // Compter Techniques et Vulnérabilités
+                (host.exploitationTechniques || []).forEach(tech => stats.commonTechniques[tech] = (stats.commonTechniques[tech] || 0) + 1);
+                (host.vulnerabilities || []).forEach(vuln => stats.commonVulns[vuln] = (stats.commonVulns[vuln] || 0) + 1);
+
+                // Analyser les services (simpliste)
+                (host.services || "").split(',').forEach(service => {
+                    const trimmedService = service.trim();
+                    if (trimmedService) {
+                         const serviceName = trimmedService.split('/')[0]; // ex: '80' ou '445'
+                         stats.exposedServices[serviceName] = (stats.exposedServices[serviceName] || 0) + 1;
+                    }
+                });
             }
         }
-        return null; // Hôte non trouvé
+
+        // Détection simple de réutilisation
+        const credCounts = allCredentials.reduce((acc, cred) => {
+            if (cred) acc[cred] = (acc[cred] || 0) + 1;
+            return acc;
+        }, {});
+        stats.passwordReuseDetected = Object.values(credCounts).some(count => count > 1);
+
+        console.log(">>> analyzeOverallData: END - Stats:", stats);
+        return stats;
     }
 
-    function sanitizeInput(str) {
-        // Simple sanitization, might need more robust solution depending on usage
-        const temp = document.createElement('div');
-        temp.textContent = str;
-        return temp.innerHTML;
-    }
+    function generateIntroductionMarkdown(stats) {
+        console.log(">>> generateIntroductionMarkdown: START");
+        let intro = "## Introduction et Synthèse\n\n";
+        intro += `Ce rapport détaille les résultats d'une simulation d'intrusion effectuée sur le périmètre défini. L'analyse a porté sur **${stats.hostCount} machine(s)** réparties dans différentes catégories.\n\n`;
 
-    // --- Fonctions Utilitaires ---
-
-    // Nouvelle fonction pour obtenir la date actuelle formatée (REMISE EN PLACE)
-    function getCurrentDateFormatted() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    // Mise à jour pour échapper le Markdown dans les cellules de tableau si nécessaire (REMISE EN PLACE)
-    function sanitizeForMarkdownTable(str) {
-        if (!str) return '';
-        // Échapper les barres verticales (|) qui cassent les tableaux Markdown
-        // Remplacer aussi les sauts de ligne par <br> pour l'affichage HTML dans les cellules
-        return sanitizeInput(str).replace(/\|/g, '\\|').replace(/\n/g, '<br>');
-    }
-
-    // Nouvelle fonction utilitaire pour formater les credentials pour le Markdown (REMISE EN PLACE)
-    function formatCredentialsForMarkdown(credentials) {
-        if (!credentials || credentials.length === 0) {
-            return '(aucun)';
+        intro += "**Statistiques Clés :**\n";
+        intro += `- **Hôtes analysés :** ${stats.hostCount}\n`;
+        intro += `- **Credentials découverts :** ${stats.credCount}\n`;
+        intro += `- **Pivots/Connexions identifiés :** ${stats.pivotCount}\n`;
+        if (stats.passwordReuseDetected) {
+            intro += `- **Réutilisation de mots de passe détectée :** Oui ⚠️\n`;
         }
-        return credentials.map(cred => {
-            let parts = [];
-            // Utiliser sanitizeInput pour les valeurs avant de les mettre dans les backticks
-            if (cred.username) parts.push(`User: \`${sanitizeInput(cred.username)}\``);
-            if (cred.password) parts.push(`Pass: \`${sanitizeInput(cred.password)}\``);
-            if (cred.hash) parts.push(`Hash: \`${sanitizeInput(cred.hash)}\``);
-            return parts.join(', ');
-        }).join('<br>'); // Utiliser <br> pour les sauts de ligne dans les cellules de tableau Markdown rendu en HTML
+
+        // Répartition par catégorie
+        if (Object.keys(stats.categories).length > 0) {
+            intro += "- **Répartition par Catégorie :**\n";
+            for (const cat in stats.categories) {
+                intro += `  - ${cat}: ${stats.categories[cat]} hôte(s)\n`;
+            }
+        }
+        // Répartition par OS (si pertinent)
+        if (Object.keys(stats.systems).length > 0) {
+            intro += "- **Répartition par Système d'Exploitation :**\n";
+            for (const sys in stats.systems) {
+                intro += `  - ${sys}: ${stats.systems[sys]} hôte(s)\n`;
+            }
+        }
+         // Répartition par Niveau de Compromission
+         if (Object.keys(stats.compromiseLevels).length > 0) {
+            intro += "- **Niveaux de Compromission Atteints :**\n";
+            for (const level in stats.compromiseLevels) {
+                if (level !== 'None' || stats.compromiseLevels[level] > 0) { // N'afficher "None" que s'il y en a
+                     intro += `  - ${level}: ${stats.compromiseLevels[level]} hôte(s)\n`;
+                }
+            }
+        }
+
+        intro += "\n";
+        console.log(">>> generateIntroductionMarkdown: END");
+        return intro;
     }
 
-    // --- Fonctions de Rendu ---
+    function generateKillchainNarrative(edges, categories) {
+        console.log(">>> generateKillchainNarrative: START");
+        let narrative = "## Chemin d'Attaque Principal (Killchain)\n\n";
+        if (!edges || edges.length === 0) {
+            narrative += "*Aucun pivot ou connexion explicite n'a été défini entre les hôtes.*\n\n";
+            return narrative;
+        }
+
+        narrative += "La séquence suivante illustre un chemin d'attaque potentiel basé sur les connexions identifiées :\n\n";
+        // Tentative de reconstruction simple (peut être améliorée avec une vraie analyse de graphe)
+        let currentPath = [];
+        let usedEdges = new Set();
+        let nodesInPath = new Set();
+
+        // Trouver un point de départ potentiel (nœud sans edge entrant ou marqué "Initial Access"?)
+        // Pour simplifier, on prend le premier edge si aucune heuristique n'est définie
+        let startEdge = edges.find(e => !edges.some(e2 => e2.to === e.from)); // Noeud sans parent dans les edges définis
+        if (!startEdge) startEdge = edges[0]; // Fallback
+
+        let currentNode = startEdge.from;
+        currentPath.push(currentNode);
+        nodesInPath.add(currentNode);
+
+        let safetyBreak = 0;
+        while(safetyBreak < edges.length * 2) { // Eviter boucle infinie
+             safetyBreak++;
+             let nextEdge = edges.find(e => e.from === currentNode && !usedEdges.has(e.id) && !nodesInPath.has(e.to));
+             if (nextEdge) {
+                 usedEdges.add(nextEdge.id);
+                 currentNode = nextEdge.to;
+                 currentPath.push(` --(${nextEdge.label || 'pivot'})--> ${currentNode}`);
+                 nodesInPath.add(currentNode);
+             } else {
+                 break; // Plus de chemin depuis ce noeud
+             }
+        }
+
+        narrative += "```\n" + currentPath.join('') + "\n```\n\n";
+
+        // Lister tous les pivots pour référence
+        narrative += "**Liste de tous les pivots/connexions identifiés :**\n";
+        edges.forEach(edge => {
+            narrative += `- **${edge.from}** → **${edge.to}** ${edge.label ? `(via ${edge.label})` : ''}\n`;
+        });
+
+        narrative += "\n";
+        console.log(">>> generateKillchainNarrative: END");
+        return narrative;
+    }
+
+    function generateHostMarkdown(host, hostName) {
+        console.log(`>>> generateHostMarkdown: START for ${hostName}`);
+        let md = `### Hôte: ${hostName}\n\n`;
+
+        // Informations de base
+        md += `| Attribut | Valeur |\n`;
+        md += `|---|---|\n`;
+        md += `| Système | ${host.system || 'Non défini'} |\n`;
+        md += `| Rôle | ${host.role || 'Non défini'} |\n`;
+        md += `| Zone | ${host.zone || 'Non défini'} |\n`;
+        md += `| Niveau Compromission | ${host.compromiseLevel || 'None'} |\n`;
+        if (host.tags && host.tags.length > 0) {
+             md += `| Tags | \`${host.tags.join('`, `')}\` |\n`;
+        }
+        md += `\n`; // Espace après le tableau
+
+        // Services (si présents)
+        if (host.services) {
+            md += "**Services Exposés :**\n";
+            md += "```\n" + host.services + "\n```\n";
+        }
+
+        // Vulnérabilités (si présentes)
+        if (host.vulnerabilities && host.vulnerabilities.length > 0) {
+            md += "**Vulnérabilités Identifiées :**\n";
+            host.vulnerabilities.forEach(vuln => md += `- ${vuln}\n`);
+            md += "\n";
+        }
+
+        // Techniques d'Exploitation (si présentes)
+        if (host.exploitationTechniques && host.exploitationTechniques.length > 0) {
+            md += "**Techniques d'Exploitation Utilisées :**\n";
+            host.exploitationTechniques.forEach(tech => md += `- ${tech}\n`);
+            md += "\n";
+        }
+
+        // Credentials (si présents)
+        if (host.credentials && host.credentials.length > 0) {
+            md += "**Credentials Trouvés :**\n";
+            md += `| Utilisateur | Mot de Passe / Hash | Type | Source |\n`;
+            md += `|---|---|---|---|\n`;
+            host.credentials.forEach(cred => {
+                const passOrHash = cred.password ? `\`${cred.password}\`` : (cred.hash ? `\`${cred.hash}\`` : '*N/A*');
+                md += `| ${cred.username || '*N/A*'} | ${passOrHash} | ${cred.type || '*N/A*'} | ${cred.source || '*N/A*'} |\n`;
+            });
+            md += "\n";
+        }
+
+        // Notes
+        if (host.notes) {
+            md += "**Notes / Observations :**\n";
+            md += "> " + host.notes.replace(/\n/g, '\n> ') + "\n\n"; // Formater comme blockquote
+        }
+
+        md += "---\n\n"; // Séparateur horizontal
+        console.log(`>>> generateHostMarkdown: END for ${hostName}`);
+        return md;
+    }
+
+    function generateConclusionMarkdown(stats) {
+        console.log(">>> generateConclusionMarkdown: START");
+        let conclusion = "## Conclusion et Recommandations\n\n";
+
+        conclusion += "L'analyse a révélé plusieurs points d'attention et chemins d'attaque potentiels. Les éléments suivants résument les observations principales et proposent des axes de remédiation.\n\n";
+
+        // Vulnérabilités fréquentes
+        if (Object.keys(stats.commonVulns).length > 0) {
+            conclusion += "**Vulnérabilités Récurrentes :**\n";
+            const sortedVulns = Object.entries(stats.commonVulns).sort(([,a],[,b]) => b-a);
+            sortedVulns.slice(0, 5).forEach(([vuln, count]) => conclusion += `- ${vuln} (observée ${count} fois)\n`);
+            conclusion += "\n";
+        }
+
+         // Techniques fréquentes
+         if (Object.keys(stats.commonTechniques).length > 0) {
+            conclusion += "**Techniques d'Attaque Fréquentes :**\n";
+            const sortedTechs = Object.entries(stats.commonTechniques).sort(([,a],[,b]) => b-a);
+            sortedTechs.slice(0, 5).forEach(([tech, count]) => conclusion += `- ${tech} (observée ${count} fois)\n`);
+            conclusion += "\n";
+        }
+
+        // Mauvaises pratiques observées
+        conclusion += "**Mauvaises Pratiques Observées :**\n";
+        let practicesFound = false;
+        if (stats.passwordReuseDetected) {
+            conclusion += "- **Réutilisation de mots de passe :** Des mots de passe identiques ou similaires ont été trouvés sur plusieurs comptes ou systèmes, facilitant les mouvements latéraux. ⚠️\n";
+            practicesFound = true;
+        }
+        // Analyser services exposés (exemple simple)
+        const riskyServices = Object.entries(stats.exposedServices).filter(([port]) => ['21', '23', '135', '139', '445', '3389'].includes(port)); // Ports potentiellement risqués
+        if (riskyServices.length > 0) {
+             conclusion += "- **Exposition de services sensibles :** Des services potentiellement vulnérables ou permettant un accès non authentifié ont été détectés :\n";
+             riskyServices.forEach(([port, count]) => conclusion += `  - Port ${port} (observé ${count} fois)\n`);
+             practicesFound = true;
+        }
+        // Ajouter d'autres détections de mauvaises pratiques ici...
+        if (!practicesFound) {
+             conclusion += "- *Aucune mauvaise pratique évidente détectée automatiquement (vérification manuelle recommandée).*\n";
+        }
+        conclusion += "\n";
+
+
+        // Recommandations Générales
+        conclusion += "**Recommandations Générales :**\n";
+        conclusion += "- **Correction des vulnérabilités :** Prioriser la correction des vulnérabilités identifiées, en particulier celles mentionnées comme récurrentes.\n";
+        conclusion += "- **Renforcement des mots de passe :** Mettre en œuvre une politique de mots de passe robustes et uniques pour tous les comptes (utilisateurs et services). Envisager des solutions de gestion centralisée des mots de passe (Vault).\n";
+        conclusion += "- **Segmentation réseau :** Revoir et renforcer la segmentation réseau pour limiter les mouvements latéraux en cas de compromission initiale.\n";
+        conclusion += "- **Filtrage des services :** Limiter l'exposition des services aux seules machines qui en ont légitimement besoin. Désactiver les protocoles non sécurisés (Telnet, FTP).\n";
+        conclusion += "- **Surveillance et détection :** Mettre en place ou améliorer les mécanismes de surveillance (logs, EDR, SIEM) pour détecter les activités suspectes identifiées lors de cet exercice.\n";
+        conclusion += "- **Sensibilisation :** Renforcer la sensibilisation des utilisateurs aux risques liés au phishing et à l'ingénierie sociale.\n";
+
+        console.log(">>> generateConclusionMarkdown: END");
+        return conclusion;
+    }
+
+    async function generateKillchainReport() {
+        console.log(">>> generateKillchainReport: START");
+        killchainReportContent = ""; // Réinitialiser
+        let finalReportContent = "";
+
+        // 1. Analyser les données globales
+        const overallStats = analyzeOverallData(hostData);
+
+        // 2. Générer l'Introduction
+        finalReportContent += generateIntroductionMarkdown(overallStats);
+
+        // 3. Générer la Killchain Narrative
+        finalReportContent += generateKillchainNarrative(hostData.edges, hostData.categories);
+
+        // 4. Générer les détails pour chaque hôte, par catégorie
+        finalReportContent += "## Détails par Hôte\n\n";
+        const categories = Object.keys(hostData.categories).sort();
+
+        if (categories.length === 0) {
+            finalReportContent += "*Aucune catégorie définie.*\n";
+        } else {
+            for (const categoryName of categories) {
+                const category = hostData.categories[categoryName];
+                if (!category || !category.hosts) continue;
+
+                const hostsInCategory = Object.entries(category.hosts || {})
+                    .map(([ipName, hostObject]) => ({ ...hostObject, ipName: ipName })) // Inclure ipName
+                    .sort((a, b) => a.ipName.localeCompare(b.ipName));
+
+                if (hostsInCategory.length > 0) {
+                    finalReportContent += `### Catégorie: ${categoryName}\n\n`;
+                    for (const host of hostsInCategory) {
+                        // Essayer d'utiliser un template spécifique si défini pour la catégorie ou l'hôte
+                        let templateType = category.templateType || host.system; // Priorité template catégorie
+                        let templateContent = null;
+                        let generatedMd = "";
+
+                        if (templateType) {
+                            console.log(`[DEBUG] generateKillchainReport: Trying template "${templateType}" for host ${host.ipName}`);
+                            templateContent = await fetchTemplate(templateType);
+                        }
+
+                        if (templateContent) {
+                            console.log(`[DEBUG] generateKillchainReport: Applying template "${templateType}" for ${host.ipName}`);
+                            let filledTemplate = templateContent;
+                            // Remplacer les placeholders (ajouter plus de placeholders si nécessaire)
+                            filledTemplate = filledTemplate.replace(/{{hostname}}/g, host.ipName || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{ip}}/g, host.ipName || 'N/A'); // Assumer ipName peut être IP
+                            filledTemplate = filledTemplate.replace(/{{os}}/g, host.system || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{services}}/g, host.services || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{notes}}/g, host.notes || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{role}}/g, host.role || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{zone}}/g, host.zone || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{compromiseLevel}}/g, host.compromiseLevel || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{tags}}/g, host.tags?.join(', ') || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{vulnerabilities}}/g, host.vulnerabilities?.join(', ') || 'N/A');
+                            filledTemplate = filledTemplate.replace(/{{techniques}}/g, host.exploitationTechniques?.join(', ') || 'N/A');
+                            // Placeholder pour tableau de credentials (plus complexe)
+                            // filledTemplate = filledTemplate.replace(/{{credentials_table}}/g, generateCredentialsTable(host.credentials));
+                            generatedMd = filledTemplate + "\n\n---\n\n";
+                        } else {
+                            // Utiliser la génération Markdown générique si pas de template
+                            console.log(`[DEBUG] generateKillchainReport: No template for ${host.ipName}, using generic markdown.`);
+                            generatedMd = generateHostMarkdown(host, host.ipName);
+                        }
+                        finalReportContent += generatedMd;
+                    }
+                }
+            }
+        }
+
+        // 5. Générer la Conclusion
+        finalReportContent += generateConclusionMarkdown(overallStats);
+
+        // 6. Mettre à jour la variable globale et l'UI
+        killchainReportContent = finalReportContent;
+        updateReportUI();
+
+        console.log(">>> generateKillchainReport: END - Report generated.");
+    }
+
+    function updateReportUI() {
+        console.log(">>> updateReportUI: START");
+        if (killchainReportPreviewTextarea) {
+            killchainReportPreviewTextarea.value = killchainReportContent;
+            console.log("Textarea updated.");
+        } else {
+             console.error("updateReportUI: Textarea #killchainReportPreview not found!");
+        }
+        updateMarkdownPreview(); // Mettre à jour l'aperçu rendu
+        // Activer les boutons si du contenu existe
+        const hasContent = killchainReportContent.trim().length > 0;
+         if (updateCurrentReportBtn) updateCurrentReportBtn.disabled = !hasContent;
+         if (exportKillchainBtn) exportKillchainBtn.disabled = !hasContent;
+        console.log(">>> updateReportUI: END");
+    }
+
+
+    // --- Fonctions de Rendu UI ---
 
     function renderAll() {
+        console.log(">>> renderAll: START");
+        if (!categoryTabsContainer || !categoryContentContainer || !networkMapDiv || !allUsernamesPre) {
+             console.error("renderAll: Critical DOM elements missing. Aborting render.");
+             return;
+        }
         renderCategoryTabs();
         renderActiveCategoryContent();
         renderNetworkMap();
-        renderAggregatedData(); // Initial render without filters
-        populateFilterDropdowns();
+        renderAggregatedData();
+        populateFilterCategorySelect();
+        populateTemplateTypeSelect(); // Remplir le select dans le panneau settings
+        console.log(">>> renderAll: END");
     }
 
     function renderCategoryTabs() {
-        categoryTabsContainer.innerHTML = ''; // Vider les onglets existants
-        Object.keys(hostData.categories).sort().forEach(categoryName => {
+        console.log(">>> renderCategoryTabs: START");
+        // Vider les onglets existants (sauf le bouton +)
+        const existingTabs = categoryTabsContainer.querySelectorAll('.category-tab');
+        existingTabs.forEach(tab => tab.remove());
+
+        const categories = Object.keys(hostData.categories).sort();
+
+        categories.forEach(categoryName => {
             const tab = document.createElement('button');
-            tab.className = `category-tab ${categoryName === activeCategory ? 'active' : ''}`;
-            tab.textContent = categoryName;
+            tab.className = `category-tab btn btn-sm ${categoryName === activeCategory ? 'active btn-primary' : 'btn-outline-secondary'}`;
+            // tab.textContent = categoryName; // Texte simple
             tab.dataset.category = categoryName;
-            tab.addEventListener('click', () => switchCategory(categoryName));
 
-             // Ajouter un bouton de suppression (sauf pour "Default" ?)
-             if (categoryName !== "Default" || Object.keys(hostData.categories).length > 1) { // Empêche la suppression de la seule catégorie
-                const deleteBtn = document.createElement('span');
-                deleteBtn.textContent = ' 🗑️';
-                deleteBtn.style.fontSize = '10px';
-                deleteBtn.style.cursor = 'pointer';
-                deleteBtn.style.marginLeft = '5px';
-                deleteBtn.title = `Supprimer la catégorie "${categoryName}"`;
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation(); // Empêche le clic de déclencher le switchCategory
-                    handleRemoveCategory(categoryName);
-                };
-                tab.appendChild(deleteBtn);
+             // Contenu de l'onglet (Nom + boutons)
+             const tabContent = document.createElement('span');
+             tabContent.textContent = categoryName;
+             tab.appendChild(tabContent);
+
+
+            // Ajouter bouton settings
+            const settingsBtn = document.createElement('span');
+            settingsBtn.className = 'category-settings-btn ml-2'; // ml-2 pour espace
+            settingsBtn.innerHTML = '⚙️'; // Icône engrenage
+            settingsBtn.title = `Paramètres de ${categoryName}`;
+            settingsBtn.dataset.category = categoryName;
+            settingsBtn.style.cursor = 'pointer';
+            tab.appendChild(settingsBtn);
+
+             // Ajouter bouton supprimer
+             const removeBtn = document.createElement('span');
+             removeBtn.className = 'remove-category-btn ml-1'; // ml-1
+             removeBtn.innerHTML = '🗑️'; // Icône poubelle
+             removeBtn.title = `Supprimer ${categoryName}`;
+             removeBtn.dataset.category = categoryName;
+             removeBtn.style.cursor = 'pointer';
+             tab.appendChild(removeBtn);
+
+
+            // Insérer avant le bouton '+'
+            if (addCategoryBtn) {
+                categoryTabsContainer.insertBefore(tab, addCategoryBtn);
+            } else {
+                 categoryTabsContainer.appendChild(tab); // Fallback si bouton + non trouvé
             }
-
-            categoryTabsContainer.appendChild(tab);
         });
-        // Replacer le bouton "+" à la fin
-        categoryTabsContainer.appendChild(addCategoryBtn);
+
+        // S'assurer qu'une catégorie est active si possible
+        if (!activeCategory && categories.length > 0) {
+            switchCategory(categories[0]);
+        } else if (activeCategory && !hostData.categories[activeCategory]) {
+             // Si la catégorie active a été supprimée
+             activeCategory = categories.length > 0 ? categories[0] : null;
+             renderActiveCategoryContent(); // Mettre à jour le contenu
+        } else if (categories.length === 0) {
+            activeCategory = null;
+            renderActiveCategoryContent(); // Afficher message "aucune catégorie"
+        }
+        console.log(">>> renderCategoryTabs: END");
     }
 
     function renderActiveCategoryContent() {
-        categoryContentContainer.innerHTML = ''; // Vider le contenu précédent
+        console.log(">>> renderActiveCategoryContent: START");
+        categoryContentContainer.innerHTML = ''; // Vider
+
         if (!activeCategory || !hostData.categories[activeCategory]) {
-            categoryContentContainer.innerHTML = '<p>Sélectionnez ou créez une catégorie.</p>';
+            let message = '<p>Aucune catégorie sélectionnée.</p>';
+            if (Object.keys(hostData.categories).length === 0) {
+                 message = '<p>Aucune catégorie définie. Cliquez sur le bouton "+" pour en créer une.</p>';
+            }
+            categoryContentContainer.innerHTML = message;
+            console.log(">>> renderActiveCategoryContent: END - No active category");
             return;
         }
 
         const categoryData = hostData.categories[activeCategory];
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'category-content active'; // Rendre visible
+        const hosts = categoryData.hosts || {};
+        // Appliquer les filtres ici
+        const filteredHostEntries = Object.entries(hosts).filter(([hostName, host]) => {
+             if (!currentFilters.tag) return true; // Pas de filtre tag
+             return host.tags?.some(tag => tag.toLowerCase().includes(currentFilters.tag));
+        });
+        const hostNames = filteredHostEntries.map(([name]) => name).sort();
 
-        // 1. Formulaire d'ajout d'hôte pour cette catégorie
-        contentDiv.innerHTML += `
-            <div class="form-section add-host-section">
-                <h2>Ajouter un Hôte à "${sanitizeInput(activeCategory)}"</h2>
-                <form id="addHostForm-${activeCategory}">
-                    <div class="form-group inline-form">
-                        <input type="text" name="ipName" placeholder="IP / Nom Hôte *" required style="flex-grow: 2;">
-                        <input type="text" name="services" placeholder="Services (Ex: SMB 445, HTTP 80)" style="flex-grow: 1;">
-                        <input type="text" name="tags" placeholder="Tags (Ex: interne, web)" style="flex-grow: 1;">
-                        <button type="submit" class="action-button">Ajouter</button>
-                    </div>
-                     <div class="form-group">
-                         <textarea name="notes" placeholder="Notes..." style="width:100%; min-height: 40px; margin-top: 10px;"></textarea>
-                     </div>
-                     <!-- Zone pour ajouter des credentials directement si besoin -->
-                </form>
-            </div>
-        `;
 
-        // 2. Liste des hôtes pour cette catégorie
+        // Créer un conteneur pour cette catégorie
+        const categoryDiv = document.createElement('div');
+        categoryDiv.id = `category-${activeCategory}`;
+        categoryDiv.className = 'category-content';
+
+        // Bouton pour ajouter un hôte à CETTE catégorie
+        const addHostBtn = document.createElement('button');
+        addHostBtn.className = 'btn btn-success btn-sm mb-3 add-host-btn';
+        addHostBtn.textContent = `+ Ajouter Hôte à ${activeCategory}`;
+        addHostBtn.dataset.category = activeCategory;
+        categoryDiv.appendChild(addHostBtn);
+
+        // Conteneur pour les cartes d'hôtes
         const hostListDiv = document.createElement('div');
-        hostListDiv.className = 'host-list-section';
-        hostListDiv.innerHTML = `<h2>Hôtes dans "${sanitizeInput(activeCategory)}"</h2>`;
-        const listContainer = document.createElement('div');
-        listContainer.className = 'host-list'; // Utiliser la classe existante pour le style grid
+        hostListDiv.className = 'host-list row'; // Utiliser row pour Bootstrap grid
 
-        if (categoryData.hosts && Object.keys(categoryData.hosts).length > 0) {
-            Object.entries(categoryData.hosts).sort().forEach(([hostId, host]) => {
-                listContainer.innerHTML += renderHostSummary(hostId, host, activeCategory);
-            });
+        if (hostNames.length === 0) {
+            hostListDiv.innerHTML = '<p>Aucun hôte dans cette catégorie (ou correspondant aux filtres).</p>';
         } else {
-            listContainer.innerHTML = '<p>Aucun hôte dans cette catégorie.</p>';
-        }
-        hostListDiv.appendChild(listContainer);
-        contentDiv.appendChild(hostListDiv);
+            hostNames.forEach(hostName => {
+                const host = hosts[hostName];
+                const cardCol = document.createElement('div');
+                cardCol.className = 'col-md-6 col-lg-4 mb-3'; // Bootstrap grid columns
 
-        categoryContentContainer.appendChild(contentDiv);
+                const card = document.createElement('div');
+                card.className = 'card host-card h-100'; // h-100 pour hauteur égale
 
-        // Attacher l'écouteur au formulaire d'ajout spécifique à la catégorie
-        const addHostForm = document.getElementById(`addHostForm-${activeCategory}`);
-        if (addHostForm) {
-            addHostForm.addEventListener('submit', handleAddHost);
-        }
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body d-flex flex-column'; // flex pour aligner bouton en bas
 
-        // Attacher les écouteurs pour les boutons Edit/Delete sur la liste
-         attachHostListActionListeners(listContainer);
-    }
+                const cardTitle = document.createElement('h5');
+                cardTitle.className = 'card-title';
+                cardTitle.textContent = hostName;
+                cardBody.appendChild(cardTitle);
 
-     function attachHostListActionListeners(container) {
-        container.querySelectorAll('.edit-host-summary-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const hostId = e.target.closest('.host-summary-entry').dataset.hostId;
-                const category = e.target.closest('.host-summary-entry').dataset.category;
-                openEditPanel(hostId, category);
+                // Ajouter quelques infos clés
+                const cardInfo = document.createElement('p');
+                cardInfo.className = 'card-text small';
+                cardInfo.innerHTML = `
+                    Système: ${host.system || 'N/A'}<br>
+                    Rôle: ${host.role || 'N/A'}<br>
+                    Compromission: ${host.compromiseLevel || 'None'}<br>
+                    Tags: ${host.tags?.join(', ') || 'Aucun'}
+                `;
+                cardBody.appendChild(cardInfo);
+
+                // Bouton Editer (aligné en bas)
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-outline-primary btn-sm mt-auto edit-host-card-btn'; // mt-auto pour pousser en bas
+                editBtn.textContent = 'Éditer';
+                editBtn.dataset.hostId = hostName; // Utiliser hostName comme ID
+                cardBody.appendChild(editBtn);
+
+                card.appendChild(cardBody);
+                cardCol.appendChild(card);
+                hostListDiv.appendChild(cardCol);
             });
-        });
-        container.querySelectorAll('.delete-host-summary-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                 const hostId = e.target.closest('.host-summary-entry').dataset.hostId;
-                 const category = e.target.closest('.host-summary-entry').dataset.category;
-                 handleRemoveHost(hostId, category);
-            });
-        });
+        }
+        categoryDiv.appendChild(hostListDiv);
+        categoryContentContainer.appendChild(categoryDiv);
+        console.log(">>> renderActiveCategoryContent: END");
     }
 
-    function renderHostSummary(hostId, host, categoryName) {
-        // Version simplifiée pour la liste, le détail est dans le panneau
-        const tagsString = host.tags ? host.tags.join(', ') : 'Aucun';
-        const servicesString = host.services || 'Non spécifiés';
-        const credentialCount = host.credentials ? host.credentials.length : 0;
-
-        return `
-            <div class="host-summary-entry" data-host-id="${sanitizeInput(hostId)}" data-category="${sanitizeInput(categoryName)}" style="border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #fff;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <h4 style="margin: 0;">${sanitizeInput(hostId)}</h4>
-                    <div>
-                        <button class="edit-host-summary-btn action-button" style="font-size: 12px; padding: 3px 8px; margin-right: 5px;">Éditer</button>
-                        <button class="delete-host-summary-btn action-button danger-button" style="font-size: 12px; padding: 3px 8px;">Supprimer</button>
-                    </div>
-                </div>
-                <p style="font-size: 0.9em; margin: 2px 0;"><strong>Services:</strong> ${sanitizeInput(servicesString)}</p>
-                <p style="font-size: 0.9em; margin: 2px 0;"><strong>Tags:</strong> ${sanitizeInput(tagsString)}</p>
-                <p style="font-size: 0.9em; margin: 2px 0;"><strong>Credentials:</strong> ${credentialCount}</p>
-                <p style="font-size: 0.9em; margin: 2px 0;"><strong>Notes:</strong> ${host.notes ? sanitizeInput(host.notes.substring(0, 50)) + '...' : 'Aucune'}</p>
-            </div>
-        `;
-         // Note: Ajouter des styles CSS pour .host-summary-entry et ses boutons si nécessaire
-    }
-
-
+    /**
+     * Rend ou met à jour la carte réseau Vis.js.
+     */
     function renderNetworkMap() {
+        console.log(">>> renderNetworkMap: START");
+        if (!networkMapDiv) {
+            console.error("renderNetworkMap: Div #network-map introuvable.");
+            return;
+        }
+
         const nodes = [];
-        const edges = hostData.edges || []; // Utiliser les edges stockées
+        const edges = [];
 
-        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
-            if (categoryData.hosts) {
-                Object.entries(categoryData.hosts).forEach(([hostId, host]) => {
-                    // Créer un titre (tooltip) pour le node
-                    let title = `<b>${sanitizeInput(hostId)}</b> (${sanitizeInput(categoryName)})<br>`;
-                    if (host.services) title += `Services: ${sanitizeInput(host.services)}<br>`;
-                    if (host.tags && host.tags.length > 0) title += `Tags: ${sanitizeInput(host.tags.join(', '))}<br>`;
-                    if (host.notes) title += `Notes: ${sanitizeInput(host.notes.substring(0, 100))}...<br>`;
-                    if (host.credentials && host.credentials.length > 0) title += `Credentials: ${host.credentials.length}`;
+        // Créer les nœuds à partir de hostData
+        for (const categoryName in hostData.categories) {
+            const category = hostData.categories[categoryName];
+            if (!category || !category.hosts) continue;
 
-                    nodes.push({
-                        id: hostId,
-                        label: hostId, // Afficher l'ID/Nom sur le node
-                        title: title,  // Tooltip HTML
-                        group: categoryName // Pour potentiellement colorer par catégorie
-                    });
+            for (const hostId in category.hosts) {
+                const host = category.hosts[hostId];
+                nodes.push({
+                    id: hostId, // Utiliser ipName comme ID
+                    label: hostId,
+                    title: `Catégorie: ${categoryName}\nSystème: ${host.system || 'N/A'}\nRôle: ${host.role || 'N/A'}`, // Infobulle simple
+                    group: categoryName, // Pour la couleur/forme par catégorie
+                    // Ajouter d'autres propriétés Vis.js si nécessaire (shape, color, etc.)
                 });
+            }
+        }
+
+        // Ajouter les edges depuis hostData
+        hostData.edges.forEach(edge => {
+            // Vérifier si les nœuds source et cible existent toujours
+            const sourceExists = nodes.some(node => node.id === edge.from);
+            const targetExists = nodes.some(node => node.id === edge.to);
+            if (sourceExists && targetExists) {
+                 edges.push({
+                     id: edge.id || generateUUID(), // Assurer un ID pour l'edge
+                     from: edge.from,
+                     to: edge.to,
+                     label: edge.label || '',
+                     arrows: 'to'
+                 });
+            } else {
+                 console.warn(`renderNetworkMap: Edge ignoré car nœud source ou cible manquant: ${edge.from} -> ${edge.to}`);
             }
         });
 
-        const container = networkMapDiv;
-        const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+        const data = {
+            nodes: new vis.DataSet(nodes),
+            edges: new vis.DataSet(edges),
+        };
+
         const options = {
+            // Options de base (vous pouvez personnaliser)
+            locale: 'fr', // Si vous avez inclus le fichier de locale
             nodes: {
                 shape: 'dot',
                 size: 16,
-                font: { size: 12, color: '#333' }, // Ajuster la couleur pour le thème sombre si nécessaire
-                borderWidth: 2
+                font: {
+                    size: 12,
+                    color: document.body.classList.contains('dark-theme') ? '#ffffff' : '#343434' // Adapter couleur police au thème
+                },
+                borderWidth: 2,
             },
             edges: {
                 width: 2,
-                arrows: 'to' // Afficher des flèches
+                color: { inherit: 'from' }, // Couleur héritée du nœud source
+                smooth: {
+                     type: 'continuous' // Ou 'dynamic' si beaucoup de nœuds
+                }
             },
             physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -26,
-                    centralGravity: 0.005,
-                    springLength: 230,
-                    springConstant: 0.18
+                enabled: true, // Activer la physique pour la disposition initiale
+                barnesHut: {
+                    gravitationalConstant: -8000,
+                    springConstant: 0.04,
+                    springLength: 150 // Augmenter pour plus d'espace
                 },
-                maxVelocity: 146,
-                solver: 'forceAtlas2Based',
-                timestep: 0.35,
-                stabilization: { iterations: 150 }
+                stabilization: { // Options pour la stabilisation
+                     enabled: true,
+                     iterations: 1000, // Nombre d'itérations pour stabiliser
+                     updateInterval: 50,
+                     onlyDynamicEdges: false,
+                     fit: true
+                 }
             },
             interaction: {
+                hover: true, // Activer le survol
                 tooltipDelay: 200,
-                hideEdgesOnDrag: true
+                navigationButtons: true, // Ajouter boutons zoom/fit
+                keyboard: true // Activer navigation clavier
             },
-             groups: { // Optionnel: définir des couleurs par catégorie
-                // "Externe": { color: { background:'red', border:'maroon' } },
-                // "Interne": { color: { background:'lime', border:'green' } },
-                // "DMZ": { color: { background:'orange', border:'darkorange' } }
-             }
+            groups: { // Définir des styles par groupe (catégorie) si nécessaire
+                // Exemple:
+                // DMZ: { color: { background: 'red', border: 'darkred' }, shape: 'square' },
+                // 'Domain Controllers': { color: { background: 'blue', border: 'darkblue' } },
+            }
         };
 
-        // Appliquer les couleurs de police pour le thème sombre
-        if (document.body.classList.contains('dark-theme')) {
-            options.nodes.font.color = '#e0e0e0';
-            // Ajuster d'autres couleurs si nécessaire
-        }
-
-
-        if (network) {
-            network.setData(data); // Mettre à jour les données si la map existe déjà
+        // Créer ou mettre à jour le réseau
+        if (!network) {
+            console.log("Création d'une nouvelle instance Vis Network.");
+            network = new vis.Network(networkMapDiv, data, options);
         } else {
-            network = new vis.Network(container, data, options);
-
-            // Écouteur pour ouvrir le panneau d'édition au clic sur un node
-            network.on("click", function (params) {
-                if (params.nodes.length > 0) {
-                    const nodeId = params.nodes[0];
-                    const hostInfo = getHostById(nodeId);
-                    if (hostInfo) {
-                        openEditPanel(nodeId, hostInfo.category);
-                    }
-                } else {
-                    closeEditPanel(); // Fermer le panneau si on clique en dehors d'un node
-                }
-            });
+            console.log("Mise à jour des données Vis Network existantes.");
+            network.setData(data);
         }
-    }
 
-    function renderAggregatedData(filterCategory = 'all', filterTag = '') {
-        let allUsers = [];
-        let allPass = [];
-        let allHash = [];
-
-        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
-            // Appliquer le filtre de catégorie
-            if (filterCategory !== 'all' && categoryName !== filterCategory) {
-                return; // Passer cette catégorie si elle ne correspond pas au filtre
-            }
-
-            if (categoryData.hosts) {
-                Object.values(categoryData.hosts).forEach(host => {
-                    // Appliquer le filtre de tag
-                    const hostTags = host.tags || [];
-                    if (filterTag && !hostTags.some(tag => tag.toLowerCase().includes(filterTag.toLowerCase()))) {
-                        return; // Passer cet hôte s'il ne correspond pas au filtre de tag
-                    }
-
-                    // Ajouter les credentials si l'hôte passe les filtres
-                    if (host.credentials) {
-                        host.credentials.forEach(cred => {
-                            if (cred.username) allUsers.push(cred.username);
-                            if (cred.password) allPass.push(cred.password);
-                            if (cred.hash) allHash.push(cred.hash);
-                        });
-                    }
-                });
+        // **CORRECTION/VÉRIFICATION ÉVÉNEMENT CLIC**
+        network.off('click'); // Supprimer les anciens listeners pour éviter les doublons
+        network.on('click', function(params) {
+            console.log(">>> network.on('click'): START", params); // Log l'événement clic
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                console.log(`Node clicked: ${nodeId}`);
+                openEditPanel(nodeId); // Appeler la fonction pour ouvrir le panneau
+            } else {
+                console.log("Click event on map background (no node selected).");
+                // Optionnel: Fermer le panneau si on clique en dehors ?
+                // closeEditPanel();
             }
         });
+        console.log("Listener 'click' attaché/réattaché au réseau Vis.");
 
-        // Rendre unique et trier
-        allUsernamesPre.textContent = [...new Set(allUsers)].sort().join('\n') || 'Aucun nom d\'utilisateur trouvé.';
-        allPasswordsPre.textContent = [...new Set(allPass)].sort().join('\n') || 'Aucun mot de passe trouvé.';
-        allHashesPre.textContent = [...new Set(allHash)].sort().join('\n') || 'Aucun hash trouvé.';
+
+        // Stabilisation (optionnel mais recommandé pour la performance)
+        if (nodes.length > 0) { // Seulement si des nœuds existent
+             network.once('stabilizationIterationsDone', function() {
+                 network.setOptions( { physics: false } ); // Désactiver la physique après stabilisation
+                 console.log("Stabilisation de la carte terminée, physique désactivée.");
+             });
+        }
+        // network.fit(); // Ajuster le zoom pour voir tout le réseau (peut être appelé après stabilisation)
+
+        console.log(">>> renderNetworkMap: END");
     }
 
-    function populateFilterDropdowns() {
-        // Catégories
-        const currentCategoryFilter = filterCategorySelect.value;
-        filterCategorySelect.innerHTML = '<option value="all">Toutes</option>'; // Reset
-        Object.keys(hostData.categories).sort().forEach(categoryName => {
+    function renderAggregatedData() {
+        console.log(">>> renderAggregatedData: START");
+        const allUsernames = new Set();
+        const allPasswords = new Set();
+        const allHashes = new Set();
+
+        for (const categoryName in hostData.categories) {
+            const category = hostData.categories[categoryName];
+            if (!category || !category.hosts) continue;
+            for (const hostName in category.hosts) {
+                const host = category.hosts[hostName];
+                if (host.credentials) {
+                    host.credentials.forEach(cred => {
+                        if (cred.username) allUsernames.add(cred.username.trim());
+                        if (cred.password) allPasswords.add(cred.password.trim());
+                        if (cred.hash) allHashes.add(cred.hash.trim());
+                    });
+                }
+            }
+        }
+
+        if (allUsernamesPre) allUsernamesPre.textContent = [...allUsernames].sort().join('\n');
+        if (allPasswordsPre) allPasswordsPre.textContent = [...allPasswords].sort().join('\n');
+        if (allHashesPre) allHashesPre.textContent = [...allHashes].sort().join('\n');
+    }
+
+    function populateFilterCategorySelect() {
+        console.log(">>> populateFilterCategorySelect: START");
+        if (!filterCategorySelect) return;
+        const currentSelection = filterCategorySelect.value;
+        filterCategorySelect.innerHTML = '<option value="">Toutes les catégories</option>';
+        const categories = Object.keys(hostData.categories).sort();
+        categories.forEach(categoryName => {
             const option = document.createElement('option');
             option.value = categoryName;
             option.textContent = categoryName;
             filterCategorySelect.appendChild(option);
         });
-        filterCategorySelect.value = currentCategoryFilter; // Restaurer la sélection si possible
+        // Restaurer la sélection
+        if (hostData.categories[currentSelection]) {
+            filterCategorySelect.value = currentSelection;
+        }
+        console.log(">>> populateFilterCategorySelect: END");
+    }
 
-        // Tags (pourrait être amélioré avec une liste dynamique des tags existants)
-        // Pour l'instant, on garde l'input texte simple.
+    function populateTemplateTypeSelect(selectElement = categoryTemplateTypeSelect) {
+         console.log(">>> populateTemplateTypeSelect: START");
+         if (!selectElement) return;
+         const currentVal = selectElement.value; // Sauver valeur actuelle
+         selectElement.innerHTML = '<option value="">Aucun (Générique)</option>'; // Option par défaut
+         Object.keys(TEMPLATE_CONFIG).forEach(templateName => {
+             const option = document.createElement('option');
+             option.value = templateName;
+             option.textContent = templateName;
+             selectElement.appendChild(option);
+         });
+         // Restaurer si possible
+         if (Array.from(selectElement.options).some(opt => opt.value === currentVal)) {
+             selectElement.value = currentVal;
+         }
+         console.log(">>> populateTemplateTypeSelect: END");
     }
 
 
-    // --- Fonctions de Gestion des Catégories ---
+    // --- Fonctions de Gestion des Données (CRUD Catégories/Hôtes/Edges) ---
 
-    function addCategory(name) {
-        const categoryName = name || prompt("Entrez le nom de la nouvelle catégorie:");
-        if (categoryName && !hostData.categories[categoryName]) {
-            hostData.categories[categoryName] = { hosts: {} };
-            activeCategory = categoryName; // Rendre la nouvelle catégorie active
-            saveData();
-            renderAll(); // Mettre à jour tout l'affichage
-        } else if (categoryName) {
-            alert("Cette catégorie existe déjà.");
+    function addCategory() {
+        console.log(">>> addCategory: START");
+        const categoryName = prompt("Entrez le nom de la nouvelle catégorie:");
+        if (categoryName && categoryName.trim() !== '') {
+            const sanitizedName = sanitizeInput(categoryName.trim());
+            if (hostData.categories[sanitizedName]) {
+                alert(`La catégorie "${sanitizedName}" existe déjà.`);
+                return;
+            }
+            hostData.categories[sanitizedName] = { hosts: {}, templateType: null };
+            console.log(`Catégorie ajoutée: ${sanitizedName}`);
+            activeCategory = sanitizedName;
+            saveData(); // Sauvegarde et re-rend l'UI
         }
     }
 
-    function switchCategory(categoryName) {
-        if (hostData.categories[categoryName]) {
-            activeCategory = categoryName;
-            renderCategoryTabs(); // Mettre à jour l'état actif des onglets
-            renderActiveCategoryContent(); // Afficher le contenu de la nouvelle catégorie active
-            // Pas besoin de re-render toute la map ou les données agrégées juste pour changer d'onglet
-        }
-    }
+    function handleRemoveCategory(categoryName) {
+        console.log(`>>> handleRemoveCategory: START for ${categoryName}`);
+        if (!categoryName || !hostData.categories[categoryName]) return;
 
-     function handleRemoveCategory(categoryName) {
-        if (!hostData.categories[categoryName]) return;
-
-        const hostCount = Object.keys(hostData.categories[categoryName].hosts || {}).length;
-        let confirmationText = `Êtes-vous sûr de vouloir supprimer la catégorie "${categoryName}"`;
-        if (hostCount > 0) {
-             confirmationText += ` et ses ${hostCount} hôte(s) ? Cette action est irréversible.`;
-        } else {
-             confirmationText += ` ?`;
-        }
-
-        if (confirm(confirmationText)) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${categoryName}" et tous ses hôtes ?\nCette action est irréversible.`)) {
             // Supprimer les edges liés aux hôtes de cette catégorie
-            const hostsInCategory = Object.keys(hostData.categories[categoryName].hosts || {});
+            const hostsToRemove = Object.keys(hostData.categories[categoryName]?.hosts || {});
             hostData.edges = hostData.edges.filter(edge =>
-                !hostsInCategory.includes(edge.from) && !hostsInCategory.includes(edge.to)
+                !hostsToRemove.includes(edge.from) && !hostsToRemove.includes(edge.to)
             );
 
             // Supprimer la catégorie
             delete hostData.categories[categoryName];
+            console.log(`Catégorie supprimée: ${categoryName}`);
 
-            // Si la catégorie active a été supprimée, choisir une autre catégorie active
+            // Si la catégorie active a été supprimée, choisir une autre ou aucune
             if (activeCategory === categoryName) {
                 const remainingCategories = Object.keys(hostData.categories);
                 activeCategory = remainingCategories.length > 0 ? remainingCategories[0] : null;
             }
-
-            // S'il ne reste plus de catégorie, en créer une par défaut
-             if (Object.keys(hostData.categories).length === 0) {
-                addCategory("Default"); // Recrée la catégorie par défaut
-             } else {
-                saveData();
-                renderAll(); // Mettre à jour l'affichage
-             }
+            saveData(); // Sauvegarde et re-rend l'UI
         }
     }
 
+    function switchCategory(categoryName) {
+        console.log(`>>> switchCategory: START for ${categoryName}`);
+        if (hostData.categories[categoryName]) {
+            activeCategory = categoryName;
+            console.log(`Catégorie active changée en: ${activeCategory}`);
+            // Mettre à jour l'UI sans recharger toutes les données (juste le contenu et les onglets)
+            renderCategoryTabs();
+            renderActiveCategoryContent();
+            // Optionnel: Mettre à jour le filtre catégorie si on veut qu'il suive
+            // if (filterCategorySelect) filterCategorySelect.value = activeCategory;
+        } else {
+            console.warn(`Tentative de passage à une catégorie inexistante: ${categoryName}`);
+        }
+    }
 
-    // --- Fonctions de Gestion des Hôtes ---
+    function handleAddHost(categoryName) {
+        console.log(`>>> handleAddHost: START for ${categoryName}`);
+        if (!categoryName || !hostData.categories[categoryName]) {
+            alert("Erreur : Catégorie non spécifiée ou invalide pour l'ajout de l'hôte.");
+            return;
+        }
+        const ipName = prompt(`Entrez l'IP ou le nom d'hôte pour la catégorie "${categoryName}":`);
+        if (!ipName || ipName.trim() === '') {
+            return; // Annulé
+        }
 
-    function handleAddHost(event) {
+        const sanitizedIpName = sanitizeInput(ipName.trim());
+
+        // Vérifier si l'hôte existe déjà DANS CETTE catégorie
+        if (hostData.categories[categoryName]?.hosts?.[sanitizedIpName]) {
+             alert(`L'hôte "${sanitizedIpName}" existe déjà dans la catégorie "${categoryName}".`);
+             return;
+        }
+
+        const newHost = {
+            services: '', notes: '', tags: [], credentials: [],
+            system: null, role: 'Unknown', zone: 'Unknown', compromiseLevel: 'None',
+            exploitationTechniques: [], vulnerabilities: []
+        };
+
+        hostData.categories[categoryName].hosts[sanitizedIpName] = newHost;
+
+        console.log(`Nouvel hôte ajouté : ${sanitizedIpName}`, newHost);
+        saveData(); // Sauvegarde et re-rendu
+        openEditPanel(sanitizedIpName); // Ouvrir pour édition immédiate
+    }
+
+    function handleSaveHostFromPanel(event) {
+        console.log(">>> handleSaveHostFromPanel: START");
         event.preventDefault();
-        const form = event.target;
-        const ipName = form.elements['ipName'].value.trim();
-        const services = form.elements['services'].value.trim();
-        const tags = form.elements['tags'].value.trim().split(',').map(t => t.trim()).filter(Boolean);
-        const notes = form.elements['notes'].value.trim();
-        const category = activeCategory; // Ajouter à la catégorie active
+        const hostId = editHostIdInput.value; // ipName original
+        const originalCategory = editHostCategoryInput.value;
+        const newIpName = sanitizeInput(editHostIpNameInput.value.trim());
 
-        if (!ipName) {
-            alert("L'adresse IP ou le nom de l'hôte est requis.");
+        if (!hostId || !originalCategory || !newIpName) {
+            alert("Erreur: Informations manquantes pour la sauvegarde (ID, Catégorie ou Nom/IP).");
             return;
         }
 
-        // Vérifier si l'hôte existe déjà (dans n'importe quelle catégorie)
-        if (getHostById(ipName)) {
-             alert(`L'hôte "${ipName}" existe déjà.`);
+        // Trouver la référence à l'hôte
+        let hostRef = hostData.categories[originalCategory]?.hosts?.[hostId];
+        if (!hostRef) {
+             alert(`Erreur: Hôte original "${hostId}" introuvable dans la catégorie "${originalCategory}".`);
              return;
         }
 
-        if (category && hostData.categories[category]) {
-            if (!hostData.categories[category].hosts) {
-                hostData.categories[category].hosts = {};
+        // Gérer le renommage (si ipName a changé)
+        if (newIpName !== hostId) {
+            // Vérifier si le nouveau nom existe déjà dans la catégorie
+            if (hostData.categories[originalCategory].hosts[newIpName]) {
+                alert(`Erreur: Un hôte avec le nom/IP "${newIpName}" existe déjà dans cette catégorie.`);
+                return;
             }
-            hostData.categories[category].hosts[ipName] = {
-                services: services,
-                notes: notes,
-                credentials: [], // Initialiser avec un tableau vide
-                tags: tags
-            };
-            saveData();
-            renderActiveCategoryContent(); // Mettre à jour la liste de la catégorie
-            renderNetworkMap(); // Mettre à jour la carte
-            renderAggregatedData(); // Mettre à jour les données agrégées
-            populateFilterDropdowns(); // Mettre à jour les filtres
-            form.reset(); // Vider le formulaire
-        } else {
-            alert("Erreur : Catégorie active non valide.");
+            // Mettre à jour les edges qui référencent l'ancien nom
+            hostData.edges = hostData.edges.map(edge => {
+                if (edge.from === hostId) edge.from = newIpName;
+                if (edge.to === hostId) edge.to = newIpName;
+                return edge;
+            });
+            // Créer la nouvelle entrée et supprimer l'ancienne
+            hostData.categories[originalCategory].hosts[newIpName] = { ...hostRef }; // Copier les données
+            delete hostData.categories[originalCategory].hosts[hostId];
+            hostRef = hostData.categories[originalCategory].hosts[newIpName]; // Mettre à jour la référence
+            console.log(`Hôte renommé de "${hostId}" à "${newIpName}". Edges mis à jour.`);
         }
+
+        // Mettre à jour les propriétés de l'hôte (maintenant pointé par hostRef)
+        hostRef.services = sanitizeInput(editHostServicesInput.value);
+        hostRef.notes = sanitizeInput(editHostNotesTextarea.value);
+        hostRef.tags = editHostTagsInput.value.split(',')
+                           .map(tag => sanitizeInput(tag.trim()))
+                           .filter(tag => tag !== '');
+        // Nouveaux champs
+        hostRef.system = sanitizeInput(document.getElementById('editHostSystem').value) || null;
+        hostRef.role = sanitizeInput(document.getElementById('editHostRole').value) || 'Unknown';
+        hostRef.zone = sanitizeInput(document.getElementById('editHostZone').value) || 'Unknown';
+        hostRef.compromiseLevel = document.getElementById('editHostCompromiseLevel').value || 'None';
+        hostRef.exploitationTechniques = document.getElementById('editHostTechniques').value.split(',')
+                                            .map(t => sanitizeInput(t.trim())).filter(Boolean);
+        hostRef.vulnerabilities = document.getElementById('editHostVulnerabilities').value.split(',')
+                                      .map(v => sanitizeInput(v.trim())).filter(Boolean);
+
+
+        // Mettre à jour les credentials
+        hostRef.credentials = [];
+        const credGroups = editCredentialsContainer.querySelectorAll('.credential-group');
+        credGroups.forEach(group => {
+            const username = group.querySelector('input[placeholder="Utilisateur"]').value.trim();
+            const password = group.querySelector('input[placeholder="Mot de passe"]').value.trim();
+            const hash = group.querySelector('input[placeholder="Hash"]').value.trim();
+            const type = group.querySelector('input[placeholder="Type (ex: NTLM)"]').value.trim();
+            const source = group.querySelector('input[placeholder="Source (ex: Mimikatz)"]').value.trim();
+            if (username || password || hash) { // Ajouter seulement si au moins un champ est rempli
+                hostRef.credentials.push({
+                    username: sanitizeInput(username) || null,
+                    password: sanitizeInput(password) || null,
+                    hash: sanitizeInput(hash) || null,
+                    type: sanitizeInput(type) || null,
+                    source: sanitizeInput(source) || null,
+                });
+            }
+        });
+
+        console.log(`Hôte sauvegardé: ${newIpName}`, hostRef);
+        saveData();
+        closeEditPanel();
     }
 
-    function handleRemoveHost(hostId, categoryName) {
-        if (!hostId || !categoryName || !hostData.categories[categoryName] || !hostData.categories[categoryName].hosts[hostId]) {
-             console.error("Tentative de suppression d'hôte invalide:", hostId, categoryName);
-             return;
+    function handleDeleteHostFromPanel() {
+        console.log(">>> handleDeleteHostFromPanel: START");
+        const hostId = editHostIdInput.value;
+        const categoryName = editHostCategoryInput.value;
+
+        if (!hostId || !categoryName || !hostData.categories[categoryName]?.hosts?.[hostId]) {
+            alert("Erreur: Impossible de déterminer quel hôte supprimer.");
+            return;
         }
 
         if (confirm(`Êtes-vous sûr de vouloir supprimer l'hôte "${hostId}" de la catégorie "${categoryName}" ?`)) {
             // Supprimer l'hôte
             delete hostData.categories[categoryName].hosts[hostId];
-
             // Supprimer les edges connectés à cet hôte
             hostData.edges = hostData.edges.filter(edge => edge.from !== hostId && edge.to !== hostId);
 
+            console.log(`Hôte supprimé: ${hostId} de ${categoryName}. Edges liés supprimés.`);
             saveData();
-            renderActiveCategoryContent(); // Mettre à jour la liste
-            renderNetworkMap(); // Mettre à jour la carte
-            renderAggregatedData(); // Mettre à jour les données agrégées
-            closeEditPanel(); // Fermer le panneau si l'hôte supprimé y était affiché
+            closeEditPanel();
         }
     }
-
-    // --- Fonctions du Panneau d'Édition ---
-
-    function openEditPanel(hostId, categoryName) {
-        const hostInfo = getHostById(hostId);
-        if (!hostInfo) return;
-
-        const host = hostInfo.host;
-
-        // Remplir les champs du formulaire
-        editHostIdInput.value = hostId;
-        editHostCategoryInput.value = categoryName;
-        editHostIpNameInput.value = hostId; // L'ID est l'IP/Nom ici
-        editHostServicesInput.value = host.services || '';
-        editHostNotesTextarea.value = host.notes || '';
-        editHostTagsInput.value = host.tags ? host.tags.join(', ') : '';
-
-        // Remplir les credentials
-        editCredentialsContainer.innerHTML = ''; // Vider les anciens
-        if (host.credentials && host.credentials.length > 0) {
-            host.credentials.forEach((cred, index) => {
-                addCredentialInputs(cred.username, cred.password, cred.hash, index);
-            });
-        } else {
-             addCredentialInputs('', '', '', 0); // Ajouter une ligne vide si pas de creds
-        }
-
-        // Remplir les connexions existantes
-        renderExistingEdges(hostId);
-
-
-        // Afficher le panneau
-        editPanel.classList.add('visible');
-    }
-
-    function closeEditPanel() {
-        editPanel.classList.remove('visible');
-        // Optionnel: Réinitialiser le formulaire d'édition
-        // editHostForm.reset();
-        // editCredentialsContainer.innerHTML = '';
-        // existingEdgesListDiv.innerHTML = '';
-    }
-
-    function addCredentialInputs(username = '', password = '', hash = '', index) {
-        const div = document.createElement('div');
-        div.className = 'credential-group';
-        div.dataset.index = index; // Pour identifier la ligne
-        div.innerHTML = `
-            <button type="button" class="remove-credential-btn" title="Supprimer ce credential">&times;</button>
-            <div class="form-group">
-                <label>Username:</label>
-                <input type="text" class="edit-cred-username" value="${sanitizeInput(username)}">
-            </div>
-            <div class="form-group">
-                <label>Password:</label>
-                <input type="text" class="edit-cred-password" value="${sanitizeInput(password)}">
-            </div>
-            <div class="form-group">
-                <label>Hash:</label>
-                <input type="text" class="edit-cred-hash" value="${sanitizeInput(hash)}">
-            </div>
-        `;
-        // Ajouter l'écouteur pour le bouton de suppression de cette ligne
-        div.querySelector('.remove-credential-btn').addEventListener('click', (e) => {
-            e.target.closest('.credential-group').remove();
-            // Réindexer après suppression si nécessaire (ou gérer lors de la sauvegarde)
-        });
-        editCredentialsContainer.appendChild(div);
-    }
-
-    function handleSaveHostFromPanel(event) {
-        event.preventDefault();
-        const hostId = editHostIdInput.value;
-        const originalCategory = editHostCategoryInput.value;
-        const newIpName = editHostIpNameInput.value.trim(); // Nouveau nom/IP potentiel
-        const services = editHostServicesInput.value.trim();
-        const notes = editHostNotesTextarea.value.trim();
-        const tags = editHostTagsInput.value.trim().split(',').map(t => t.trim()).filter(Boolean);
-
-        if (!newIpName) {
-            alert("L'IP ou le nom ne peut pas être vide.");
-            return;
-        }
-
-        // Récupérer les credentials depuis le panneau
-        const credentials = [];
-        editCredentialsContainer.querySelectorAll('.credential-group').forEach(group => {
-            const username = group.querySelector('.edit-cred-username').value.trim();
-            const password = group.querySelector('.edit-cred-password').value.trim();
-            const hash = group.querySelector('.edit-cred-hash').value.trim();
-            // Ajouter seulement si au moins un champ est rempli
-            if (username || password || hash) {
-                credentials.push({ username, password, hash });
-            }
-        });
-
-        // Vérifier si l'ID (IP/Nom) a changé et si le nouveau existe déjà
-        if (hostId !== newIpName && getHostById(newIpName)) {
-            alert(`Un hôte avec l'ID "${newIpName}" existe déjà.`);
-            return;
-        }
-
-        // Mettre à jour les données
-        const hostInfo = getHostById(hostId);
-        if (!hostInfo || hostInfo.category !== originalCategory) {
-             console.error("Erreur: Hôte ou catégorie d'origine introuvable lors de la sauvegarde.", hostId, originalCategory);
-             alert("Erreur lors de la sauvegarde. Impossible de trouver l'hôte d'origine.");
-             return;
-        }
-
-        // Créer le nouvel objet hôte
-        const updatedHostData = { services, notes, tags, credentials };
-
-        // Supprimer l'ancien enregistrement
-        delete hostData.categories[originalCategory].hosts[hostId];
-
-        // Ajouter/Mettre à jour avec le nouvel ID et les nouvelles données
-        if (!hostData.categories[originalCategory].hosts) {
-             hostData.categories[originalCategory].hosts = {};
-        }
-        hostData.categories[originalCategory].hosts[newIpName] = updatedHostData;
-
-
-        // Mettre à jour les edges si l'ID a changé
-        if (hostId !== newIpName) {
-            hostData.edges.forEach(edge => {
-                if (edge.from === hostId) edge.from = newIpName;
-                if (edge.to === hostId) edge.to = newIpName;
-            });
-        }
-
-        saveData();
-        renderActiveCategoryContent(); // Mettre à jour la liste
-        renderNetworkMap(); // Mettre à jour la carte
-        renderAggregatedData(); // Mettre à jour les données agrégées
-        populateFilterDropdowns(); // Mettre à jour les filtres
-        closeEditPanel(); // Fermer le panneau
-        alert(`Hôte "${newIpName}" sauvegardé.`);
-    }
-
-     function handleDeleteHostFromPanel() {
-        const hostId = editHostIdInput.value;
-        const category = editHostCategoryInput.value;
-        handleRemoveHost(hostId, category); // Réutilise la fonction de suppression existante
-        // La fonction handleRemoveHost s'occupe déjà de la sauvegarde, du rendu et de la fermeture du panneau.
-    }
-
-    // --- Fonctions de Gestion des Connexions (Edges) ---
 
     function handleAddEdge() {
-        const fromId = editHostIdInput.value; // L'hôte en cours d'édition
-        const toId = editEdgeToInput.value.trim();
-        const label = editEdgeLabelInput.value.trim();
+        console.log(">>> handleAddEdge: START");
+        const fromHostId = editHostIdInput.value; // L'hôte en cours d'édition est le 'from'
+        const toHostId = sanitizeInput(editEdgeToInput.value.trim());
+        const label = sanitizeInput(editEdgeLabelInput.value.trim());
 
-        if (!fromId || !toId) {
-            alert("Veuillez spécifier l'hôte source et cible pour la connexion.");
+        if (!fromHostId || !toHostId) {
+            alert("Veuillez spécifier l'hôte cible pour la connexion.");
             return;
         }
 
-        // Vérifier si l'hôte cible existe
-        if (!getHostById(toId)) {
-            alert(`L'hôte cible "${toId}" n'existe pas.`);
+        // Vérifier si l'hôte cible existe (dans n'importe quelle catégorie)
+        let targetExists = false;
+        for (const cat in hostData.categories) {
+            if (hostData.categories[cat]?.hosts?.[toHostId]) {
+                targetExists = true;
+                break;
+            }
+        }
+        if (!targetExists) {
+            alert(`L'hôte cible "${toHostId}" n'a pas été trouvé dans les données actuelles.`);
+            // Optionnel: proposer de créer l'hôte cible ?
             return;
         }
 
-        // Vérifier si l'edge existe déjà (dans un sens ou l'autre, optionnel)
-        const edgeExists = hostData.edges.some(edge =>
-            (edge.from === fromId && edge.to === toId) || (edge.from === toId && edge.to === fromId)
-        );
+        // Ajouter l'edge
+        const newEdge = {
+            id: generateUUID(), // Générer un ID unique pour l'edge
+            from: fromHostId,
+            to: toHostId,
+            label: label || '', // Label optionnel
+            arrows: 'to' // Assurer la flèche
+        };
+        hostData.edges.push(newEdge);
+        console.log("Edge ajouté:", newEdge);
 
-        if (edgeExists) {
-            alert("Une connexion existe déjà entre ces deux hôtes.");
-            return;
-        }
+        // Mettre à jour la liste dans le panneau et sauvegarder
+        renderEdgesInPanel(fromHostId);
+        saveData(); // Sauvegarde et re-rend la carte réseau
 
-        // Ajouter le nouvel edge
-        hostData.edges.push({ from: fromId, to: toId, label: label || undefined }); // Ne pas mettre de label vide
-
-        saveData();
-        renderNetworkMap(); // Mettre à jour la carte pour afficher le nouvel edge
-        renderExistingEdges(fromId); // Mettre à jour la liste dans le panneau
-
-        // Vider les champs d'ajout d'edge
+        // Vider les champs
         editEdgeToInput.value = '';
         editEdgeLabelInput.value = '';
     }
 
-    function renderExistingEdges(hostId) {
-        existingEdgesListDiv.innerHTML = '<strong>Connexions existantes :</strong><ul>';
-        const relatedEdges = hostData.edges.filter(edge => edge.from === hostId || edge.to === hostId);
+    function handleDeleteEdge(edgeId) {
+        console.log(`>>> handleDeleteEdge: START for ${edgeId}`);
+        const fromHostId = editHostIdInput.value; // Récupérer l'hôte actuel pour re-render le panneau
+        hostData.edges = hostData.edges.filter(edge => edge.id !== edgeId);
+        console.log(`Edge supprimé: ${edgeId}`);
+        renderEdgesInPanel(fromHostId); // Mettre à jour la liste dans le panneau
+        saveData(); // Sauvegarde et re-rend la carte réseau
+    }
 
-        if (relatedEdges.length === 0) {
-            existingEdgesListDiv.innerHTML += '<li>Aucune</li>';
-        } else {
-            relatedEdges.forEach((edge, index) => {
-                const target = edge.from === hostId ? edge.to : edge.from;
-                const direction = edge.from === hostId ? 'vers' : 'depuis';
-                const label = edge.label ? ` (${edge.label})` : '';
-                existingEdgesListDiv.innerHTML += `
-                    <li>
-                        ${direction} <strong>${sanitizeInput(target)}</strong>${sanitizeInput(label)}
-                        <button class="remove-edge-btn" data-edge-index="${hostData.edges.indexOf(edge)}" style="font-size: 10px; color: red; cursor: pointer; border: none; background: none; margin-left: 5px;">[X]</button>
-                    </li>`;
-            });
+
+    // --- Fonctions de Gestion des Panneaux (Edit, Settings) ---
+
+    function openEditPanel(hostId) {
+        console.log(`>>> openEditPanel: START for ${hostId}`);
+        if (!editPanel) return;
+
+        // Trouver l'hôte et sa catégorie
+        let host = null;
+        let categoryName = null;
+        for (const cat in hostData.categories) {
+            if (hostData.categories[cat]?.hosts?.[hostId]) {
+                host = hostData.categories[cat].hosts[hostId];
+                categoryName = cat;
+                break;
+            }
         }
-        existingEdgesListDiv.innerHTML += '</ul>';
 
-        // Attacher les écouteurs pour supprimer les edges
-        existingEdgesListDiv.querySelectorAll('.remove-edge-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const edgeIndex = parseInt(e.target.dataset.edgeIndex, 10);
-                if (!isNaN(edgeIndex) && hostData.edges[edgeIndex]) {
-                    handleRemoveEdge(edgeIndex, hostId);
-                }
-            });
-        });
-    }
-
-    function handleRemoveEdge(edgeIndex, currentHostId) {
-         if (confirm("Êtes-vous sûr de vouloir supprimer cette connexion ?")) {
-            hostData.edges.splice(edgeIndex, 1); // Supprimer l'edge du tableau
-            saveData();
-            renderNetworkMap(); // Mettre à jour la carte
-            renderExistingEdges(currentHostId); // Mettre à jour la liste dans le panneau
-         }
-    }
-
-
-    // --- Fonctions d'Actions Globales ---
-
-    function handleExportSession() {
-        if (Object.keys(hostData.categories).length === 0 && hostData.edges.length === 0) {
-            alert("Il n'y a aucune donnée à exporter.");
+        if (!host || !categoryName) {
+            console.error(`Hôte non trouvé pour ID: ${hostId}`);
+            alert(`Erreur: Hôte "${hostId}" introuvable.`);
             return;
         }
+
+        // Remplir les champs du formulaire
+        editHostIdInput.value = hostId; // Stocker l'ID original (ipName)
+        editHostCategoryInput.value = categoryName; // Stocker la catégorie originale
+        editHostIpNameInput.value = hostId; // Pré-remplir avec ipName actuel
+        editHostServicesInput.value = host.services || '';
+        editHostNotesTextarea.value = host.notes || '';
+        editHostTagsInput.value = host.tags?.join(', ') || '';
+
+        // Remplir les nouveaux champs
+        document.getElementById('editHostSystem').value = host.system || '';
+        document.getElementById('editHostRole').value = host.role || '';
+        document.getElementById('editHostZone').value = host.zone || '';
+        document.getElementById('editHostCompromiseLevel').value = host.compromiseLevel || 'None';
+        document.getElementById('editHostTechniques').value = host.exploitationTechniques?.join(', ') || '';
+        document.getElementById('editHostVulnerabilities').value = host.vulnerabilities?.join(', ') || '';
+
+
+        // Remplir les credentials
+        editCredentialsContainer.innerHTML = ''; // Vider les anciens
+        (host.credentials || []).forEach(cred => addCredentialInputGroup(cred));
+
+        // Remplir les edges sortants
+        renderEdgesInPanel(hostId);
+
+        // Afficher le panneau
+        editPanel.classList.add('open');
+        console.log(`Panneau d'édition ouvert pour: ${hostId}`);
+    }
+
+    function closeEditPanel() {
+        if (!editPanel) return;
+        editPanel.classList.remove('open');
+        console.log("Panneau d'édition fermé.");
+    }
+
+    function addCredentialInputGroup(credential = {}) {
+        console.log(">>> addCredentialInputGroup: START");
+        if (!editCredentialsContainer) return;
+        const credDiv = document.createElement('div');
+        credDiv.className = 'credential-group input-group input-group-sm mb-2'; // input-group-sm pour taille cohérente
+        credDiv.innerHTML = `
+            <input type="text" class="form-control" placeholder="Utilisateur" value="${credential.username || ''}">
+            <input type="text" class="form-control" placeholder="Mot de passe" value="${credential.password || ''}">
+            <input type="text" class="form-control" placeholder="Hash" value="${credential.hash || ''}">
+            <input type="text" class="form-control" placeholder="Type (ex: NTLM)" value="${credential.type || ''}">
+            <input type="text" class="form-control" placeholder="Source (ex: Mimikatz)" value="${credential.source || ''}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-danger remove-credential-btn" type="button">🗑️</button>
+            </div>
+        `;
+        // Ajouter l'écouteur pour le bouton supprimer de CE groupe
+        const removeBtn = credDiv.querySelector('.remove-credential-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                credDiv.remove();
+                console.log("Groupe credential supprimé.");
+            });
+        }
+        editCredentialsContainer.appendChild(credDiv);
+        console.log(">>> addCredentialInputGroup: END");
+    }
+
+    function renderEdgesInPanel(hostId) {
+        console.log(`>>> renderEdgesInPanel: START for ${hostId}`);
+        if (!existingEdgesListDiv) return;
+        existingEdgesListDiv.innerHTML = ''; // Vider la liste
+
+        const outgoingEdges = hostData.edges.filter(edge => edge.from === hostId);
+
+        if (outgoingEdges.length === 0) {
+            existingEdgesListDiv.innerHTML = '<small><em>Aucune connexion sortante définie.</em></small>';
+        } else {
+            const list = document.createElement('ul');
+            list.className = 'list-unstyled';
+            outgoingEdges.forEach(edge => {
+                const listItem = document.createElement('li');
+                listItem.className = 'd-flex justify-content-between align-items-center mb-1';
+                listItem.innerHTML = `
+                    <span>Vers: <strong>${edge.to}</strong> ${edge.label ? `(${edge.label})` : ''}</span>
+                    <button class="btn btn-danger btn-sm remove-edge-btn" data-edge-id="${edge.id}">🗑️</button>
+                `;
+                // Ajouter écouteur pour supprimer cet edge spécifique
+                const removeBtn = listItem.querySelector('.remove-edge-btn');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => handleDeleteEdge(edge.id));
+                }
+                list.appendChild(listItem);
+            });
+            existingEdgesListDiv.appendChild(list);
+        }
+        console.log(`>>> renderEdgesInPanel: END - ${outgoingEdges.length} edges rendered.`);
+    }
+
+    function openCategorySettingsPanel(categoryName) {
+        console.log(`>>> openCategorySettingsPanel: START for ${categoryName}`);
+        if (!categorySettingsPanel || !hostData.categories[categoryName]) return;
+
+        settingsCategoryNameInput.value = categoryName; // Stocker le nom
+        categorySettingsPanelTitle.textContent = `Paramètres: ${categoryName}`;
+
+        // Pré-remplir le type de template actuel
+        const currentTemplateType = hostData.categories[categoryName].templateType;
+        if (categoryTemplateTypeSelect) {
+             categoryTemplateTypeSelect.value = currentTemplateType || ""; // Mettre à "" si null/undefined
+        }
+
+        categorySettingsPanel.classList.add('open');
+        console.log(`Panneau settings ouvert pour: ${categoryName}`);
+    }
+
+    function closeCategorySettingsPanel() {
+        if (!categorySettingsPanel) return;
+        categorySettingsPanel.classList.remove('open');
+        console.log("Panneau settings fermé.");
+    }
+
+    function saveCategoryTemplateType() {
+        console.log(">>> saveCategoryTemplateType: START");
+        const categoryName = settingsCategoryNameInput.value;
+        const selectedTemplateType = categoryTemplateTypeSelect.value;
+
+        if (!categoryName || !hostData.categories[categoryName]) {
+            alert("Erreur: Catégorie non valide.");
+            return;
+        }
+
+        hostData.categories[categoryName].templateType = selectedTemplateType || null; // Stocker null si ""
+        console.log(`Template type pour "${categoryName}" mis à jour à: ${selectedTemplateType || 'Aucun'}`);
+        saveData(); // Sauvegarder les données (pas besoin de renderAll ici)
+        closeCategorySettingsPanel();
+    }
+
+
+    // --- Fonctions d'Import/Export/Filtres ---
+
+    function handleExportSession() {
+        console.log(">>> handleExportSession: START");
         try {
-            const jsonData = JSON.stringify(hostData, null, 2); // Indenté pour lisibilité
-            const blob = new Blob([jsonData], { type: 'application/json' });
+            const dataStr = JSON.stringify(hostData, null, 2); // Indenter pour lisibilité
+            const blob = new Blob([dataStr], { type: "application/json;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            a.href = url;
             a.download = `hostmanager_session_${timestamp}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            console.log("Session exportée.");
         } catch (e) {
-            console.error("Erreur lors de l'exportation JSON:", e);
-            alert("Erreur lors de la création du fichier d'exportation.");
+            console.error("Erreur lors de l'exportation de la session:", e);
+            alert("Erreur lors de l'exportation. Vérifiez la console.");
         }
     }
 
     function handleImportSession(event) {
+        console.log(">>> handleImportSession: START");
         const file = event.target.files[0];
         if (!file) {
-            return;
-        }
-        if (!confirm("Importer ce fichier remplacera toutes les données actuelles. Continuer ?")) {
-            event.target.value = null; // Réinitialiser l'input file
+            console.log("Aucun fichier sélectionné.");
             return;
         }
 
         const reader = new FileReader();
+
         reader.onload = function(e) {
             try {
                 const importedData = JSON.parse(e.target.result);
-                // Validation basique de la structure importée
-                if (importedData && typeof importedData.categories === 'object' && Array.isArray(importedData.edges)) {
+                console.log("Fichier JSON parsé avec succès. Données importées (début):", JSON.stringify(importedData).substring(0, 500)); // Log pour vérifier
+
+                // **CORRECTION/VÉRIFICATION CRUCIALE**
+                // Valider la structure minimale attendue
+                if (importedData && typeof importedData === 'object' && importedData.categories && importedData.edges !== undefined) {
+                    // Remplacer complètement les données actuelles par les données importées
                     hostData = importedData;
-                    // S'assurer que les catégories ont bien une structure 'hosts'
-                    Object.values(hostData.categories).forEach(cat => {
-                        if (!cat.hosts) cat.hosts = {};
-                    });
-                    // Définir la catégorie active
-                    activeCategory = Object.keys(hostData.categories)[0] || null;
-                     if (!activeCategory && Object.keys(hostData.categories).length === 0) {
-                        addCategory("Default"); // Ajouter Default si l'import est vide
-                     } else {
-                        saveData();
-                        renderAll(); // Re-render toute l'interface avec les nouvelles données
-                        alert("Session importée avec succès !");
+                    console.log("hostData mis à jour avec les données importées.");
+
+                    // Assurer la structure minimale après import (comme dans loadData)
+                    for (const catName in hostData.categories) {
+                         if (!hostData.categories[catName]) {
+                              console.warn(`Catégorie invalide trouvée dans import et ignorée: ${catName}`);
+                              delete hostData.categories[catName];
+                              continue;
+                         }
+                         if (!hostData.categories[catName].hosts) {
+                             hostData.categories[catName].hosts = {};
+                         }
+                         if (hostData.categories[catName].templateType === undefined) {
+                             hostData.categories[catName].templateType = null;
+                         }
                      }
+                     // S'assurer qu'activeCategory est valide ou null
+                     const firstCategory = Object.keys(hostData.categories)[0];
+                     activeCategory = hostData.categories[activeCategory] ? activeCategory : (firstCategory || null);
+
+
+                    // Sauvegarder les nouvelles données et déclencher le re-rendu complet
+                    saveData(); // Ceci appelle renderAll() qui appelle renderNetworkMap()
+                    console.log("Données importées sauvegardées et UI rafraîchie.");
+                    alert("Session importée avec succès !");
                 } else {
-                    throw new Error("Structure de données invalide dans le fichier importé.");
+                    console.error("Le fichier JSON importé n'a pas la structure attendue (manque 'categories' ou 'edges').", importedData);
+                    alert("Erreur: Le fichier JSON importé n'a pas la structure attendue (il doit contenir au moins les clés 'categories' et 'edges').");
                 }
+
             } catch (error) {
-                console.error("Erreur lors de l'importation JSON:", error);
-                alert(`Erreur lors de l'importation du fichier : ${error.message}`);
+                console.error("Erreur lors du parsing du fichier JSON:", error);
+                alert("Erreur lors de la lecture ou du parsing du fichier JSON. Assurez-vous que le fichier est valide.");
             } finally {
-                 event.target.value = null; // Réinitialiser l'input file
+                 // Réinitialiser l'input pour permettre de réimporter le même fichier si nécessaire
+                 event.target.value = null;
             }
         };
+
         reader.onerror = function() {
+            console.error("Erreur lors de la lecture du fichier:", reader.error);
             alert("Erreur lors de la lecture du fichier.");
-             event.target.value = null; // Réinitialiser l'input file
+             event.target.value = null; // Réinitialiser
         };
+
         reader.readAsText(file);
     }
 
     function handleRemoveAllData() {
-        if (confirm("Êtes-vous sûr de vouloir supprimer TOUTES les catégories, hôtes et connexions ? Cette action est irréversible.")) {
+        console.log(">>> handleRemoveAllData: START");
+        if (confirm("Êtes-vous sûr de vouloir supprimer TOUTES les données (catégories, hôtes, connexions) ? Cette action est irréversible.")) {
             hostData = { categories: {}, edges: [] };
-            addCategory("Default"); // Recréer la catégorie par défaut
-            // La fonction addCategory gère saveData et renderAll
+            activeCategory = null;
+            currentFilters = { category: '', tag: '' }; // Réinitialiser aussi les filtres
+            killchainReportContent = ''; // Vider le rapport
+            localStorage.removeItem(STORAGE_KEY); // Supprimer du stockage local
+            console.log("Toutes les données ont été supprimées.");
+            saveData(); // Sauvegarde l'état vide et rafraîchit l'UI
+            // Vider explicitement certains éléments UI
+            if(filterTagInput) filterTagInput.value = '';
+            if(killchainReportPreviewTextarea) killchainReportPreviewTextarea.value = '';
+            updateMarkdownPreview(); // Met à jour l'aperçu vide
+            alert("Toutes les données ont été supprimées.");
         }
     }
 
-    function handleCopyAggregatedData(event) {
-        if (!event.target.classList.contains('copy-btn')) return;
-
-        const targetId = event.target.dataset.target;
-        const preElement = document.getElementById(targetId);
-        if (preElement) {
-            navigator.clipboard.writeText(preElement.textContent)
-                .then(() => alert(`${targetId.replace('all', 'Tous les ')} copiés dans le presse-papiers !`))
-                .catch(err => {
-                    console.error("Erreur de copie:", err);
-                    alert("Erreur lors de la copie.");
-                });
-        }
+    function applyFiltersAndRender() {
+        console.log(">>> applyFiltersAndRender: START");
+        // Lire les filtres depuis les inputs
+        currentFilters.category = filterCategorySelect ? filterCategorySelect.value : '';
+        currentFilters.tag = filterTagInput ? filterTagInput.value.trim().toLowerCase() : '';
+        console.log("Application des filtres:", currentFilters);
+        renderAll(); // Re-render la carte et potentiellement le contenu de la catégorie
     }
 
 
-    // --- Fonctions de Génération et Prévisualisation du Rapport Killchain ---
+    // --- Fonctions Utilitaires ---
 
-    function updateMarkdownPreview() {
-        console.log("updateMarkdownPreview: Début"); // Log de début
-        if (!killchainReportPreview || !killchainReportRenderedPreview) {
-            console.error("updateMarkdownPreview: Textarea ou Div d'aperçu non trouvé.");
-            return;
-        }
-
-        const markdownText = killchainReportPreview.value;
-        console.log("updateMarkdownPreview: Markdown brut récupéré (longueur):", markdownText.length);
-
-        // Vérifier si marked et DOMPurify sont chargés
-        if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
-             console.error("ERREUR: marked.js ou DOMPurify n'est pas chargé ! Vérifiez les balises <script> dans hostmanager.html.");
-             killchainReportRenderedPreview.innerHTML = `<p style="color: red;">Erreur: Bibliothèques manquantes (marked/DOMPurify).</p>`;
-             return;
-        }
-
-        try {
-            console.log("updateMarkdownPreview: Appel de marked.parse()...");
-            const dirtyHtml = marked.parse(markdownText);
-            console.log("updateMarkdownPreview: HTML après marked (longueur):", dirtyHtml.length);
-
-            console.log("updateMarkdownPreview: Appel de DOMPurify.sanitize()...");
-            const cleanHtml = DOMPurify.sanitize(dirtyHtml);
-            console.log("updateMarkdownPreview: HTML après DOMPurify (longueur):", cleanHtml.length);
-
-            // Vérification cruciale : le HTML nettoyé est-il vide ?
-            if (markdownText.length > 0 && cleanHtml.length === 0) {
-                console.warn("updateMarkdownPreview: DOMPurify a supprimé tout le contenu HTML. Le Markdown d'origine était peut-être invalide ou considéré comme dangereux.");
-                killchainReportRenderedPreview.innerHTML = `<p style="color: orange;">Avertissement: Le contenu Markdown a été entièrement filtré par le sanitiseur.</p>`;
-            } else {
-                killchainReportRenderedPreview.innerHTML = cleanHtml;
-                console.log("updateMarkdownPreview: innerHTML du div d'aperçu mis à jour.");
-            }
-
-        } catch (error) {
-            console.error("ERREUR lors de la conversion Markdown ou de la sanitization:", error);
-            // Afficher l'erreur dans l'aperçu pour un feedback direct
-            killchainReportRenderedPreview.innerHTML = `<p style="color: red;">Erreur lors du rendu Markdown :<br><pre>${error.message}</pre></p>`;
-        }
-        console.log("updateMarkdownPreview: Fin");
-    }
-
-    function generateKillchainReport() {
-        console.log("generateKillchainReport: Début");
-        if (Object.keys(hostData.categories).length === 0 && hostData.edges.length === 0) {
-            alert("Aucune donnée disponible pour générer le rapport.");
-            killchainReportPreview.value = '';
-            updateMarkdownPreview(); // Mettre à jour l'aperçu (qui sera vide)
-            exportKillchainBtn.disabled = true;
-            return;
-        }
-
-        // --- Demander des informations ---
-        const targetName = prompt("Entrez le nom de la cible/mission pour le rapport :", "Projet X");
-        if (targetName === null) { console.log("Génération annulée (cible)"); return; }
-        const authorName = prompt("Entrez le nom de l'auteur :", "Pentester Senior");
-        if (authorName === null) { console.log("Génération annulée (auteur)"); return; }
-        const summary = prompt("Entrez un bref résumé du pentest :", "Audit de sécurité interne visant à évaluer la posture de sécurité et les chemins d'attaque potentiels.");
-        if (summary === null) { console.log("Génération annulée (résumé)"); return; }
-
-
-        let markdown = '';
-
-        // --- 1. Frontmatter YAML ---
-        markdown += `---
-title: "Rapport Killchain - Pentest ${targetName || 'Inconnu'}"
-date: "${getCurrentDateFormatted()}"
-author: "${authorName || 'Inconnu'}"
-summary: "${summary || 'Analyse des chemins d\'attaque découverts lors du pentest.'}"
----\n\n`;
-
-        // --- 2. Titre Principal ---
-        markdown += `# Rapport d'Analyse Killchain - ${targetName || 'Pentest'}\n\n`;
-        markdown += `**Date:** ${getCurrentDateFormatted()}  \n`;
-        markdown += `**Auteur:** ${authorName || 'Inconnu'}  \n\n`;
-
-        // --- 3. Introduction ---
-        markdown += `## Introduction\n\n`;
-        markdown += `Ce document détaille la séquence d'exploitation (killchain) observée lors de l'audit de sécurité pour ${targetName || 'la cible'}. Il décrit les étapes suivies, depuis la reconnaissance initiale jusqu'aux actions post-exploitation, en mettant en évidence les pivots et les techniques utilisées pour progresser dans le réseau cible.\n\n`;
-        markdown += `Le scope de l'audit incluait **[À compléter : décrire le scope ici]**. Les objectifs principaux étaient **[À compléter : lister les objectifs]**.\n\n`;
-
-        // --- 4. Développement de la Killchain ---
-        markdown += `## Développement de la Killchain\n\n`;
-        markdown += `Cette section détaille chaque hôte compromis ou utilisé comme pivot durant l'audit.\n\n`;
-
-        let hostCounter = 0;
-        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
-            if (categoryData.hosts) {
-                Object.entries(categoryData.hosts).sort().forEach(([hostId, host]) => {
-                    hostCounter++;
-                    markdown += `### ${hostCounter}. Hôte : ${sanitizeInput(hostId)} (${sanitizeInput(categoryName)})\n\n`;
-
-                    // --- 4.1 Tableau Technique ---
-                    markdown += `#### Informations Techniques\n\n`;
-                    const outgoingEdges = hostData.edges.filter(edge => edge.from === hostId);
-                    const techniques = outgoingEdges.map(edge => `\`${sanitizeInput(edge.label || 'Pivot')}\` vers \`${sanitizeInput(edge.to)}\``).join('<br>');
-                    const tags = host.tags ? host.tags.map(tag => `\`${sanitizeInput(tag)}\``).join(', ') : '(aucun)';
-
-                    markdown += `| Élément              | Détail                                                                 |\n`;
-                    markdown += `|----------------------|------------------------------------------------------------------------|\n`;
-                    markdown += `| IP / Nom             | \`${sanitizeInput(hostId)}\`                                            |\n`;
-                    markdown += `| Catégorie / Tags     | ${sanitizeInput(categoryName)} / ${tags}                               |\n`;
-                    markdown += `| Services Détectés    | ${host.services ? `\`${sanitizeInput(host.services)}\`` : '(non spécifié)'} |\n`;
-                    markdown += `| Credentials Trouvés  | ${formatCredentialsForMarkdown(host.credentials)}                      |\n`;
-                    markdown += `| Techniques / Pivots  | ${techniques || '(aucun pivot sortant défini)'}                         |\n`;
-                    markdown += `| Notes / Observations | ${host.notes ? sanitizeForMarkdownTable(host.notes) : '(aucune)'}        |\n\n`;
-
-
-                    // --- 4.2 Analyse et Exploitation (Narration) ---
-                    markdown += `#### Analyse et Exploitation\n\n`;
-                    let narration = `L'hôte \`${sanitizeInput(hostId)}\` appartenant à la catégorie **${sanitizeInput(categoryName)}**`;
-                    if (host.services) {
-                        narration += ` exposant les services ${host.services ? `\`${sanitizeInput(host.services)}\`` : ''}`;
-                    }
-                    narration += ` a été analysé. `;
-
-                    if (host.credentials && host.credentials.length > 0) {
-                        narration += `Les credentials suivants y ont été découverts : ${formatCredentialsForMarkdown(host.credentials)}. `;
-                    } else {
-                        narration += `Aucun credential spécifique n'a été enregistré pour cet hôte. `;
-                    }
-
-                    if (outgoingEdges.length > 0) {
-                        narration += `Depuis cet hôte, les pivots suivants ont été établis : ${outgoingEdges.map(edge => `**${sanitizeInput(edge.label || 'Pivot')}** vers \`${sanitizeInput(edge.to)}\``).join(', ')}. `;
-                    } else {
-                        narration += `Aucun pivot sortant n'a été défini depuis cet hôte dans la cartographie. `;
-                    }
-
-                    if (host.notes) {
-                         narration += `\n\n**Notes supplémentaires :**\n${sanitizeInput(host.notes)}\n`; // Afficher les notes brutes ici
-                    }
-
-                    markdown += `${narration}\n\n`;
-                    markdown += `*([À compléter : Ajouter des détails spécifiques sur la méthode d'exploitation, les vulnérabilités utilisées, ou les commandes clés exécutées sur cet hôte si nécessaire]*)\n\n`;
-
-                });
-            }
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
         });
-
-        if (hostCounter === 0) {
-            markdown += `*Aucun hôte n'a été ajouté aux catégories.*\n\n`;
-        }
-
-        // --- 5. Récapitulatif Global des Credentials ---
-        markdown += `## Récapitulatif Global des Credentials\n\n`;
-        markdown += `| Hôte Source          | Username             | Password             | Hash                 |\n`;
-        markdown += `|----------------------|----------------------|----------------------|----------------------|\n`;
-        let credCount = 0;
-        Object.entries(hostData.categories).forEach(([categoryName, categoryData]) => {
-            if (categoryData.hosts) {
-                Object.entries(categoryData.hosts).forEach(([hostId, host]) => {
-                    if (host.credentials && host.credentials.length > 0) {
-                        host.credentials.forEach(cred => {
-                            markdown += `| \`${sanitizeInput(hostId)}\` | ${cred.username ? `\`${sanitizeInput(cred.username)}\`` : ''} | ${cred.password ? `\`${sanitizeInput(cred.password)}\`` : ''} | ${cred.hash ? `\`${sanitizeInput(cred.hash)}\`` : ''} |\n`;
-                            credCount++;
-                        });
-                    }
-                });
-            }
-        });
-
-        if (credCount === 0) {
-            markdown += `| (Aucun credential trouvé) |                      |                      |                      |\n`;
-        }
-        markdown += `\n`;
-
-        // --- 6. Conclusion / Lessons Learned ---
-        markdown += `## Conclusion et Recommandations\n\n`;
-        markdown += `L'analyse de la killchain a mis en évidence plusieurs chemins d'attaque et vulnérabilités au sein du réseau de ${targetName || 'la cible'}. Les points clés incluent : \n`;
-        markdown += `*   **[À compléter : Point clé 1, ex: Faiblesse critique dans la gestion des mots de passe administrateur]**\n`;
-        markdown += `*   **[À compléter : Point clé 2, ex: Exposition de services obsolètes et vulnérables sur le périmètre externe]**\n`;
-        markdown += `*   **[À compléter : Point clé 3, ex: Absence de segmentation efficace entre les zones réseau]**\n\n`;
-        markdown += `Les techniques de pivot les plus efficaces observées ont été **[À compléter : ex: l'exploitation de credentials réutilisés, les tunnels SSH via des hôtes compromis, l'abus de relations de confiance AD]**.\n\n`;
-        markdown += `### Recommandations Principales\n\n`;
-        markdown += `1.  **[À compléter : Recommandation 1, ex: Mettre en place une politique de mots de passe robuste et unique pour les comptes à privilèges (LAPS, etc.)]**\n`;
-        markdown += `2.  **[À compléter : Recommandation 2, ex: Effectuer un inventaire des services exposés et désactiver/mettre à jour/filtrer les services non essentiels ou vulnérables]**\n`;
-        markdown += `3.  **[À compléter : Recommandation 3, ex: Revoir et renforcer la segmentation du réseau (pare-feu, VLANs) pour limiter les mouvements latéraux]**\n\n`;
-        markdown += `--- Fin du Rapport ---`;
-
-
-        // --- Afficher dans la Textarea et Mettre à jour l'Aperçu ---
-        console.log("generateKillchainReport: Markdown généré (longueur):", markdown.length);
-        killchainReportPreview.value = markdown; // Mettre à jour la textarea d'abord
-
-        console.log("generateKillchainReport: Appel de updateMarkdownPreview()...");
-        updateMarkdownPreview(); // Mettre à jour le rendu HTML ensuite
-
-        exportKillchainBtn.disabled = false; // Activer le bouton d'export
-
-        console.log("generateKillchainReport: Appel de switchToPreviewTab()...");
-        switchToPreviewTab(); // Assurer que l'onglet Aperçu est visible
-
-        alert("Rapport Killchain généré et prévisualisé ! Vérifiez l'onglet 'Aperçu'.");
-        console.log("generateKillchainReport: Fin");
     }
 
-    function handleExportKillchain() {
-        const markdownContent = killchainReportPreview.value; // Exporter depuis la textarea (source de vérité)
-        if (!markdownContent) {
-            alert("Aucun rapport à exporter. Veuillez d'abord générer le rapport.");
-            return;
-        }
-        // ... (logique d'export via Blob inchangée) ...
-        try {
-            const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const titleMatch = markdownContent.match(/title: "Rapport Killchain - Pentest ([^"]+)"/);
-            const filenameBase = titleMatch && titleMatch[1] ? sanitizeInput(titleMatch[1]).replace(/ /g, '_') : 'killchain_report';
-            a.download = `${filenameBase}_${timestamp}.md`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        } catch (e) {
-            console.error("Erreur lors de l'exportation Markdown:", e);
-            alert("Erreur lors de la création du fichier d'exportation Markdown.");
-        }
-    }
-
-    // --- Logique des Onglets Aperçu/Éditeur ---
-    function switchToPreviewTab() {
-        console.log("switchToPreviewTab: Activation");
-        if (!killchainReportRenderedPreview || !killchainReportPreview || !showPreviewTab || !showEditorTab) return;
-        killchainReportRenderedPreview.style.display = 'block';
-        killchainReportPreview.style.display = 'none';
-        showPreviewTab.classList.add('active');
-        showEditorTab.classList.remove('active');
-    }
-
-    function switchToEditorTab() {
-        console.log("switchToEditorTab: Activation");
-        if (!killchainReportRenderedPreview || !killchainReportPreview || !showPreviewTab || !showEditorTab) return;
-        killchainReportRenderedPreview.style.display = 'none';
-        killchainReportPreview.style.display = 'block';
-        showPreviewTab.classList.remove('active');
-        showEditorTab.classList.add('active');
+    function sanitizeInput(str) {
+        // Fonction simple pour éviter les injections basiques, à renforcer si nécessaire
+        if (typeof str !== 'string') return str;
+        const temp = document.createElement('div');
+        temp.textContent = str;
+        return temp.innerHTML;
+        // Alternative plus stricte (supprime les tags):
+        // const temp = document.createElement('div');
+        // temp.innerHTML = str;
+        // return temp.textContent || temp.innerText || "";
     }
 
 
     // --- Initialisation et Écouteurs d'Événements ---
 
     function initialize() {
-        console.log("Initialisation Host Manager v2...");
-        loadData();
-        renderAll();
+        console.log(">>> initialize: START");
 
-        // ... (Écouteurs existants pour catégories, hôtes, panel, edges, actions globales) ...
-        addCategoryBtn.addEventListener('click', () => addCategory());
-        applyFiltersBtn.addEventListener('click', () => {
-            renderAggregatedData(filterCategorySelect.value, filterTagInput.value.trim());
-        });
-        exportSessionBtn.addEventListener('click', handleExportSession);
-        importSessionInput.addEventListener('change', handleImportSession);
-        removeAllDataBtn.addEventListener('click', handleRemoveAllData);
-        closePanelBtn.addEventListener('click', closeEditPanel);
-        editHostForm.addEventListener('submit', handleSaveHostFromPanel);
-        addCredentialBtn.addEventListener('click', () => addCredentialInputs());
-        deleteHostFromPanelBtn.addEventListener('click', handleDeleteHostFromPanel);
-        addEdgeBtn.addEventListener('click', handleAddEdge);
-        document.querySelector('.aggregated-data-section').addEventListener('click', handleCopyAggregatedData);
+        // Vérifier si les éléments DOM essentiels sont présents
+        if (!categoryTabsContainer || !addCategoryBtn || !categoryContentContainer || !networkMapDiv || !editPanel || !importSessionInput) {
+             console.error("Initialize: Un ou plusieurs éléments DOM critiques sont manquants. Vérifiez les IDs dans hostmanager.html.");
+             alert("Erreur critique: Impossible d'initialiser l'application. Vérifiez la console.");
+             return; // Arrêter l'initialisation
+        }
 
+        console.log("Attaching listeners...");
+        // Boutons Globaux / Filtres
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', addCategory);
+            console.log("Listener attached to addCategoryBtn."); // LOG 5a
+        }
+        // Utiliser la délégation pour les onglets et leurs boutons internes
+        if (categoryTabsContainer) {
+             categoryTabsContainer.addEventListener('click', handleCategoryTabClick);
+             console.log("Listener attached to categoryTabsContainer (delegation)."); // LOG 5b
+        }
+        // Utiliser la délégation pour le contenu des catégories (boutons Ajouter/Editer Hôte)
+        if (categoryContentContainer) {
+             categoryContentContainer.addEventListener('click', handleCategoryContentClick);
+             console.log("Listener attached to categoryContentContainer (delegation)."); // LOG 5c
+        }
 
-        // Nouveaux écouteurs pour le rapport Killchain
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', applyFiltersAndRender);
+            console.log("Listener attached to applyFiltersBtn."); // LOG 5d
+        }
+        if (exportSessionBtn) {
+            exportSessionBtn.addEventListener('click', handleExportSession);
+            console.log("Listener attached to exportSessionBtn."); // LOG 5e
+        }
+        if (importSessionInput) {
+            // L'écouteur est sur 'change', pas 'click' pour un input file
+            importSessionInput.addEventListener('change', handleImportSession);
+            console.log("Listener attached to importSessionInput (change)."); // LOG 5f
+             // Permettre de cliquer sur un bouton visible pour déclencher l'input caché
+             const importTriggerBtn = document.getElementById('importSessionBtn'); // Assurez-vous que ce bouton existe
+             if (importTriggerBtn) {
+                 importTriggerBtn.addEventListener('click', () => importSessionInput.click());
+                 console.log("Listener attached to importSessionBtn (trigger).");
+             }
+        }
+        if (removeAllDataBtn) {
+            removeAllDataBtn.addEventListener('click', handleRemoveAllData);
+            console.log("Listener attached to removeAllDataBtn.");
+        }
+
+        // Panneau d'Édition Hôte
+        if (closePanelBtn) {
+            closePanelBtn.addEventListener('click', closeEditPanel);
+            console.log("Listener attached to closePanelBtn.");
+        }
+        if (editHostForm) {
+            editHostForm.addEventListener('submit', handleSaveHostFromPanel);
+            console.log("Listener attached to editHostForm (submit)."); // LOG 5g
+        }
+        if (addCredentialBtn) {
+            addCredentialBtn.addEventListener('click', () => addCredentialInputGroup());
+            console.log("Listener attached to addCredentialBtn.");
+        }
+        if (deleteHostFromPanelBtn) {
+            deleteHostFromPanelBtn.addEventListener('click', handleDeleteHostFromPanel);
+            console.log("Listener attached to deleteHostFromPanelBtn.");
+        }
+        if (addEdgeBtn) {
+            addEdgeBtn.addEventListener('click', handleAddEdge);
+            console.log("Listener attached to addEdgeBtn.");
+        }
+        // Les écouteurs pour supprimer credentials/edges sont ajoutés dynamiquement
+
+        // Panneau Paramètres Catégorie
+        if (closeCategorySettingsPanelBtn) {
+            closeCategorySettingsPanelBtn.addEventListener('click', closeCategorySettingsPanel);
+            console.log("Listener attached to closeCategorySettingsPanelBtn.");
+        }
+        if (saveCategorySettingsBtn) {
+            saveCategorySettingsBtn.addEventListener('click', saveCategoryTemplateType);
+            console.log("Listener attached to saveCategorySettingsBtn.");
+        }
+
+        // Rapport Killchain
         if (generateKillchainBtn) {
             generateKillchainBtn.addEventListener('click', generateKillchainReport);
-        } else { console.error("Bouton generateKillchainBtn non trouvé !"); }
-
+            console.log("Listener attached to generateKillchainBtn."); // LOG 5h
+        }
         if (exportKillchainBtn) {
             exportKillchainBtn.addEventListener('click', handleExportKillchain);
-        } else { console.error("Bouton exportKillchainBtn non trouvé !"); }
-
+            exportKillchainBtn.disabled = true;
+            console.log("Listener attached to exportKillchainBtn.");
+        }
+        if (killchainReportPreviewTextarea) {
+            killchainReportPreviewTextarea.addEventListener('input', updateMarkdownPreview);
+            console.log("Listener attached to killchainReportPreviewTextarea (input).");
+        }
         if (showPreviewTab) {
             showPreviewTab.addEventListener('click', switchToPreviewTab);
-        } else { console.error("Onglet showPreviewTab non trouvé !"); }
-
+            console.log("Listener attached to showPreviewTab.");
+        }
         if (showEditorTab) {
             showEditorTab.addEventListener('click', switchToEditorTab);
-        } else { console.error("Onglet showEditorTab non trouvé !"); }
-
-        // Mettre à jour l'aperçu en temps réel lors de l'édition
-        if (killchainReportPreview) {
-            killchainReportPreview.addEventListener('input', updateMarkdownPreview);
-        } else { console.error("Textarea killchainReportPreview non trouvée !"); }
-
-
-        // ... (Observer pour le thème) ...
-         const themeToggle = document.getElementById('toggleTheme');
-         if (themeToggle) {
-            const observer = new MutationObserver((mutationsList) => {
-                for(let mutation of mutationsList) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target === document.body) {
-                        if (network) {
-                            renderNetworkMap(); // Re-render pour les couleurs
-                        }
-                        break;
-                    }
-                }
+            console.log("Listener attached to showEditorTab.");
+        }
+        if (updateCurrentReportBtn) {
+            updateCurrentReportBtn.addEventListener('click', () => {
+                console.log("[DEBUG] Bouton #updateCurrentReportBtn cliqué ! Regénération...");
+                generateKillchainReport();
             });
-            observer.observe(document.body, { attributes: true });
-         }
+            updateCurrentReportBtn.disabled = true;
+            console.log("Listener attached to updateCurrentReportBtn.");
+        }
 
-         // Initialiser l'état des onglets et du bouton export
-         switchToPreviewTab(); // Afficher l'aperçu par défaut
-         if (exportKillchainBtn) exportKillchainBtn.disabled = true; // Désactiver l'export initialement
-         updateMarkdownPreview(); // Afficher le placeholder initial ou le contenu existant
-         console.log("Initialisation terminée.");
+        // Observer pour le thème (si nécessaire pour la carte Vis.js)
+        const themeToggle = document.getElementById('toggleTheme');
+        if (themeToggle && typeof MutationObserver !== 'undefined') {
+           const observer = new MutationObserver((mutationsList) => {
+               for(let mutation of mutationsList) {
+                   if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                       console.log('Theme changed, re-rendering network map...');
+                       renderNetworkMap();
+                   }
+               }
+           });
+           observer.observe(document.body, { attributes: true });
+           console.log("Theme observer attached.");
+        }
+
+        // Chargement des données initiales
+        console.log("Calling loadData...");
+        loadData();
+        console.log("Calling renderAll...");
+        renderAll(); // Appel initial pour afficher l'état chargé
+
+        // Initialiser l'état des onglets rapport
+        switchToPreviewTab();
+        updateMarkdownPreview();
+
+        console.log(">>> initialize: END - Initialisation Host Manager v3 terminée et écouteurs attachés."); // LOG 6
     }
 
+    // --- Fonctions de Gestion des Onglets Rapport ---
+    function switchToPreviewTab() {
+        console.log(">>> switchToPreviewTab: START");
+        const editorContainer = document.getElementById('killchainEditorContainer');
+        const previewContainer = document.getElementById('killchainRenderedPreviewContainer');
+        const editorTab = document.getElementById('showEditorTab');
+        const previewTab = document.getElementById('showPreviewTab');
+
+        if (editorContainer) editorContainer.style.display = 'none';
+        if (previewContainer) previewContainer.style.display = 'block';
+        if (editorTab) editorTab.classList.remove('active');
+        if (previewTab) previewTab.classList.add('active');
+        updateMarkdownPreview(); // Mettre à jour l'aperçu quand on y passe
+        console.log(">>> switchToPreviewTab: END");
+    }
+
+    function switchToEditorTab() {
+        console.log(">>> switchToEditorTab: START");
+        const editorContainer = document.getElementById('killchainEditorContainer');
+        const previewContainer = document.getElementById('killchainRenderedPreviewContainer');
+        const editorTab = document.getElementById('showEditorTab');
+        const previewTab = document.getElementById('showPreviewTab');
+
+        if (editorContainer) editorContainer.style.display = 'block';
+        if (previewContainer) previewContainer.style.display = 'none';
+        if (editorTab) editorTab.classList.add('active');
+        if (previewTab) previewTab.classList.remove('active');
+        console.log(">>> switchToEditorTab: END");
+    }
+
+    function updateMarkdownPreview() {
+        console.log(">>> updateMarkdownPreview: START");
+        if (!killchainReportPreviewTextarea || !killchainReportRenderedPreviewDiv) {
+            console.error("Éléments d'édition/aperçu Markdown introuvables.");
+            return;
+        }
+
+        // Mettre à jour la variable globale avec le contenu actuel de l'éditeur SI l'éditeur est visible
+        if (document.getElementById('killchainEditorContainer')?.style.display !== 'none') {
+             killchainReportContent = killchainReportPreviewTextarea.value;
+        }
+
+
+        // Rendu Markdown
+        if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+            killchainReportRenderedPreviewDiv.innerHTML = '<p>Erreur: Librairies Marked.js ou DOMPurify non chargées.</p>';
+            return;
+        }
+        try {
+            // Utiliser le contenu de la variable globale pour le rendu
+            const dirtyHtml = marked.parse(killchainReportContent || "*Aucun contenu à afficher.*");
+            const cleanHtml = DOMPurify.sanitize(dirtyHtml);
+            killchainReportRenderedPreviewDiv.innerHTML = cleanHtml;
+        } catch (e) {
+            console.error("Erreur lors du rendu Markdown:", e);
+            killchainReportRenderedPreviewDiv.innerHTML = '<p>Erreur lors du rendu Markdown. Vérifiez la console.</p>';
+        }
+        console.log(">>> updateMarkdownPreview: END");
+    }
+
+    function handleExportKillchain() {
+        console.log(">>> handleExportKillchain: START");
+        if (!killchainReportContent) {
+            alert("Aucun rapport à exporter. Générez ou actualisez le rapport d'abord.");
+            return;
+        }
+        try {
+            const blob = new Blob([killchainReportContent], { type: "text/markdown;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            a.href = url;
+            a.download = `killchain_report_${timestamp}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log("Rapport Killchain exporté.");
+        } catch (e) {
+            console.error("Erreur lors de l'exportation du rapport Killchain:", e);
+            alert("Erreur lors de l'exportation du rapport. Vérifiez la console.");
+        }
+    }
+
+
+    // --- Fonctions de Gestion des Catégories (pour les écouteurs délégués) ---
+    function handleCategoryTabClick(event) {
+        console.log(">>> handleCategoryTabClick: START");
+        const target = event.target;
+        const settingsButton = target.closest('.category-settings-btn');
+        const removeButton = target.closest('.remove-category-btn');
+        const tabElement = target.closest('.category-tab');
+
+        if (settingsButton) {
+             const categoryName = settingsButton.dataset.category;
+             console.log("Settings button clicked for:", categoryName);
+             openCategorySettingsPanel(categoryName);
+        } else if (removeButton) {
+             const categoryName = removeButton.dataset.category;
+             console.log("Remove button clicked for:", categoryName);
+             handleRemoveCategory(categoryName);
+        } else if (tabElement && !settingsButton && !removeButton) {
+             // Clic sur l'onglet lui-même (pas sur les boutons dedans)
+             const categoryName = tabElement.dataset.category;
+             console.log("Tab clicked for:", categoryName);
+             switchCategory(categoryName);
+        }
+    }
+
+    function handleCategoryContentClick(event) {
+        console.log(">>> handleCategoryContentClick: START");
+        const addHostButton = event.target.closest('.add-host-btn');
+        const editHostCardBtn = event.target.closest('.edit-host-card-btn');
+
+        if (addHostButton) {
+            event.preventDefault(); // Empêcher comportement par défaut si c'est un lien <a>
+            const categoryName = addHostButton.dataset.category;
+            console.log("Add host button clicked for category:", categoryName);
+            if (categoryName) handleAddHost(categoryName);
+            else console.error("Nom de catégorie manquant sur le bouton Ajouter Hôte.");
+        } else if (editHostCardBtn) {
+             const hostId = editHostCardBtn.dataset.hostId;
+             console.log("Edit host card button clicked for host:", hostId);
+             if (hostId) openEditPanel(hostId);
+             else console.error("ID d'hôte manquant sur le bouton Editer.");
+        }
+    }
+
+
+    // Lancer l'initialisation globale
     initialize();
-}); 
+
+}); // Fin du DOMContentLoaded

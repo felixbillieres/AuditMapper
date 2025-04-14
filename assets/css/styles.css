@@ -638,79 +638,79 @@ details pre {
 
 /* Styles pour le mode sombre */
 .dark-theme {
-    background-color: #1a1a1a;
-    color: #f0f0f0;
+    background-color: var(--dark-body-bg, #212529); /* Fond principal */
+    color: var(--dark-text-color, #e0e0e0); /* Texte par défaut */
 }
 
 .dark-theme .form-section,
 .dark-theme .output-section,
 .dark-theme .tool-item,
 .dark-theme .tool-card {
-    background-color: #2a2a2a;
-    border-color: #444;
+    background-color: var(--dark-panel-bg-color, #2f3136);
+    border-color: var(--dark-border-color, #40444b);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .dark-theme h1, 
 .dark-theme h2, 
 .dark-theme h3 {
-    color: #e0e0e0;
+    color: var(--dark-text-color-emphasis, #f8f9fa);
 }
 
 .dark-theme h2 {
-    border-bottom-color: #3498db;
+    border-bottom-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme input[type="text"],
 .dark-theme input[type="password"] {
-    background-color: #333;
-    color: #e0e0e0;
-    border-color: #555;
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border-color: var(--dark-border-color-light, #5a6268);
 }
 
 .dark-theme input[type="text"]::placeholder,
 .dark-theme input[type="password"]::placeholder {
-    color: #888;
+    color: var(--dark-text-color-muted, #adb5bd);
 }
 
 .dark-theme .credentials-container {
-    background-color: #333;
-    border-color: #444;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme .markdown-preview {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .markdown-preview pre {
-    background-color: #1a1a1a;
-    color: #ddd;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .markdown-preview code {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .exegol-output {
-    background-color: #333;
-    border-color: #444;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme .one-liner {
-    background-color: #1a1a1a;
-    color: #ddd;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .tool-list .tool-item {
-    border-color: #444;
+    border-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme code {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 /* Styles pour la page Privilege Escalation */
@@ -778,8 +778,8 @@ details pre {
 
 /* Styles pour le mode sombre de la page Privesc */
 .dark-theme .os-selector label {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .os-selector input:checked + label {
@@ -788,14 +788,14 @@ details pre {
 }
 
 .dark-theme .checklist-pre {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .privesc-guide {
-    background-color: #2a2a2a;
-    border-left-color: #3498db;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-left-color: var(--dark-border-color, #40444b);
 }
 
 /* Styles pour la page Hosts Generator */
@@ -825,15 +825,15 @@ details pre {
 
 /* Style pour le mode sombre */
 .dark-theme .nxc-output {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .hosts-content {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 /* Styles pour Grep Master Parser */
@@ -930,29 +930,29 @@ details pre {
 /* Mode sombre pour le Grep Master */
 .dark-theme .grep-output,
 .dark-theme .select-input {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .extraction-content {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .accordion-item {
-    border-color: #444;
+    border-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme .accordion-header {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .accordion-content {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 /* Styles pour la sidebar */
@@ -1100,25 +1100,25 @@ details pre {
 
 /* Mode sombre pour la sidebar */
 .dark-theme .sidebar {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-bg-color, #2f3136);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .sidebar-nav-link:hover {
-    background-color: #333;
+    background-color: var(--dark-tab-hover-bg, #36393f);
 }
 
 .dark-theme .sidebar-nav-link.active {
-    background-color: #2980b9;
+    background-color: var(--dark-card-bg, #2c2f33);
 }
 
 .dark-theme .main-header {
-    background-color: #222;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-bg-color, #2f3136);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .theme-toggle {
-    color: #e0e0e0;
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 /* Styles pour la page d'accueil */
@@ -1165,16 +1165,16 @@ details pre {
 
 /* Mode sombre pour les cartes */
 .dark-theme .feature-card {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .feature-card h2 {
-    color: #ecf0f1;
+    color: var(--dark-text-color-emphasis, #f8f9fa);
 }
 
 .dark-theme .feature-card p {
-    color: #bbb;
+    color: var(--dark-text-color-muted, #adb5bd);
 }
 
 /* Styles pour le sélecteur de langue */
@@ -1244,8 +1244,8 @@ details pre {
 
 /* Mode sombre pour le sélecteur de langue */
 .dark-theme .language-dropdown {
-    border-color: #444;
-    color: #e0e0e0;
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .language-dropdown:hover {
@@ -1253,16 +1253,16 @@ details pre {
 }
 
 .dark-theme .language-menu {
-    background-color: #333;
-    border-color: #444;
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
 }
 
 .dark-theme .language-option {
-    color: #e0e0e0;
+    color: var(--dark-text-color, #e0e0e0);
 }
 
 .dark-theme .language-option:hover {
-    background-color: #444;
+    background-color: var(--dark-tab-hover-bg, #36393f);
 }
 
 /* Styles pour Host Manager */
@@ -1270,472 +1270,369 @@ details pre {
 /* --- Onglets de Catégories --- */
 .category-tabs {
     display: flex;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
-    flex-wrap: wrap; /* Permet aux onglets de passer à la ligne si nécessaire */
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    padding-left: 0;
+    list-style: none;
 }
 
 .category-tab {
-    padding: 10px 15px;
+    padding: 0.75rem 1rem;
     cursor: pointer;
     border: 1px solid transparent;
     border-bottom: none;
-    margin-bottom: -1px; /* Pour chevaucher la bordure inférieure */
-    background-color: #f0f2f5;
-    color: #555;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    margin-right: 5px;
-    margin-top: 5px; /* Espace si les onglets passent à la ligne */
-    transition: background-color 0.2s, color 0.2s;
+    margin-right: 2px;
+    margin-bottom: -1px;
+    background-color: transparent;
+    color: var(--text-color-muted, #6c757d);
+    font-size: 0.95rem;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .category-tab:hover {
-    background-color: #e9ecef;
+    background-color: var(--tab-hover-bg, #f0f0f0);
+    color: var(--text-color, #212529);
 }
 
 .category-tab.active {
-    border-color: #ddd;
-    background-color: white;
-    color: #333;
-    font-weight: bold;
+    border-color: var(--border-color, #dee2e6);
+    background-color: var(--body-bg, white);
+    color: var(--text-color-emphasis, #495057);
+    font-weight: 600;
 }
 
-.category-tab span { /* Style pour l'icône poubelle */
-    opacity: 0.6;
-    transition: opacity 0.2s;
-}
-.category-tab:hover span {
-    opacity: 1;
-}
-
-
-#addCategoryBtn {
-    margin-left: auto;
-    padding: 5px 10px;
-    font-size: 14px;
-    align-self: center; /* Aligner verticalement avec les onglets */
-    margin-top: 5px; /* Aligner avec les autres onglets */
+/* Boutons dans les onglets */
+.category-tab .category-settings-btn,
+.category-tab .remove-category-btn {
+    background: none; border: none; padding: 0 0 0 0.5rem; margin-left: 0.25rem;
+    cursor: pointer; font-size: 0.9em; color: var(--text-color-muted, #6c757d);
+    opacity: 0.7; line-height: 1;
 }
 
-.category-content {
-    display: none; /* Caché par défaut */
-    padding-top: 20px; /* Espace après les onglets */
+.category-tab .category-settings-btn:hover,
+.category-tab .remove-category-btn:hover {
+    color: var(--text-color, #343a40); opacity: 1;
 }
 
-.category-content.active {
-    display: block; /* Affiché si actif */
-}
+.category-tab .remove-category-btn:hover { color: var(--danger-color, #dc3545); }
 
-/* --- Formulaire d'ajout dans catégorie --- */
-.add-host-section {
-    margin-bottom: 30px; /* Plus d'espace avant la liste */
-}
+body.dark-theme .category-tab { color: var(--dark-text-color-muted, #adb5bd); }
+body.dark-theme .category-tab:hover { background-color: var(--dark-tab-hover-bg, #36393f); color: var(--dark-text-color, #e0e0e0); }
+body.dark-theme .category-tab.active { border-color: var(--dark-border-color, #40444b); background-color: var(--dark-card-bg, #2c2f33); color: var(--dark-text-color-emphasis, #f8f9fa); }
+body.dark-theme .category-tab .category-settings-btn,
+body.dark-theme .category-tab .remove-category-btn { color: var(--dark-text-color-muted, #adb5bd); }
+body.dark-theme .category-tab .category-settings-btn:hover,
+body.dark-theme .category-tab .remove-category-btn:hover { color: var(--dark-text-color, #e0e0e0); }
+body.dark-theme .category-tab .remove-category-btn:hover { color: var(--dark-danger-color, #f67f89); }
 
-/* --- Liste des hôtes dans catégorie (Résumé) --- */
-.host-list-section h2 {
-    margin-bottom: 15px;
-}
-
-.host-list {
-    display: grid;
-    /* Utiliser grid comme avant ou flexbox */
-    /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
-    gap: 15px;
-}
-
-.host-summary-entry {
-    border: 1px solid #e0e0e0;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: box-shadow 0.2s;
-}
-.host-summary-entry:hover {
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-}
-
-
-.host-summary-entry h4 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-    font-size: 1.1em;
-}
-
-.host-summary-entry p {
-    font-size: 0.9em;
-    margin: 4px 0;
-    color: #555;
-    line-height: 1.4;
-}
-.host-summary-entry p strong {
-    color: #333;
-}
-
-.host-summary-entry .action-button {
-    font-size: 12px;
-    padding: 4px 10px;
-}
-
-/* --- Cartographie Vis.js --- */
+/* --- Carte Réseau --- */
 #network-map {
     width: 100%;
-    height: 500px; /* Hauteur ajustable */
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    margin-bottom: 20px;
-    position: relative; /* Pour positionner des éléments par-dessus si besoin */
+    height: 500px;
+    border: 1px solid var(--border-color, #dee2e6);
+    background-color: var(--card-bg, #fff);
 }
 
-/* --- Panneau d'Édition Latéral --- */
+body.dark-theme #network-map {
+    border-color: var(--dark-border-color, #40444b);
+    background-color: var(--dark-card-bg, #343a40);
+}
+
+/* --- Panneaux Latéraux (Edit & Settings) --- */
+/* Styles de base pour les panneaux */
 .edit-panel {
-    position: fixed;
-    right: -450px; /* Caché par défaut, largeur + marge */
-    top: 60px; /* Sous le header */
-    width: 420px; /* Largeur du panneau */
-    height: calc(100vh - 60px); /* Hauteur restante */
-    background-color: white;
-    box-shadow: -3px 0 8px rgba(0,0,0,0.15);
-    padding: 25px;
-    overflow-y: auto;
-    transition: right 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transition douce */
-    z-index: 110; /* Au-dessus de la map */
-    border-left: 1px solid #ddd;
+    position: fixed; /* Positionné par rapport à la fenêtre */
+    top: 60px; /* Hauteur de votre header, ajustez si besoin */
+    right: -450px; /* Caché sur le côté (largeur + marge/padding) - Ajustez la largeur si besoin */
+    width: 400px; /* Largeur du panneau - Ajustez si besoin */
+    height: calc(100vh - 60px); /* Hauteur restante sous le header */
+    background-color: var(--panel-bg-color, #fff);
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    padding: 20px;
+    overflow-y: auto; /* Permet le scroll si contenu dépasse */
+    transition: right 0.3s ease-in-out; /* Animation douce */
+    z-index: 1050; /* Au-dessus de la plupart des éléments */
+    border-left: 1px solid var(--border-color, #dee2e6);
+    /* NE PAS METTRE display: none; ici si on utilise la transition 'right' */
 }
 
+/* Classe pour rendre le panneau visible */
 .edit-panel.visible {
-    right: 0;
+    right: 0; /* Le fait apparaître */
 }
 
-.edit-panel h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    color: #333;
-}
-.edit-panel h4 {
-    margin-top: 25px;
-    margin-bottom: 10px;
-    color: #444;
-    font-size: 1.1em;
-    border-bottom: 1px dotted #ccc;
-    padding-bottom: 5px;
+/* Styles spécifiques pour le panneau des settings si nécessaire */
+.category-settings-panel {
+    /* Peut avoir des styles additionnels si besoin */
 }
 
-
-.edit-panel .form-group {
-    margin-bottom: 18px;
-}
-.edit-panel .form-group label {
-    font-weight: 600;
-    font-size: 0.95em;
-    margin-bottom: 6px;
-    color: #555;
-}
-
-
-.edit-panel input[type="text"],
-.edit-panel textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-.edit-panel textarea {
-    min-height: 70px;
-    resize: vertical;
-    font-family: monospace; /* Utile pour les notes techniques */
-}
-
-.edit-panel .credential-group {
-    border: 1px dashed #ccc;
-    padding: 12px;
-    margin-bottom: 12px;
-    border-radius: 4px;
-    position: relative;
-    background-color: #fdfdfd;
-}
-.edit-panel .credential-group .form-group {
-    margin-bottom: 8px; /* Moins d'espace dans le groupe */
-}
-.edit-panel .credential-group label {
-    font-size: 0.85em;
-    margin-bottom: 4px;
-    color: #666;
-}
-.edit-panel .credential-group input[type="text"] {
-    padding: 8px;
-    font-size: 13px;
-}
-
-
-.edit-panel .remove-credential-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #f1f1f1;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    line-height: 20px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 14px;
-    color: #888;
-    transition: background-color 0.2s, color 0.2s;
-}
-.edit-panel .remove-credential-btn:hover {
-    background-color: #e74c3c;
-    color: white;
-    border-color: #c0392b;
-}
-
+/* Styles pour le bouton de fermeture 'X' */
 .edit-panel .close-panel-btn {
     position: absolute;
-    top: 15px;
+    top: 10px;
     right: 15px;
     background: none;
     border: none;
-    font-size: 28px;
-    cursor: pointer;
-    color: #888;
-    padding: 0 5px;
+    font-size: 1.8rem; /* Taille du 'X' */
     line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-color-muted, #aaa);
+    opacity: 0.7;
 }
 .edit-panel .close-panel-btn:hover {
-    color: #333;
+    color: var(--text-color, #333);
+    opacity: 1;
 }
 
-#existingEdgesList ul {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 5px;
-}
-#existingEdgesList li {
-    padding: 3px 0;
-    font-size: 0.9em;
-    color: #444;
-}
-#existingEdgesList .remove-edge-btn {
-    font-size: 10px;
-    color: #e74c3c;
-    cursor: pointer;
-    border: none;
-    background: none;
-    margin-left: 5px;
-    font-weight: bold;
-}
-#existingEdgesList .remove-edge-btn:hover {
-    color: #c0392b;
-}
-
-
-/* --- Section Agrégée --- */
-.aggregated-data-section .inline-form {
-    margin-bottom: 20px;
-    align-items: center;
-}
-.aggregated-data-section .select-input,
-.aggregated-data-section input[type="text"] {
-    width: auto; /* Ajuster la largeur */
-    margin-right: 10px;
-    padding: 8px; /* Moins haut */
-}
-.aggregated-data-section .action-button {
-    padding: 8px 15px;
-}
-
-.aggregated-view {
-    position: relative; /* Pour positionner le bouton copier */
-    margin-bottom: 20px;
-    border: 1px solid #eee;
-    padding: 15px;
-    border-radius: 5px;
-    background-color: #fdfdfd;
-}
-.aggregated-view h3 {
+/* Styles pour les titres dans les panneaux */
+.edit-panel h3 {
     margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 16px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color-light, #eee);
+    font-size: 1.25rem;
 }
-.aggregated-view pre {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 4px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    max-height: 250px; /* Augmenter un peu la hauteur */
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.5;
-}
-.aggregated-view .copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 12px;
-    padding: 4px 10px;
+.edit-panel h4 {
+     color: var(--text-color-emphasis, #495057);
+     margin-top: 1.5rem;
+     padding-bottom: 0.5rem;
+     border-bottom: 1px solid var(--border-color-light, #eee);
+     font-size: 1.1rem;
+     font-weight: 600;
 }
 
-/* --- Section Actions Globales --- */
-.actions-section .button-group label.action-button {
-    display: inline-block; /* Pour que le label ressemble à un bouton */
-    padding: 10px 20px; /* Même padding que les boutons */
-    cursor: pointer;
+/* Styles pour les groupes de formulaires */
+.edit-panel .form-group {
+    margin-bottom: 1rem;
 }
 
+/* Styles pour les actions en bas du panneau d'édition */
+#editPanel .edit-panel-actions {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #eee);
+    display: flex;
+    justify-content: space-between;
+}
 
-/* --- Styles Dark Theme pour Host Manager v2 --- */
-.dark-theme .category-tab {
-    background-color: #333;
-    color: #bbb;
+/* === HOST MANAGER SPECIFIC STYLES - DARK THEME === */
+
+/* Conteneur principal pour forcer le fond si nécessaire */
+body.dark-theme #main-content {
+    background-color: transparent; /* Doit hériter du body ou être défini explicitement */
+}
+
+/* Cartes (vérification) */
+body.dark-theme .card {
+    background-color: var(--dark-card-bg, #2c2f33); /* Fond de carte légèrement différent du body */
+    border-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme .card-header {
+    background-color: var(--dark-panel-section-bg, #36393f); /* Fond d'en-tête de carte */
+    border-bottom-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color-emphasis, #f8f9fa); /* Titre plus clair */
+}
+body.dark-theme .card-body {
+     /* S'assurer qu'il n'y a pas de fond blanc hérité */
+     background-color: transparent;
+}
+
+/* Onglets Catégorie */
+body.dark-theme .category-tabs {
+    border-bottom-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme .category-tab {
+    color: var(--dark-text-color-muted, #adb5bd);
     border-color: transparent;
 }
-.dark-theme .category-tab:hover {
-    background-color: #444;
+body.dark-theme .category-tab:hover {
+    background-color: var(--dark-tab-hover-bg, #36393f); /* Fond au survol */
+    color: var(--dark-text-color, #e0e0e0);
 }
-.dark-theme .category-tab.active {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
+body.dark-theme .category-tab.active {
+    border-color: var(--dark-border-color, #40444b);
+    background-color: var(--dark-card-bg, #2c2f33); /* Fond de l'onglet actif (comme la carte) */
+    color: var(--dark-text-color-emphasis, #f8f9fa);
 }
-.dark-theme .host-summary-entry {
-    background: #2a2a2a;
-    border-color: #444;
+body.dark-theme .category-tab .category-settings-btn,
+body.dark-theme .category-tab .remove-category-btn {
+    color: var(--dark-text-color-muted, #adb5bd);
 }
-.dark-theme .host-summary-entry h4 {
-    color: #ecf0f1;
+body.dark-theme .category-tab .category-settings-btn:hover {
+    color: var(--dark-text-color, #e0e0e0);
 }
-.dark-theme .host-summary-entry p {
-    color: #bbb;
-}
-.dark-theme .host-summary-entry p strong {
-    color: #ddd;
+body.dark-theme .category-tab .remove-category-btn:hover {
+    color: var(--dark-danger-color, #f67f89);
 }
 
-.dark-theme #network-map {
-    border-color: #444;
-    background-color: #1e1e1e; /* Fond plus sombre pour la map */
+/* Contenu de la catégorie (cartes d'hôtes) */
+body.dark-theme .host-card {
+    background-color: var(--dark-panel-section-bg, #36393f); /* Fond carte hôte */
+    border-color: var(--dark-border-color-light, #5a6268);
 }
-/* Vis.js dark theme adjustments (dans le JS via options) */
+body.dark-theme .host-card .card-title {
+    color: var(--dark-text-color-emphasis, #f8f9fa);
+}
+body.dark-theme .host-card .card-subtitle {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme .host-card .host-actions .btn-sm { /* Boutons Editer/Supprimer sur carte */
+    background-color: var(--dark-button-secondary-bg, #40444b);
+    border-color: var(--dark-border-color-light, #5a6268);
+    color: var(--dark-button-secondary-color, #ccc);
+}
+body.dark-theme .host-card .host-actions .btn-sm:hover {
+    background-color: var(--dark-button-secondary-hover-bg, #5a6268);
+    border-color: var(--dark-border-color, #6c757d);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme .host-card .host-actions .btn-danger:hover { /* Spécifique pour Supprimer */
+     background-color: var(--dark-danger-color, #a02c37);
+     border-color: var(--dark-danger-border, #80232c);
+     color: white;
+}
 
-.dark-theme .edit-panel {
-    background-color: #2a2a2a;
-    border-left-color: #444;
-    color: #e0e0e0;
+/* Panneaux Latéraux (Edit & Settings) - Vérification */
+body.dark-theme .edit-panel {
+    background-color: var(--dark-panel-bg-color, #2f3136);
+    border-left-color: var(--dark-border-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
 }
-.dark-theme .edit-panel h3 {
-    border-bottom-color: #444;
-    color: #e0e0e0;
+/* Assurer que les inputs/textareas/selects DANS les panneaux sont sombres */
+body.dark-theme .edit-panel .form-control {
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border-color: var(--dark-border-color-light, #5a6268);
 }
-.dark-theme .edit-panel h4 {
-    color: #ccc;
-    border-bottom-color: #555;
+body.dark-theme .edit-panel .form-control::placeholder {
+    color: var(--dark-text-color-muted, #adb5bd);
+    opacity: 0.7;
 }
-.dark-theme .edit-panel .form-group label {
-    color: #ccc;
+body.dark-theme .edit-panel label {
+    color: var(--dark-text-color-muted, #adb5bd);
 }
-.dark-theme .edit-panel input[type="text"],
-.dark-theme .edit-panel textarea {
-    background-color: #333;
-    border-color: #555;
-    color: #e0e0e0;
+body.dark-theme .edit-panel .form-text.text-muted { /* Petit texte sous les inputs */
+     color: var(--dark-text-color-muted, #999) !important; /* Forcer si besoin */
 }
-.dark-theme .edit-panel .credential-group {
-    border-color: #555;
-    background-color: #303030;
+/* Groupe de credentials dans le panneau */
+body.dark-theme #editPanel .credential-group {
+    border-color: var(--dark-border-color-light, #5a6268);
+    background-color: var(--dark-panel-section-bg, #36393f);
 }
-.dark-theme .edit-panel .credential-group label {
-    color: #bbb;
+/* Liste des edges dans le panneau */
+body.dark-theme #editPanel .existing-edge-item {
+    border-color: var(--dark-border-color-light, #5a6268);
+    background-color: var(--dark-panel-section-bg, #36393f);
 }
-.dark-theme .edit-panel .remove-credential-btn {
-    background: #444;
-    border-color: #666;
-    color: #ccc;
+
+/* Données Agrégées */
+body.dark-theme .aggregated-data-section pre {
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border: 1px solid var(--dark-border-color-light, #5a6268);
 }
-.dark-theme .edit-panel .remove-credential-btn:hover {
-    background-color: #c0392b;
+body.dark-theme .aggregated-data-section pre:hover {
+    background-color: var(--dark-primary-color-light, #3b5a8a);
+}
+
+/* Zone de rapport Killchain */
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link {
+    color: var(--dark-text-color-muted, #adb5bd);
+    border-color: transparent transparent var(--dark-border-color, #40444b);
+}
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link:hover {
+    border-color: transparent transparent var(--dark-border-color-light, #5a6268);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme #killchainReportContainer .nav-tabs .nav-link.active {
+    color: var(--dark-text-color-emphasis, #f8f9fa);
+    background-color: var(--dark-card-bg, #2c2f33); /* Fond de la carte */
+    border-color: var(--dark-border-color, #40444b) var(--dark-border-color, #40444b) var(--dark-card-bg, #2c2f33);
+}
+body.dark-theme #killchainReportPreview { /* Textarea éditeur */
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme #killchainReportRenderedPreview { /* Div rendu */
+     background-color: var(--dark-card-bg, #2c2f33); /* Fond similaire à la carte */
+     border: 1px solid var(--dark-border-color, #40444b); /* Ajouter une bordure */
+     padding: 1rem; /* Ajouter du padding */
+}
+body.dark-theme .markdown-body { /* Styles spécifiques au contenu rendu */
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme .markdown-body h1, body.dark-theme .markdown-body h2, body.dark-theme .markdown-body h3, body.dark-theme .markdown-body h4 {
+    border-bottom-color: var(--dark-border-color-light, #5a6268);
+    color: var(--dark-text-color-emphasis, #f8f9fa);
+}
+body.dark-theme .markdown-body code {
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: #ffcc80; /* Couleur différente pour le code inline */
+}
+body.dark-theme .markdown-body pre {
+    background-color: var(--dark-panel-section-bg, #36393f);
+    color: var(--dark-text-color, #e0e0e0); /* Texte dans les blocs pre */
+}
+body.dark-theme .markdown-body pre code {
+    color: inherit; /* Hériter la couleur du pre */
+    background: none; /* Pas de fond différent pour code dans pre */
+}
+body.dark-theme .markdown-body blockquote {
+    border-left-color: var(--dark-border-color-light, #5a6268);
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme .markdown-body table th, body.dark-theme .markdown-body table td {
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme .markdown-body table tr:nth-child(2n) {
+    background-color: var(--dark-panel-section-bg, #36393f); /* Lignes alternées */
+}
+
+/* Filtres et Actions globales */
+body.dark-theme #globalActionsContainer {
+    background-color: rgba(0,0,0,0.15); /* Fond légèrement plus sombre */
+    border-top-color: var(--dark-border-color, #40444b);
+    border-bottom-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #globalActionsContainer label {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme #globalActionsContainer .form-control {
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+/* Boutons globaux */
+body.dark-theme #globalActionsContainer .btn-primary {
+    /* Utiliser les variables si définies */
+    background-color: var(--dark-primary-color, #0d6efd);
+    border-color: var(--dark-primary-border, #0d6efd);
     color: white;
-    border-color: #a03020;
 }
-.dark-theme .edit-panel .close-panel-btn {
-    color: #aaa;
+body.dark-theme #globalActionsContainer .btn-secondary {
+    background-color: var(--dark-button-secondary-bg, #5a6268);
+    border-color: var(--dark-border-color, #6c757d);
+    color: var(--dark-button-secondary-color, #fff);
 }
-.dark-theme .edit-panel .close-panel-btn:hover {
-    color: #eee;
+body.dark-theme #globalActionsContainer .btn-info {
+    background-color: var(--dark-info-color, #0dcaf0);
+    border-color: var(--dark-info-border, #0dcaf0);
+    color: black; /* Ou blanc selon le contraste */
 }
-.dark-theme #existingEdgesList li {
-    color: #ccc;
+body.dark-theme #globalActionsContainer .btn-success {
+    background-color: var(--dark-success-color, #198754);
+    border-color: var(--dark-success-border, #198754);
+    color: white;
 }
-.dark-theme #existingEdgesList .remove-edge-btn {
-    color: #e74c3c;
-}
-.dark-theme #existingEdgesList .remove-edge-btn:hover {
-    color: #f86c5c;
-}
-
-
-.dark-theme .aggregated-view {
-    background-color: #2a2a2a;
-    border-color: #444;
-}
-.dark-theme .aggregated-view h3 {
-    color: #e0e0e0;
-    border-bottom-color: #444;
-}
-.dark-theme .aggregated-view pre {
-    background-color: #333;
-    color: #e0e0e0;
-}
-.dark-theme .aggregated-data-section .select-input,
-.dark-theme .aggregated-data-section input[type="text"] {
-    background-color: #333;
-    border-color: #555;
-    color: #e0e0e0;
-}
-
-/* --- Section Rapport Killchain --- */
-.killchain-report-section {
-    margin-top: 30px; /* Espace supplémentaire */
-}
-
-#killchainReportPreview {
-    width: 100%;
-    min-height: 600px; /* Hauteur conséquente pour le rapport */
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: monospace; /* Police adaptée au Markdown */
-    font-size: 14px;
-    line-height: 1.6;
-    resize: vertical;
-    background-color: #f8f8f8;
-}
-
-#exportKillchainBtn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-/* --- Styles Dark Theme pour Rapport Killchain --- */
-.dark-theme .killchain-report-section {
-    /* Pas de changement de fond nécessaire si hérite de .form-section */
-}
-
-.dark-theme #killchainReportPreview {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: #e0e0e0;
-}
-
-.dark-theme #exportKillchainBtn:disabled {
-    background-color: #555;
-    color: #999;
+body.dark-theme #globalActionsContainer .btn-danger {
+    background-color: var(--dark-danger-color, #dc3545);
+    border-color: var(--dark-danger-border, #dc3545);
+    color: white;
 }
