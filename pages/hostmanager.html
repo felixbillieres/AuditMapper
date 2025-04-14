@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Manager Avancé</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <!-- Inclure Vis.js -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        /* Styles spécifiques pour la cartographie et le panneau latéral */
+        #network-map {
+            width: 100%;
+            height: 500px; /* Hauteur ajustable */
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .edit-panel {
+            position: fixed;
+            right: -400px; /* Caché par défaut */
+            top: 60px; /* Sous le header */
+            width: 400px;
+            height: calc(100vh - 60px); /* Hauteur restante */
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 110; /* Au-dessus de la map */
+            border-left: 1px solid #ddd;
+        }
+        .edit-panel.visible {
+            right: 0;
+        }
+        .edit-panel h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .edit-panel .form-group {
+            margin-bottom: 15px;
+        }
+        .edit-panel textarea {
+            min-height: 60px;
+        }
+        .edit-panel .credential-group {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative;
+        }
+         .edit-panel .credential-group label {
+            font-size: 0.9em;
+            margin-bottom: 3px;
+         }
+        .edit-panel .remove-credential-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .edit-panel .close-panel-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .category-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .category-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-bottom: -1px; /* Pour chevaucher la bordure inférieure */
+        }
+        .category-tab.active {
+            border-color: #ddd;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            background-color: white;
+        }
+        .category-content {
+            display: none; /* Caché par défaut */
+        }
+        .category-content.active {
+            display: block; /* Affiché si actif */
+        }
+        .dark-theme #network-map {
+            border-color: #444;
+            background-color: #2a2a2a;
+        }
+        .dark-theme .edit-panel {
+            background-color: #2a2a2a;
+            border-left-color: #444;
+            color: #e0e0e0;
+        }
+         .dark-theme .edit-panel h3 {
+            border-bottom-color: #444;
+         }
+         .dark-theme .edit-panel .credential-group {
+            border-color: #555;
+         }
+         .dark-theme .edit-panel .remove-credential-btn {
+            background: #444;
+            border-color: #666;
+            color: #ccc;
+         }
+        .dark-theme .category-tabs {
+            border-bottom-color: #444;
+        }
+        .dark-theme .category-tab.active {
+            background-color: #2a2a2a;
+            border-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Bouton pour afficher/masquer la sidebar -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i>
+    </button>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <a href="/index.html" class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </a>
+
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/index.html" class="sidebar-nav-link">
+                        <i>📝</i> Générateur de Rapport
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostmanager.html" class="sidebar-nav-link active">
+                        <i>🖥️</i> Host Manager
+                    </a>
+                </li>
+
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                 
+
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
+                        <i>🔒</i> Rapport de Vulnérabilités
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Header simplifié -->
+    <header id="main-header" class="main-header">
+        <div class="header-container">
+            <h1>Host Manager Avancé</h1>
+            <div class="header-controls">
+                <!-- Bouton Thème -->
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌙</i>
+                </button>
+                <!-- Sélecteur de langue (si nécessaire) -->
+                <!-- ... -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <div id="main-content" class="main-content host-manager-container">
+
+        <!-- Onglets des Catégories -->
+        <div id="categoryTabs" class="category-tabs">
+            <!-- Les onglets seront générés par JS -->
+            <button id="addCategoryBtn" class="action-button" style="margin-left: auto; padding: 5px 10px; font-size: 14px;">+ Catégorie</button>
+        </div>
+
+        <!-- Contenu des Catégories -->
+        <div id="categoryContentContainer">
+            <!-- Le contenu de la catégorie active sera injecté ici par JS -->
+        </div>
+
+        <!-- Section Cartographie -->
+        <div class="form-section">
+            <h2>Cartographie du Réseau</h2>
+            <div id="network-map"></div>
+            <!-- Légende ou contrôles pour la map si nécessaire -->
+        </div>
+
+        <!-- Section Récapitulatif des Credentials -->
+        <div class="form-section aggregated-data-section">
+            <h2>Récapitulatif des Credentials (Spray Zone)</h2>
+            <div class="form-group inline-form">
+                 <label for="filterCategory">Filtrer par Catégorie:</label>
+                 <select id="filterCategory" class="select-input" style="width: auto;">
+                     <option value="all">Toutes</option>
+                     <!-- Options générées par JS -->
+                 </select>
+                 <label for="filterTag" style="margin-left: 15px;">Filtrer par Tag:</label>
+                 <input type="text" id="filterTag" placeholder="Entrer un tag..." style="width: auto;">
+                 <button id="applyFiltersBtn" class="action-button" style="margin-left: 10px;">Filtrer</button>
+            </div>
+            <div class="aggregated-view">
+                <h3>Noms d'utilisateur Uniques</h3>
+                <pre id="allUsernames"></pre>
+                <button class="copy-btn action-button" data-target="allUsernames">Copier</button>
+            </div>
+            <div class="aggregated-view">
+                <h3>Mots de passe Uniques</h3>
+                <pre id="allPasswords"></pre>
+                <button class="copy-btn action-button" data-target="allPasswords">Copier</button>
+            </div>
+            <div class="aggregated-view">
+                <h3>Hashes Uniques</h3>
+                <pre id="allHashes"></pre>
+                <button class="copy-btn action-button" data-target="allHashes">Copier</button>
+            </div>
+        </div>
+
+        <!-- Section Actions Globales -->
+        <div class="form-section actions-section">
+            <h2>Actions Globales</h2>
+            <div class="button-group">
+                <button id="exportSessionBtn" class="action-button">Exporter Session (JSON)</button>
+                <label for="importSessionInput" class="action-button">Importer Session (JSON)</label>
+                <input type="file" id="importSessionInput" accept=".json" style="display: none;">
+                <button id="removeAllDataBtn" class="action-button danger-button">Supprimer Toutes les Données</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Panneau d'Édition Latéral (initialement caché) -->
+    <div id="editPanel" class="edit-panel">
+        <button id="closePanelBtn" class="close-panel-btn">&times;</button>
+        <h3>Éditer Hôte</h3>
+        <form id="editHostForm">
+            <input type="hidden" id="editHostId"> <!-- Pour stocker l'ID (IP/Nom) de l'hôte édité -->
+            <input type="hidden" id="editHostCategory"> <!-- Pour stocker la catégorie de l'hôte édité -->
+            <div class="form-group">
+                <label for="editHostIpName">IP / Nom:</label>
+                <input type="text" id="editHostIpName" required>
+            </div>
+            <div class="form-group">
+                <label for="editHostServices">Services:</label>
+                <input type="text" id="editHostServices" placeholder="Ex: SMB 445, HTTP 80">
+            </div>
+            <div class="form-group">
+                <label for="editHostNotes">Notes:</label>
+                <textarea id="editHostNotes" class="host-textarea"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editHostTags">Tags (séparés par virgule):</label>
+                <input type="text" id="editHostTags" placeholder="Ex: interne, web, pivot">
+            </div>
+            <h4>Credentials</h4>
+            <div id="editCredentialsContainer">
+                <!-- Les credentials seront ajoutés ici dynamiquement -->
+            </div>
+            <button type="button" id="addCredentialBtn" class="action-button" style="margin-bottom: 15px;">+ Ajouter Credential</button>
+
+            <h4>Connexions (Edges)</h4>
+             <div class="form-group">
+                <label for="editEdgeTo">Connecter à (IP/Nom):</label>
+                <input type="text" id="editEdgeTo" placeholder="IP ou Nom de l'hôte cible">
+             </div>
+             <div class="form-group">
+                <label for="editEdgeLabel">Label de connexion:</label>
+                <input type="text" id="editEdgeLabel" placeholder="Ex: SSH Tunnel, RDP Pivot">
+             </div>
+             <button type="button" id="addEdgeBtn" class="action-button">Ajouter Connexion</button>
+             <div id="existingEdgesList" style="margin-top:10px; font-size: 0.9em;">
+                <!-- Liste des connexions existantes -->
+             </div>
+
+
+            <div class="button-group" style="margin-top: 20px;">
+                <button type="submit" class="action-button">Sauvegarder</button>
+                <button type="button" id="deleteHostFromPanelBtn" class="action-button danger-button">Supprimer Hôte</button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <!-- <script src="/assets/js/language.js"></script> -->
+    <script src="/assets/js/hostmanager_v2.js"></script>
+</body>
+</html> 

@@ -1264,3 +1264,439 @@ details pre {
 .dark-theme .language-option:hover {
     background-color: #444;
 }
+
+/* Styles pour Host Manager */
+
+/* --- Onglets de Catégories --- */
+.category-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Permet aux onglets de passer à la ligne si nécessaire */
+}
+
+.category-tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px; /* Pour chevaucher la bordure inférieure */
+    background-color: #f0f2f5;
+    color: #555;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 5px;
+    margin-top: 5px; /* Espace si les onglets passent à la ligne */
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.category-tab:hover {
+    background-color: #e9ecef;
+}
+
+.category-tab.active {
+    border-color: #ddd;
+    background-color: white;
+    color: #333;
+    font-weight: bold;
+}
+
+.category-tab span { /* Style pour l'icône poubelle */
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.category-tab:hover span {
+    opacity: 1;
+}
+
+
+#addCategoryBtn {
+    margin-left: auto;
+    padding: 5px 10px;
+    font-size: 14px;
+    align-self: center; /* Aligner verticalement avec les onglets */
+    margin-top: 5px; /* Aligner avec les autres onglets */
+}
+
+.category-content {
+    display: none; /* Caché par défaut */
+    padding-top: 20px; /* Espace après les onglets */
+}
+
+.category-content.active {
+    display: block; /* Affiché si actif */
+}
+
+/* --- Formulaire d'ajout dans catégorie --- */
+.add-host-section {
+    margin-bottom: 30px; /* Plus d'espace avant la liste */
+}
+
+/* --- Liste des hôtes dans catégorie (Résumé) --- */
+.host-list-section h2 {
+    margin-bottom: 15px;
+}
+
+.host-list {
+    display: grid;
+    /* Utiliser grid comme avant ou flexbox */
+    /* grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); */
+    gap: 15px;
+}
+
+.host-summary-entry {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s;
+}
+.host-summary-entry:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+
+.host-summary-entry h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.host-summary-entry p {
+    font-size: 0.9em;
+    margin: 4px 0;
+    color: #555;
+    line-height: 1.4;
+}
+.host-summary-entry p strong {
+    color: #333;
+}
+
+.host-summary-entry .action-button {
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+/* --- Cartographie Vis.js --- */
+#network-map {
+    width: 100%;
+    height: 500px; /* Hauteur ajustable */
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+    position: relative; /* Pour positionner des éléments par-dessus si besoin */
+}
+
+/* --- Panneau d'Édition Latéral --- */
+.edit-panel {
+    position: fixed;
+    right: -450px; /* Caché par défaut, largeur + marge */
+    top: 60px; /* Sous le header */
+    width: 420px; /* Largeur du panneau */
+    height: calc(100vh - 60px); /* Hauteur restante */
+    background-color: white;
+    box-shadow: -3px 0 8px rgba(0,0,0,0.15);
+    padding: 25px;
+    overflow-y: auto;
+    transition: right 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transition douce */
+    z-index: 110; /* Au-dessus de la map */
+    border-left: 1px solid #ddd;
+}
+
+.edit-panel.visible {
+    right: 0;
+}
+
+.edit-panel h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #333;
+}
+.edit-panel h4 {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    color: #444;
+    font-size: 1.1em;
+    border-bottom: 1px dotted #ccc;
+    padding-bottom: 5px;
+}
+
+
+.edit-panel .form-group {
+    margin-bottom: 18px;
+}
+.edit-panel .form-group label {
+    font-weight: 600;
+    font-size: 0.95em;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+
+.edit-panel input[type="text"],
+.edit-panel textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.edit-panel textarea {
+    min-height: 70px;
+    resize: vertical;
+    font-family: monospace; /* Utile pour les notes techniques */
+}
+
+.edit-panel .credential-group {
+    border: 1px dashed #ccc;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    position: relative;
+    background-color: #fdfdfd;
+}
+.edit-panel .credential-group .form-group {
+    margin-bottom: 8px; /* Moins d'espace dans le groupe */
+}
+.edit-panel .credential-group label {
+    font-size: 0.85em;
+    margin-bottom: 4px;
+    color: #666;
+}
+.edit-panel .credential-group input[type="text"] {
+    padding: 8px;
+    font-size: 13px;
+}
+
+
+.edit-panel .remove-credential-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #888;
+    transition: background-color 0.2s, color 0.2s;
+}
+.edit-panel .remove-credential-btn:hover {
+    background-color: #e74c3c;
+    color: white;
+    border-color: #c0392b;
+}
+
+.edit-panel .close-panel-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #888;
+    padding: 0 5px;
+    line-height: 1;
+}
+.edit-panel .close-panel-btn:hover {
+    color: #333;
+}
+
+#existingEdgesList ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+}
+#existingEdgesList li {
+    padding: 3px 0;
+    font-size: 0.9em;
+    color: #444;
+}
+#existingEdgesList .remove-edge-btn {
+    font-size: 10px;
+    color: #e74c3c;
+    cursor: pointer;
+    border: none;
+    background: none;
+    margin-left: 5px;
+    font-weight: bold;
+}
+#existingEdgesList .remove-edge-btn:hover {
+    color: #c0392b;
+}
+
+
+/* --- Section Agrégée --- */
+.aggregated-data-section .inline-form {
+    margin-bottom: 20px;
+    align-items: center;
+}
+.aggregated-data-section .select-input,
+.aggregated-data-section input[type="text"] {
+    width: auto; /* Ajuster la largeur */
+    margin-right: 10px;
+    padding: 8px; /* Moins haut */
+}
+.aggregated-data-section .action-button {
+    padding: 8px 15px;
+}
+
+.aggregated-view {
+    position: relative; /* Pour positionner le bouton copier */
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #fdfdfd;
+}
+.aggregated-view h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+.aggregated-view pre {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 250px; /* Augmenter un peu la hauteur */
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.aggregated-view .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+/* --- Section Actions Globales --- */
+.actions-section .button-group label.action-button {
+    display: inline-block; /* Pour que le label ressemble à un bouton */
+    padding: 10px 20px; /* Même padding que les boutons */
+    cursor: pointer;
+}
+
+
+/* --- Styles Dark Theme pour Host Manager v2 --- */
+.dark-theme .category-tab {
+    background-color: #333;
+    color: #bbb;
+    border-color: transparent;
+}
+.dark-theme .category-tab:hover {
+    background-color: #444;
+}
+.dark-theme .category-tab.active {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+.dark-theme .host-summary-entry {
+    background: #2a2a2a;
+    border-color: #444;
+}
+.dark-theme .host-summary-entry h4 {
+    color: #ecf0f1;
+}
+.dark-theme .host-summary-entry p {
+    color: #bbb;
+}
+.dark-theme .host-summary-entry p strong {
+    color: #ddd;
+}
+
+.dark-theme #network-map {
+    border-color: #444;
+    background-color: #1e1e1e; /* Fond plus sombre pour la map */
+}
+/* Vis.js dark theme adjustments (dans le JS via options) */
+
+.dark-theme .edit-panel {
+    background-color: #2a2a2a;
+    border-left-color: #444;
+    color: #e0e0e0;
+}
+.dark-theme .edit-panel h3 {
+    border-bottom-color: #444;
+    color: #e0e0e0;
+}
+.dark-theme .edit-panel h4 {
+    color: #ccc;
+    border-bottom-color: #555;
+}
+.dark-theme .edit-panel .form-group label {
+    color: #ccc;
+}
+.dark-theme .edit-panel input[type="text"],
+.dark-theme .edit-panel textarea {
+    background-color: #333;
+    border-color: #555;
+    color: #e0e0e0;
+}
+.dark-theme .edit-panel .credential-group {
+    border-color: #555;
+    background-color: #303030;
+}
+.dark-theme .edit-panel .credential-group label {
+    color: #bbb;
+}
+.dark-theme .edit-panel .remove-credential-btn {
+    background: #444;
+    border-color: #666;
+    color: #ccc;
+}
+.dark-theme .edit-panel .remove-credential-btn:hover {
+    background-color: #c0392b;
+    color: white;
+    border-color: #a03020;
+}
+.dark-theme .edit-panel .close-panel-btn {
+    color: #aaa;
+}
+.dark-theme .edit-panel .close-panel-btn:hover {
+    color: #eee;
+}
+.dark-theme #existingEdgesList li {
+    color: #ccc;
+}
+.dark-theme #existingEdgesList .remove-edge-btn {
+    color: #e74c3c;
+}
+.dark-theme #existingEdgesList .remove-edge-btn:hover {
+    color: #f86c5c;
+}
+
+
+.dark-theme .aggregated-view {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+.dark-theme .aggregated-view h3 {
+    color: #e0e0e0;
+    border-bottom-color: #444;
+}
+.dark-theme .aggregated-view pre {
+    background-color: #333;
+    color: #e0e0e0;
+}
+.dark-theme .aggregated-data-section .select-input,
+.dark-theme .aggregated-data-section input[type="text"] {
+    background-color: #333;
+    border-color: #555;
+    color: #e0e0e0;
+}
