@@ -35,7 +35,7 @@ Des scripts Python complémentaires (`tools/`) peuvent être utilisés en ligne 
 
 1.  Clonez le dépôt :
     ```bash
-    git clone https://github.com/your-username/pentest-tools.git
+    git clone [https://github.com/your-username/pentest-tools.git](https://github.com/felixbillieres/TemplateGenerator.git)
     cd pentest-tools
     ```
 2.  Lancez un serveur web local :
@@ -50,7 +50,7 @@ Des scripts Python complémentaires (`tools/`) peuvent être utilisés en ligne 
 1.  Assurez-vous que Docker est installé et en cours d'exécution.
 2.  Clonez le dépôt (si ce n'est pas déjà fait) :
     ```bash
-    git clone https://github.com/your-username/pentest-tools.git
+    git clone [https://github.com/your-username/pentest-tools.git](https://github.com/felixbillieres/TemplateGenerator.git)
     cd pentest-tools
     ```
 3.  Construisez l'image Docker :
