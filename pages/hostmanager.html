@@ -245,7 +245,14 @@
             <!-- === NOUVEAUX CHAMPS === -->
             <div class="form-group">
                 <label for="editHostSystem">Système (OS/Type):</label>
-                <input type="text" id="editHostSystem" class="form-control" placeholder="ex: Windows, Linux, Cisco IOS...">
+                <select id="editHostSystem" class="form-control">
+                    <option value="" selected>-- Non Spécifié --</option>
+                    <option value="Linux">Linux</option>
+                    <option value="Windows">Windows (Client/Serveur)</option>
+                    <option value="Active Directory">Active Directory (DC)</option>
+                    <option value="macOS">macOS</option>
+                    <option value="Other">Autre</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="editHostRole">Rôle:</label>

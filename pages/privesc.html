@@ -3,293 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide d'Escalade de Privilèges</title>
+    <title>Cockpit Privesc v3 (Checklist Dynamique)</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <!-- Styles spécifiques pour la nouvelle checklist -->
+    <style>
+        .checklist-item {
+            border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            background-color: var(--background-color-secondary); /* Adapte au thème */
+        }
+        .checklist-item.status-checked { border-left: 5px solid #198754; } /* Vert */
+        .checklist-item.status-exploitable { border-left: 5px solid #ffc107; } /* Jaune */
+        .checklist-item.status-exploited { border-left: 5px solid #dc3545; } /* Rouge */
+
+        .checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .checklist-label { font-weight: bold; }
+        .checklist-status select { font-size: 0.8rem; padding: 0.1rem 0.3rem; }
+        .checklist-description { font-size: 0.9rem; margin-bottom: 0.75rem; }
+        .checklist-commands, .checklist-links, .checklist-tips, .checklist-notes { margin-top: 0.75rem; }
+        .checklist-commands pre { background-color: var(--code-background-color); padding: 0.5rem; border-radius: 3px; font-size: 0.85rem; position: relative; }
+        .copy-btn-inline { position: absolute; top: 5px; right: 5px; font-size: 0.8em; padding: 2px 5px; }
+        .checklist-links a { margin-right: 10px; font-size: 0.85rem; }
+        .checklist-tips { font-style: italic; color: #6c757d; font-size: 0.85rem; }
+        .checklist-notes textarea { width: 100%; font-size: 0.85rem; min-height: 60px; margin-top: 5px; }
+        .filter-controls { background-color: var(--background-color-light); padding: 0.5rem 1rem; margin-bottom: 1rem; border-radius: 5px; }
+    </style>
 </head>
 <body>
-    <!-- Bouton pour afficher/masquer la sidebar -->
-    <button id="sidebar-toggle" class="sidebar-toggle">
-        <i>☰</i>
-    </button>
-    
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar">
-        <a href="/index.html" class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
-        </a>
-        
-        <div class="sidebar-content">
-            <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/index.html" class="sidebar-nav-link">
-                        <i>📝</i> Générateur de Rapport
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/hostmanager.html" class="sidebar-nav-link">
-                        <i>🖥️</i> Host Manager
-                    </a>
-                </li>
-                <div class="sidebar-category">Outils</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/tools.html" class="sidebar-nav-link">
-                        <i>🛠️</i> Bibliothèque d'outils
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/privesc.html" class="sidebar-nav-link">
-                        <i>🔑</i> Guide Privesc
-                    </a>
-                </li>
-                
-                <div class="sidebar-category">Parsers</div>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
-                        <i>🔍</i> Grep Master
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Header simplifié -->
+    <!-- Header (peut rester identique ou être adapté à Bootstrap) -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>Guide d'Escalade de Privilèges</h1>
+            <h1>Cockpit Privesc v3 (Checklist Dynamique)</h1>
             <div class="header-controls">
-                <!-- Ajout du sélecteur de langue -->
+                <button id="sidebar-toggle" class="sidebar-toggle"><i>☰</i></button>
+                <!-- Language, Theme toggles -->
                 <div class="language-selector">
-                    <button id="languageDropdown" class="language-dropdown">
-                        <i class="icon-language">🌍</i>
-                        <span id="currentLanguage">Français</span>
-                        <i class="dropdown-arrow">▼</i>
-                    </button>
+                    <button id="languageDropdown" class="language-dropdown"><i class="icon-language">🌍</i><span id="currentLanguage">Français</span><i class="dropdown-arrow">▼</i></button>
                     <div id="languageMenu" class="language-menu">
-                        <div class="language-option" data-lang="fr">
-                            <span class="language-flag">🇫🇷</span>Français
-                        </div>
-                        <div class="language-option" data-lang="en">
-                            <span class="language-flag">🇬🇧</span>English
-                        </div>
-                        <div class="language-option" data-lang="ru">
-                            <span class="language-flag">🇷🇺</span>Русский
-                        </div>
-                        <div class="language-option" data-lang="zh">
-                            <span class="language-flag">🇨🇳</span>中文
-                        </div>
-                        <div class="language-option" data-lang="ja">
-                            <span class="language-flag">🇯🇵</span>日本語
-                        </div>
+                        <div class="language-option" data-lang="fr"><span class="language-flag">🇫🇷</span>Français</div>
+                        <div class="language-option" data-lang="en"><span class="language-flag">🇬🇧</span>English</div>
                     </div>
                 </div>
-                <button id="toggleTheme" class="theme-toggle">
-                    <i class="icon-theme">🌓</i>
-                </button>
+                <button id="toggleTheme" class="theme-toggle"><i class="icon-theme">🌓</i></button>
             </div>
         </div>
     </header>
-    
-    <!-- Contenu principal -->
-    <div id="main-content" class="main-content">
-        <div class="form-section">
-            <h2>Sélection du système</h2>
-            <div class="radio-group os-selector">
-                <input type="radio" id="osLinux" name="osType" value="linux" checked>
-                <label for="osLinux">Linux</label>
-                
-                <input type="radio" id="osWindows" name="osType" value="windows">
-                <label for="osWindows">Windows</label>
-            </div>
-            
-            <button id="showChecklist" class="action-button">Afficher la checklist</button>
-        </div>
 
-        <!-- Checklist Linux -->
-        <div id="linuxChecklist" class="privesc-section">
-            <div class="form-section">
-                <h2>Checklist d'Escalade de Privilèges Linux</h2>
-                <div class="copy-container">
-                    <button id="copyLinuxChecklist" class="action-button">Copier la checklist</button>
-                </div>
-                <div class="privesc-content">
-                    <pre class="checklist-pre">
-## Enumération du système
-
-### Informations de base
-- [ ] `id` - Vérifier l'utilisateur et ses groupes
-- [ ] `hostname` - Nom de la machine
-- [ ] `uname -a` - Version du noyau
-- [ ] `cat /etc/os-release` - Distribution
-- [ ] `cat /proc/version` - Informations sur le kernel
-- [ ] `ps aux` - Processus en cours d'exécution
-
-### Enumération des utilisateurs et permissions
-- [ ] `cat /etc/passwd | cut -d: -f1` - Liste des utilisateurs
-- [ ] `grep -v -E "^#" /etc/passwd | awk -F: '$3 == 0 { print $1}'` - Comptes avec UID 0
-- [ ] `ls -la /home/` - Répertoires utilisateurs accessibles
-- [ ] `sudo -l` - Commandes exécutables avec sudo
-- [ ] `find / -perm -u=s -type f 2>/dev/null` - Fichiers SUID
-- [ ] `find / -perm -g=s -type f 2>/dev/null` - Fichiers SGID
-- [ ] `find / -type f -perm -o=w 2>/dev/null` - Fichiers world-writable
-
-### Informations réseau
-- [ ] `ifconfig` ou `ip a` - Interfaces réseau
-- [ ] `ip route` ou `route` - Table de routage
-- [ ] `netstat -antup` - Connexions établies et ports ouverts
-- [ ] `iptables -L` - Règles de pare-feu
-
-### Recherche de fichiers sensibles
-- [ ] `find / -name "*.conf" 2>/dev/null` - Fichiers de configuration
-- [ ] `find / -name "*.log" 2>/dev/null` - Fichiers de log
-- [ ] `find / -name "id_rsa*" 2>/dev/null` - Clés SSH privées
-- [ ] `find / -name "authorized_keys" 2>/dev/null` - Clés SSH autorisées
-- [ ] `find / -name ".bash_history" 2>/dev/null` - Historique bash
-- [ ] `grep -r "password" /etc/ 2>/dev/null` - Mots de passe dans /etc
-
-### Services et applications
-- [ ] `dpkg -l` ou `rpm -qa` - Packages installés
-- [ ] `find / -perm -o=x -type f 2>/dev/null` - Executables
-- [ ] `ls -la /opt` - Applications dans /opt
-- [ ] `ls -la /var/www` - Applications web
-- [ ] `ls -la /var/lib/mysql` - Bases de données MySQL
-- [ ] `ls -la /root` - Contenu de /root (si accessible)
-
-## Vecteurs d'exploitation courants
-
-### Kernel exploits
-- [ ] Rechercher des exploits pour la version du kernel
-- [ ] Utiliser searchsploit pour trouver des exploits
-
-### Exploits de services locaux
-- [ ] Vérifier les versions des services pour vulnérabilités connues
-- [ ] Chercher des exploits via searchsploit ou exploitdb
-
-### Exécution non standard
-- [ ] Vérifier les scripts dans les crontabs
-- [ ] Examiner les processus en cours
-
-### Problèmes de configuration
-- [ ] Fichiers de configuration mal configurés
-- [ ] Permissions incorrectes sur des fichiers sensibles
-</pre>
-                </div>
-            </div>
-        </div>
-
-        <!-- Checklist Windows -->
-        <div id="windowsChecklist" class="privesc-section" style="display: none;">
-            <div class="form-section">
-                <h2>Checklist d'Escalade de Privilèges Windows</h2>
-                <div class="copy-container">
-                    <button id="copyWindowsChecklist" class="action-button">Copier la checklist</button>
-                </div>
-                <div class="privesc-content">
-                    <pre class="checklist-pre">
-## Enumération du système Windows
-
-### Informations de base
-- [ ] `systeminfo` - Informations système détaillées
-- [ ] `hostname` - Nom de la machine
-- [ ] `whoami /all` - Informations sur l'utilisateur, groupes et privilèges
-- [ ] `net user` - Liste des utilisateurs locaux
-- [ ] `net localgroup administrators` - Membres du groupe admin local
-- [ ] `tasklist /v` - Processus en cours d'exécution
-
-### Enumération réseau
-- [ ] `ipconfig /all` - Interfaces réseau et DNS
-- [ ] `route print` - Table de routage
-- [ ] `netstat -ano` - Connexions établies et ports ouverts
-- [ ] `netsh firewall show state` - État du pare-feu
-- [ ] `net share` - Partages réseau
-- [ ] `net use` - Sessions réseau actives
-
-### Recherche d'informations sensibles
-- [ ] `dir /s *pass* == *cred* == *vnc* == *.config*` - Recherche de fichiers contenant des mots-clés sensibles
-- [ ] `findstr /si password *.xml *.ini *.txt` - Recherche de mots de passe
-- [ ] `reg query HKLM /f password /t REG_SZ /s` - Recherche de mots de passe dans le registre
-- [ ] `reg query HKCU /f password /t REG_SZ /s` - Recherche dans HKCU
-- [ ] `reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon"` - Identifiants autologon
-
-### Privilèges et vulnérabilités
-- [ ] `wmic qfe get Caption,Description,HotFixID,InstalledOn` - Patches de sécurité installés
-- [ ] `wmic product get name,version,vendor` - Logiciels installés
-- [ ] `accesschk.exe -uwcqv "Authenticated Users" *` - Services modifiables
-- [ ] `accesschk.exe -ucqv [service_name]` - Permissions sur un service
-- [ ] `icacls [file_or_directory]` - Permissions sur un fichier ou dossier
-- [ ] `schtasks /query /fo LIST /v` - Tâches planifiées
-
-### Active Directory (si applicable)
-- [ ] `net group /domain` - Groupes du domaine
-- [ ] `net user /domain` - Utilisateurs du domaine
-- [ ] `net group "Domain Admins" /domain` - Membres des admins du domaine
-- [ ] `nltest /dclist:[domain]` - Liste des contrôleurs de domaine
-
-## Vecteurs d'exploitation courants
-
-### Kernel Exploits
-- [ ] Vérifier les exploits connus pour la version Windows (MS16-032, etc.)
-- [ ] Utiliser Windows-Exploit-Suggester ou Sherlock pour identifier les vulnérabilités
-
-### Problèmes de configuration
-- [ ] Permissions incorrectes sur les services
-- [ ] Exécutables vulnérables avec des chemins sans guillemets
-- [ ] DLL Hijacking
-- [ ] AlwaysInstallElevated
-
-### Identifiants stockés
-- [ ] Identifiants dans les fichiers de configuration
-- [ ] Identifiants dans le registre
-- [ ] Identifiants dans les fichiers d'historique PowerShell
-</pre>
-                </div>
-            </div>
-        </div>
-
-        <!-- Guide d'exploitation -->
-        <div class="form-section">
-            <h2>Guide d'Escalade de Privilèges</h2>
-            <div class="privesc-guide">
-                <h3>Méthode générale</h3>
-                <ol>
-                    <li>Commencer par une énumération complète du système</li>
-                    <li>Identifier les vecteurs potentiels d'escalade de privilèges</li>
-                    <li>Utiliser les outils appropriés selon la plateforme (PEASS-ng, etc.)</li>
-                    <li>Tester les vecteurs trouvés par ordre de probabilité</li>
-                    <li>Documenter toutes les étapes pour le rapport final</li>
-                </ol>
-
-                <h3>Outils recommandés</h3>
-                <ul>
-                    <li><strong>LinPEAS/WinPEAS</strong> - Scripts d'énumération automatisée</li>
-                    <li><strong>PSPY</strong> - Pour surveiller les processus sur Linux</li>
-                    <li><strong>PowerUp</strong> - Script PowerShell pour l'énumération Windows</li>
-                    <li><strong>LinEnum/Windows-privesc-check</strong> - Scripts d'énumération</li>
-                </ul>
-            </div>
+    <!-- Sidebar (identique) -->
+    <div id="sidebar" class="sidebar">
+        <a href="/index.html" class="sidebar-header"><h2>Pentest Tools</h2><p>Suite d'outils pour pentest</p></a>
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item"><a href="/pages/index.html" class="sidebar-nav-link"><i>📝</i> Générateur de Rapport</a></li>
+                <li class="sidebar-nav-item"><a href="/pages/hostmanager.html" class="sidebar-nav-link"><i>🖥️</i> Host Manager</a></li>
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item"><a href="/pages/tools.html" class="sidebar-nav-link"><i>🛠️</i> Bibliothèque d'outils</a></li>
+                <li class="sidebar-nav-item"><a href="/pages/privesc.html" class="sidebar-nav-link active"><i>🔑</i> Guide Privesc</a></li>
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item"><a href="/pages/hostsmaker.html" class="sidebar-nav-link"><i>🌐</i> /etc/hosts Maker</a></li>
+                <li class="sidebar-nav-item"><a href="/pages/grepmaster.html" class="sidebar-nav-link"><i>🔍</i> Grep Master</a></li>
+                <li class="sidebar-nav-item"><a href="/pages/vulnreport.html" class="sidebar-nav-link"><i>🔒</i> Rapport de Vulnérabilités</a></li>
+            </ul>
         </div>
     </div>
-    
+
+    <!-- Contenu Principal -->
+    <div id="main-content" class="main-content">
+        <!-- Barre de Sélection du Node -->
+        <div class="node-selector-bar d-flex align-items-center p-2 border-bottom bg-light sticky-top">
+            <label for="node-select" class="form-label mb-0 me-2 fw-bold">Node (depuis HostManager):</label>
+            <select id="node-select" class="form-select form-select-sm me-3" style="max-width: 300px;">
+                <option value="">-- Charger les données HostManager... --</option>
+                <!-- Options chargées par JS -->
+            </select>
+            <div id="active-node-info" class="node-info flex-grow-1 small text-muted">
+                Sélectionnez un node...
+            </div>
+        </div>
+
+        <!-- Zone Principale : Checklist Dynamique -->
+        <div class="container-fluid mt-3">
+            <!-- Filtres -->
+            <div class="filter-controls d-flex align-items-center flex-wrap">
+                 <span class="me-2 fw-bold small">Filtrer Checklist:</span>
+                 <input type="text" id="checklist-search" class="form-control form-control-sm me-2 mb-1" placeholder="Rechercher par mot-clé..." style="width: 200px;">
+                 <select id="checklist-filter-status" class="form-select form-select-sm me-2 mb-1" style="width: 150px;">
+                     <option value="">Tous les statuts</option>
+                     <option value="todo">À vérifier</option>
+                     <option value="checked">Vérifié</option>
+                     <option value="exploitable">Potentiellement Exploitable</option>
+                     <option value="exploited">Confirmé Exploité</option>
+                 </select>
+                 <select id="checklist-filter-tag" class="form-select form-select-sm mb-1" style="width: 150px;">
+                     <option value="">Tous les tags</option>
+                     <!-- Tags chargés dynamiquement -->
+                 </select>
+                 <button id="apply-checklist-filters" class="btn btn-secondary btn-sm ms-2 mb-1">Filtrer</button>
+            </div>
+
+            <!-- Conteneur de la Checklist -->
+            <div id="checklist-container" class="mt-3">
+                <p class="text-muted text-center" id="checklist-placeholder">Sélectionnez un node pour afficher la checklist contextuelle.</p>
+                <!-- La checklist sera générée ici par JS -->
+            </div>
+        </div>
+        <!-- FIN Zone Principale -->
+
+    </div> <!-- Fin #main-content -->
+
+    <!-- Footer (peut rester identique) -->
     <footer class="main-footer">
         <div class="footer-content">
             <p>Made with ❤️ by Elliot Belt</p>
         </div>
     </footer>
-    
+
+    <!-- Scripts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
-    <script src="/assets/js/privesc.js"></script>
+    <!-- Le NOUVEAU script privesc.js -->
+    <script src="/assets/js/privesc_refactored.js"></script>
+    <!-- Ajouter le script pour les données de checklist si externalisé -->
+    <!-- <script src="/assets/js/checklist-data.js"></script> -->
+
+    <!-- Template pour un item de checklist (utilisé par JS) -->
+    <template id="checklist-item-template">
+        <div class="checklist-item" data-item-id="" data-tags="">
+            <div class="checklist-header">
+                <span class="checklist-label"></span>
+                <div class="checklist-status">
+                    <select class="form-select form-select-sm checklist-status-select">
+                        <option value="todo">À vérifier</option>
+                        <option value="checked">Vérifié</option>
+                        <option value="exploitable">Potentiellement Exploitable</option>
+                        <option value="exploited">Confirmé Exploité</option>
+                    </select>
+                </div>
+            </div>
+            <div class="checklist-description text-muted"></div>
+            <div class="checklist-commands">
+                <h6><i class="fas fa-terminal"></i> Commandes</h6>
+                <div class="check-command">
+                    <small>Vérification :</small>
+                    <pre><code class="language-bash"></code><button class="copy-btn-inline btn btn-sm btn-outline-secondary" title="Copier"><i class="fas fa-copy"></i></button></pre>
+                </div>
+                <div class="exploit-command" style="display: none;"> <!-- Caché si vide -->
+                     <small>Exploitation (Exemple - À ADAPTER !) :</small>
+                     <pre><code class="language-bash"></code><button class="copy-btn-inline btn btn-sm btn-outline-secondary" title="Copier"><i class="fas fa-copy"></i></button></pre>
+                </div>
+            </div>
+            <div class="checklist-links" style="display: none;"> <!-- Caché si vide -->
+                <h6><i class="fas fa-link"></i> Liens Utiles</h6>
+                <!-- Liens ajoutés par JS -->
+            </div>
+            <div class="checklist-tips" style="display: none;"> <!-- Caché si vide -->
+                 <h6><i class="fas fa-lightbulb"></i> Astuces</h6>
+                 <p></p>
+            </div>
+            <div class="checklist-notes">
+                 <h6><i class="fas fa-pencil-alt"></i> Notes / Output</h6>
+                 <textarea class="form-control form-control-sm checklist-notes-textarea" placeholder="Vos observations ou l'output de la commande ici..."></textarea>
+            </div>
+        </div>
+    </template>
+
 </body>
 </html> 

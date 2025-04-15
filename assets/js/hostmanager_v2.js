@@ -1200,17 +1200,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Remplir les champs du formulaire (vérifier les IDs HTML)
         try {
             editHostIdInput.value = hostId;
-            editHostCategoryInput.value = categoryName;
-            editHostIpNameInput.value = hostId; // ipName est l'ID
-            editHostServicesInput.value = host.services || '';
+            editHostCategoryInput.value = categoryName; // Assigner la catégorie actuelle
+            editHostIpNameInput.value = host.ipName || '';
+            editHostServicesInput.value = host.services ? host.services.join(', ') : '';
             editHostNotesTextarea.value = host.notes || '';
-            editHostTagsInput.value = host.tags?.join(', ') || '';
+            editHostTagsInput.value = host.tags ? host.tags.join(', ') : '';
             document.getElementById('editHostSystem').value = host.system || '';
             document.getElementById('editHostRole').value = host.role || '';
             document.getElementById('editHostZone').value = host.zone || '';
             document.getElementById('editHostCompromiseLevel').value = host.compromiseLevel || 'None';
-            document.getElementById('editHostTechniques').value = host.exploitationTechniques?.join(', ') || '';
-            document.getElementById('editHostVulnerabilities').value = host.vulnerabilities?.join(', ') || '';
+            document.getElementById('editHostTechniques').value = host.techniques ? host.techniques.join(', ') : '';
+            document.getElementById('editHostVulnerabilities').value = host.vulnerabilities ? host.vulnerabilities.join(', ') : '';
 
             // Remplir les credentials
             editCredentialsContainer.innerHTML = ''; // Vider les anciens

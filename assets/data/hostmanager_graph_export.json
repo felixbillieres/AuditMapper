@@ -1,0 +1,96 @@
+{
+  "nodes": {
+    "node-linux-1": {
+      "id": "node-linux-1",
+      "ipName": "10.10.1.5 (web01)",
+      "os": "Linux",
+      "arch": "x64",
+      "distribution": "Ubuntu 20.04",
+      "kernelVersion": "5.4.0-generic",
+      "currentUser": "www-data",
+      "privilegeLevel": "User",
+      "tags": ["Web", "Apache", "Vulnerable"],
+      "services": [
+        {"port": 80, "protocol": "tcp", "service": "http", "version": "Apache/2.4.41"},
+        {"port": 22, "protocol": "tcp", "service": "ssh", "version": "OpenSSH 8.2p1"}
+      ],
+      "configDetails": {
+        "sudoRules": [
+          "(root) NOPASSWD: /usr/bin/find",
+          "(root) /usr/bin/apt"
+        ],
+        "suidFiles": [
+          "/usr/bin/find",
+          "/usr/bin/python3.8"
+        ],
+        "capabilities": ["cap_sys_admin+ep /usr/bin/python3.8"],
+        "writableFiles": ["/etc/passwd"],
+        "cronJobs": ["* * * * * root /usr/local/bin/backup.sh"]
+      },
+      "notes": "Serveur web initialement compromis via RCE.",
+      "compromiseLevel": "User",
+      "exploitationTechniques": ["RCE Apache"],
+      "vulnerabilities": ["CVE-XXXX-YYYY"]
+    },
+    "node-win-1": {
+      "id": "node-win-1",
+      "ipName": "192.168.56.102 (DC01)",
+      "os": "Windows",
+      "arch": "x64",
+      "distribution": "Windows Server 2019",
+      "kernelVersion": "10.0.17763",
+      "currentUser": "svc_backup",
+      "privilegeLevel": "User",
+      "tags": ["Domain Controller", "AD", "Kerberos"],
+      "services": [
+        {"port": 445, "protocol": "tcp", "service": "smb"},
+        {"port": 389, "protocol": "tcp", "service": "ldap"},
+        {"port": 88, "protocol": "tcp", "service": "kerberos"}
+      ],
+      "configDetails": {
+        "windowsPrivileges": [
+            {"name": "SeImpersonatePrivilege", "status": "Enabled"},
+            {"name": "SeBackupPrivilege", "status": "Enabled"}
+        ],
+        "unquotedServicePaths": ["C:\\Program Files\\Unquoted Service\\service.exe"],
+        "alwaysInstallElevated": true,
+        "networkShares": ["\\\\DC01\\SYSVOL"],
+        "domainInfo": { "name": "CORP.LOCAL", "isDomainController": true }
+      },
+      "notes": "Contrôleur de domaine principal. Compte svc_backup a des privilèges intéressants.",
+      "compromiseLevel": "User",
+      "exploitationTechniques": ["Kerberoasting (svc_backup)"],
+      "vulnerabilities": ["Zerologon (Patched)"]
+    },
+    "node-linux-2": {
+       "id": "node-linux-2",
+       "ipName": "172.16.30.10 (dev-box)",
+       "os": "Linux",
+       "arch": "x64",
+       "distribution": "Debian 11",
+       "kernelVersion": "5.10.0-kali9-amd64",
+       "currentUser": "elliot",
+       "privilegeLevel": "User",
+       "tags": ["Development", "Docker"],
+       "services": [
+         {"port": 22, "protocol": "tcp", "service": "ssh", "version": "OpenSSH 8.4p1"},
+         {"port": 8080, "protocol": "tcp", "service": "http", "version": "nginx/1.18.0"}
+       ],
+       "configDetails": {
+         "sudoRules": ["(elliot) ALL=(ALL) /usr/bin/docker"],
+         "suidFiles": ["/usr/bin/pkexec"],
+         "capabilities": [],
+         "writableFiles": [],
+         "cronJobs": []
+       },
+       "notes": "Machine de développement standard.",
+       "compromiseLevel": "User",
+       "exploitationTechniques": [],
+       "vulnerabilities": []
+    }
+  },
+  "edges": [
+    { "from": "node-linux-1", "to": "node-win-1", "label": "SMB Mount (via creds)", "id": "edge-1" },
+    { "from": "node-linux-2", "to": "node-linux-1", "label": "SSH (key)", "id": "edge-2" }
+  ]
+} 
