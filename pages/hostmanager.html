@@ -122,6 +122,33 @@
             <!-- Le contenu de la catégorie active (host-list, add-host-btn) sera affiché ici par JS -->
         </div>
 
+        <!-- Filtres & Actions Globales (DÉPLACÉ ICI) -->
+        <div class="card mb-3"> <!-- Ajout de mb-3 pour l'espacement -->
+            <div class="card-header">
+                Filtres & Actions
+            </div>
+            <div class="card-body form-inline flex-wrap">
+                <div class="form-group mr-3 mb-2">
+                    <label for="filterCategory" class="mr-2">Filtrer par Catégorie:</label>
+                    <select id="filterCategory" class="form-control form-control-sm">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <label for="filterTag" class="mr-2">Filtrer par Tag:</label>
+                    <input type="text" id="filterTag" class="form-control form-control-sm" placeholder="ex: important, todo">
+                </div>
+                <button id="applyFiltersBtn" class="btn btn-primary btn-sm mr-3 mb-2">Appliquer Filtres</button>
+
+                <div class="ml-auto d-flex flex-wrap">
+                    <button id="exportSessionBtn" class="btn btn-success btn-sm mr-2 mb-2">Exporter Session</button>
+                    <label for="importSessionInput" class="btn btn-warning btn-sm mr-2 mb-2">Importer Session</label>
+                    <input type="file" id="importSessionInput" accept=".json" style="display: none;">
+                    <button id="removeAllDataBtn" class="btn btn-danger btn-sm mb-2">Supprimer Toutes les Données</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Carte Réseau -->
         <div class="card">
             <div class="card-header">
@@ -134,7 +161,7 @@
         </div>
 
         <!-- Données Agrégées -->
-        <div class="card aggregated-data-section">
+        <div class="card aggregated-data-section mt-3"> <!-- Ajout de mt-3 -->
             <div class="card-header">
                 Données Agrégées (Cliquer pour copier)
             </div>
@@ -187,38 +214,13 @@
             </div>
         </div>
 
-        <!-- Filtres & Actions Globales -->
-        <div class="card">
-            <div class="card-header">
-                Filtres & Actions
-            </div>
-            <div class="card-body form-inline flex-wrap">
-                <div class="form-group mr-3 mb-2">
-                    <label for="filterCategory" class="mr-2">Filtrer par Catégorie:</label>
-                    <select id="filterCategory" class="form-control form-control-sm">
-                        <option value="">Toutes</option>
-                    </select>
-                </div>
-                <div class="form-group mr-3 mb-2">
-                    <label for="filterTag" class="mr-2">Filtrer par Tag:</label>
-                    <input type="text" id="filterTag" class="form-control form-control-sm" placeholder="ex: important, todo">
-                </div>
-                <button id="applyFiltersBtn" class="btn btn-primary btn-sm mr-3 mb-2">Appliquer Filtres</button>
-
-                <div class="ml-auto d-flex flex-wrap">
-                    <button id="exportSessionBtn" class="btn btn-success btn-sm mr-2 mb-2">Exporter Session</button>
-                    <label for="importSessionInput" class="btn btn-warning btn-sm mr-2 mb-2">Importer Session</label>
-                    <input type="file" id="importSessionInput" accept=".json" style="display: none;">
-                    <button id="removeAllDataBtn" class="btn btn-danger btn-sm mb-2">Supprimer Toutes les Données</button>
-                </div>
-            </div>
-        </div>
-
     </div> <!-- Fin #main-content -->
 
     <!-- Panneau d'Édition Hôte (Initialement caché) -->
     <!-- Placé HORS de main-content pour un positionnement fixe plus fiable -->
     <div id="editPanel" class="edit-panel">
+        <!-- AJOUT DU BOUTON POUR AGRANDIR/RÉDUIRE -->
+        <button id="toggleWidePanelBtn" class="toggle-wide-btn" title="Agrandir/Réduire">↔️</button>
         <button id="closePanelBtn" class="close-panel-btn" title="Fermer">&times;</button>
         <h3>Éditer Hôte</h3>
         <form id="editHostForm">
@@ -284,8 +286,8 @@
 
             <!-- Section Credentials -->
             <h4>Credentials</h4>
-            <div id="editCredentialsContainer">
-                <!-- Les groupes de credentials seront ajoutés ici par JS -->
+            <div id="editCredentialsContainer" class="mb-3"> <!-- Ajout mb-3 -->
+                <!-- Les groupes de credentials seront ajoutés ici par JS avec la nouvelle structure -->
             </div>
             <button type="button" id="addCredentialBtn" class="btn btn-secondary btn-sm mb-3">Ajouter Credential</button>
 

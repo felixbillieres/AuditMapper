@@ -1666,17 +1666,17 @@ body.dark-theme #network-map {
     position: fixed;
     top: 0;
     right: 0;
-    width: 450px; /* Largeur ajustable */
+    width: 450px; /* Largeur par défaut */
     max-width: 90%; /* Max sur petits écrans */
     height: 100vh;
     background-color: #ffffff;
     box-shadow: -2px 0 15px rgba(0, 0, 0, 0.15);
     padding: 20px;
-    padding-top: 50px; /* Espace pour le bouton fermer */
+    padding-top: 50px; /* Espace pour les boutons fermer/agrandir */
     overflow-y: auto;
     z-index: 1050; /* Au-dessus de la plupart des éléments */
     transform: translateX(100%); /* Caché par défaut (hors écran à droite) */
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; /* Ajout transition width */
     visibility: hidden; /* Caché et non interactif par défaut */
 }
 
@@ -1684,6 +1684,12 @@ body.dark-theme #network-map {
 .edit-panel.open {
     transform: translateX(0); /* Revient à sa position normale */
     visibility: visible; /* Rendre visible et interactif */
+}
+
+/* Style pour le panneau élargi */
+.edit-panel.wide-panel {
+    width: 75%; /* Largeur augmentée, ajustable */
+    max-width: 1000px; /* Limite maximale */
 }
 
 .edit-panel .close-panel-btn {
@@ -1698,8 +1704,26 @@ body.dark-theme #network-map {
     cursor: pointer;
     padding: 0;
     line-height: 1;
+    z-index: 10; /* Au-dessus du bouton agrandir si superposé */
 }
 .edit-panel .close-panel-btn:hover {
+    color: #343a40;
+}
+
+/* Style pour le bouton Agrandir/Réduire */
+.edit-panel .toggle-wide-btn {
+    position: absolute;
+    top: 15px; /* Légèrement plus bas que le X */
+    right: 50px; /* À gauche du bouton fermer */
+    font-size: 1.2rem; /* Taille de l'icône */
+    color: #6c757d;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+}
+.edit-panel .toggle-wide-btn:hover {
     color: #343a40;
 }
 
@@ -1798,10 +1822,12 @@ body.dark-theme .category-settings-panel {
     color: var(--dark-text-color, #e0e0e0);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
-body.dark-theme .edit-panel .close-panel-btn {
+body.dark-theme .edit-panel .close-panel-btn,
+body.dark-theme .edit-panel .toggle-wide-btn { /* Appliquer aussi au bouton toggle */
     color: var(--dark-text-color-muted, #adb5bd);
 }
-body.dark-theme .edit-panel .close-panel-btn:hover {
+body.dark-theme .edit-panel .close-panel-btn:hover,
+body.dark-theme .edit-panel .toggle-wide-btn:hover { /* Appliquer aussi au bouton toggle */
     color: var(--dark-text-color, #e0e0e0);
 }
 body.dark-theme .edit-panel h3 {
@@ -2287,4 +2313,23 @@ body.dark-theme .exploitation-guide .copy-btn:hover {
 body.dark-theme .exploitation-guide .guide-image,
 .exploitation-guide .guide-diagram {
     border-color: var(--dark-border-color-light, #5a6268);
+}
+
+/* Styles pour la nouvelle structure des credentials */
+.credential-entry {
+    background-color: #f8f9fa; /* Fond légèrement différent */
+}
+.credential-entry .form-label-sm {
+    font-size: 0.8rem; /* Taille réduite pour les labels (cachés mais utiles pour accessibilité) */
+    margin-bottom: 0.2rem;
+}
+.credential-entry .form-control-sm {
+    font-size: 0.85rem; /* Taille de police pour les inputs */
+}
+/* Assurer que le bouton supprimer est bien aligné même sur petites tailles */
+.credential-entry .text-end {
+    text-align: right !important;
+}
+.credential-entry .remove-credential-btn {
+    line-height: 1.2; /* Ajuster si nécessaire pour alignement vertical */
 }

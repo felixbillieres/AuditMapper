@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const settingsCategoryNameInput = document.getElementById('settingsCategoryName');
     const categoryTemplateTypeSelect = document.getElementById('categoryTemplateTypeSelect');
     const saveCategorySettingsBtn = document.getElementById('saveCategorySettingsBtn');
+    const editPanelToggleWideBtn = document.getElementById('toggleWidePanelBtn');
     console.log("DOM references obtained.");
 
     // --- Constantes et Configuration ---
@@ -1114,120 +1115,148 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleAddEdge() {
         console.log(">>> handleAddEdge: START");
-        const fromHostId = editHostIdInput.value; // L'hôte en cours d'édition est le 'from'
-        const toHostId = sanitizeInput(editEdgeToInput.value.trim());
-        const label = sanitizeInput(editEdgeLabelInput.value.trim());
+        const fromHostId = editHostIdInput.value;
+        const toHost = editEdgeToInput.value.trim();
+        const label = editEdgeLabelInput.value.trim();
 
-        if (!fromHostId || !toHostId) {
-            alert("Veuillez spécifier l'hôte cible pour la connexion.");
+        if (!fromHostId || !toHost) {
+            alert("Veuillez spécifier l'hôte source (via le panneau) et l'hôte cible.");
             return;
         }
 
-        // Vérifier si l'hôte cible existe (dans n'importe quelle catégorie)
-        let targetExists = false;
-        for (const cat in hostData.categories) {
-            if (hostData.categories[cat]?.hosts?.[toHostId]) {
-                targetExists = true;
-                break;
-            }
-        }
-        if (!targetExists) {
-            alert(`L'hôte cible "${toHostId}" n'a pas été trouvé dans les données actuelles.`);
-            // Optionnel: proposer de créer l'hôte cible ?
-            return;
+        // Vérifier si l'hôte cible existe (optionnel mais utile)
+        if (!findHostById(toHost)) {
+             if (!confirm(`L'hôte cible "${toHost}" n'existe pas encore. Voulez-vous quand même créer la connexion ?`)) {
+                 return;
+             }
         }
 
-        // Ajouter l'edge
+
         const newEdge = {
-            id: generateUUID(), // Générer un ID unique pour l'edge
+            id: `edge-${generateUUID()}`, // Générer un ID unique pour l'edge
             from: fromHostId,
-            to: toHostId,
+            to: toHost,
             label: label || '', // Label optionnel
-            arrows: 'to' // Assurer la flèche
+            arrows: 'to' // Style de flèche par défaut
         };
+
         hostData.edges.push(newEdge);
-        console.log("Edge ajouté:", newEdge);
+        console.log("Nouvel edge ajouté:", newEdge);
 
-        // Mettre à jour la liste dans le panneau et sauvegarder
-        renderEdgesInPanel(fromHostId);
-        saveData(); // Sauvegarde et re-rend la carte réseau
+        saveData(); // Sauvegarde et re-render global
 
-        // Vider les champs
+        // Mettre à jour la liste dans le panneau
+        renderExistingEdges(fromHostId);
+
+        // Vider les champs d'ajout
         editEdgeToInput.value = '';
         editEdgeLabelInput.value = '';
+        console.log(">>> handleAddEdge: END");
     }
 
-    function handleDeleteEdge(edgeId) {
-        console.log(`>>> handleDeleteEdge: START for ${edgeId}`);
-        const fromHostId = editHostIdInput.value; // Récupérer l'hôte actuel pour re-render le panneau
-        hostData.edges = hostData.edges.filter(edge => edge.id !== edgeId);
-        console.log(`Edge supprimé: ${edgeId}`);
-        renderEdgesInPanel(fromHostId); // Mettre à jour la liste dans le panneau
-        saveData(); // Sauvegarde et re-rend la carte réseau
+    function handleDeleteEdge(edgeId, hostIdToUpdatePanel) {
+        console.log(`>>> handleDeleteEdge: START for edge ${edgeId}`);
+        if (!edgeId) {
+            console.error("ID d'edge manquant pour la suppression.");
+            return;
+        }
+
+        const edgeIndex = hostData.edges.findIndex(edge => edge.id === edgeId);
+
+        if (edgeIndex === -1) {
+            console.warn(`Edge avec ID ${edgeId} non trouvé pour suppression.`);
+            return; // Edge déjà supprimé ou ID invalide
+        }
+
+        // Confirmation (optionnelle mais recommandée)
+        // if (!confirm(`Supprimer la connexion vers ${hostData.edges[edgeIndex].to} ?`)) {
+        //     return;
+        // }
+
+        hostData.edges.splice(edgeIndex, 1); // Supprimer l'edge du tableau
+        console.log(`Edge ${edgeId} supprimé.`);
+
+        saveData(); // Sauvegarder les changements (cela va aussi re-render la carte)
+
+        // Mettre à jour uniquement la liste dans le panneau d'édition si l'hôte est fourni
+        if (hostIdToUpdatePanel) {
+            renderExistingEdges(hostIdToUpdatePanel);
+        }
+        console.log(">>> handleDeleteEdge: END");
     }
 
 
     // --- Fonctions de Gestion des Panneaux (Edit, Settings) ---
 
     function openEditPanel(hostId) {
-        console.log(`>>> openEditPanel: START for ${hostId}`);
-        // Vérifier si le panneau existe dans le DOM
-        if (!editPanel) {
-            console.error("Élément #editPanel introuvable dans le DOM.");
+        console.log(`>>> openEditPanel: START for host ${hostId}`);
+        if (!editPanel || !hostId) {
+            console.error("Panneau d'édition ou ID d'hôte manquant.");
             return;
         }
 
-        // Trouver l'hôte et sa catégorie
-        let host = null;
-        let categoryName = null;
-        for (const cat in hostData.categories) {
-            if (hostData.categories[cat]?.hosts?.[hostId]) {
-                host = hostData.categories[cat].hosts[hostId];
-                categoryName = cat;
-                break;
-            }
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo) {
+            console.error(`Hôte avec ID ${hostId} non trouvé.`);
+            alert(`Erreur: Hôte ${hostId} non trouvé.`);
+            return;
         }
+        const { host, categoryName } = hostInfo;
 
-        if (!host || !categoryName) {
-            console.error(`Hôte non trouvé pour ID: ${hostId}`);
-            // Optionnel : Afficher une alerte ou un message à l'utilisateur
-            // alert(`Erreur: Hôte "${hostId}" introuvable dans les données.`);
-            return; // Arrêter l'exécution si l'hôte n'est pas trouvé
-        }
-
-        console.log(`Hôte trouvé: ${hostId} dans catégorie ${categoryName}`, host);
-
-        // Remplir les champs du formulaire (vérifier les IDs HTML)
         try {
+            // Remplir les champs de base
             editHostIdInput.value = hostId;
-            editHostCategoryInput.value = categoryName; // Assigner la catégorie actuelle
-            editHostIpNameInput.value = host.ipName || '';
-            editHostServicesInput.value = host.services ? host.services.join(', ') : '';
+            editHostCategoryInput.value = categoryName;
+            editHostIpNameInput.value = hostId; // L'ID est le nom/IP ici
+            // CORRECTION ICI: host.services est une chaîne, pas un tableau
+            editHostServicesInput.value = typeof host.services === 'string' ? host.services : '';
             editHostNotesTextarea.value = host.notes || '';
-            editHostTagsInput.value = host.tags ? host.tags.join(', ') : '';
-            document.getElementById('editHostSystem').value = host.system || '';
-            document.getElementById('editHostRole').value = host.role || '';
-            document.getElementById('editHostZone').value = host.zone || '';
-            document.getElementById('editHostCompromiseLevel').value = host.compromiseLevel || 'None';
-            document.getElementById('editHostTechniques').value = host.techniques ? host.techniques.join(', ') : '';
-            document.getElementById('editHostVulnerabilities').value = host.vulnerabilities ? host.vulnerabilities.join(', ') : '';
+            // Les tags sont aussi une chaîne, mais on pourrait vouloir les traiter comme un tableau à l'avenir
+            editHostTagsInput.value = Array.isArray(host.tags) ? host.tags.join(', ') : (host.tags || '');
 
-            // Remplir les credentials
+            // Remplir les nouveaux champs
+            const systemSelect = document.getElementById('editHostSystem');
+            const roleInput = document.getElementById('editHostRole');
+            const zoneInput = document.getElementById('editHostZone');
+            const compromiseSelect = document.getElementById('editHostCompromiseLevel');
+            const techniquesTextarea = document.getElementById('editHostTechniques');
+            const vulnerabilitiesTextarea = document.getElementById('editHostVulnerabilities');
+
+            if (systemSelect) systemSelect.value = host.system || '';
+            if (roleInput) roleInput.value = host.role || '';
+            if (zoneInput) zoneInput.value = host.zone || '';
+            if (compromiseSelect) compromiseSelect.value = host.compromiseLevel || 'None';
+            // Pour techniques et vulnérabilités, s'assurer qu'ils sont bien des chaînes si stockés comme tableaux
+            if (techniquesTextarea) techniquesTextarea.value = Array.isArray(host.exploitationTechniques) ? host.exploitationTechniques.join(', ') : (host.exploitationTechniques || '');
+            if (vulnerabilitiesTextarea) vulnerabilitiesTextarea.value = Array.isArray(host.vulnerabilities) ? host.vulnerabilities.join(', ') : (host.vulnerabilities || '');
+
+
+            // Vider et remplir les credentials
             editCredentialsContainer.innerHTML = ''; // Vider les anciens
-            (host.credentials || []).forEach(cred => addCredentialInputGroup(cred));
+            if (host.credentials && Array.isArray(host.credentials)) {
+                host.credentials.forEach(cred => addCredentialInputGroup(cred));
+            } else {
+                // Ajouter un champ vide si aucun credential n'existe
+                addCredentialInputGroup();
+            }
 
-            // Remplir les edges sortants
-            renderEdgesInPanel(hostId);
+            // Vider et remplir les edges sortants
+            renderExistingEdges(hostId); // Appel à la fonction maintenant définie
+
+            // Remplir le champ "To" pour l'ajout d'edge (suggérer des voisins ?)
+            // editEdgeToInput.value = ''; // Ou pré-remplir si pertinent
+            // editEdgeLabelInput.value = '';
 
             // Afficher le panneau
             editPanel.classList.add('open');
-            console.log(`Panneau d'édition ouvert pour: ${hostId}`);
+            console.log(`Panneau d'édition ouvert pour ${hostId}`);
 
         } catch (error) {
-             console.error("Erreur lors du remplissage du panneau d'édition:", error);
-             // Peut arriver si un ID d'élément HTML est incorrect
-             alert("Une erreur s'est produite lors de l'ouverture du panneau d'édition. Vérifiez la console.");
+            console.error("Erreur lors du remplissage du panneau d'édition:", error);
+            alert("Une erreur s'est produite lors de l'ouverture du panneau d'édition. Vérifiez la console.");
+            closeEditPanel(); // Fermer le panneau en cas d'erreur grave
         }
+        console.log(">>> openEditPanel: END");
     }
 
     function closeEditPanel() {
@@ -1239,18 +1268,39 @@ document.addEventListener('DOMContentLoaded', function() {
     function addCredentialInputGroup(credential = {}) {
         console.log(">>> addCredentialInputGroup: START");
         if (!editCredentialsContainer) return;
+
         const credDiv = document.createElement('div');
-        credDiv.className = 'credential-group input-group input-group-sm mb-2'; // input-group-sm pour taille cohérente
+        // Utilisation des classes Bootstrap pour une grille responsive
+        credDiv.className = 'credential-entry border rounded p-2 mb-2 bg-light'; // Style de base pour chaque entrée
+
         credDiv.innerHTML = `
-            <input type="text" class="form-control" placeholder="Utilisateur" value="${credential.username || ''}">
-            <input type="text" class="form-control" placeholder="Mot de passe" value="${credential.password || ''}">
-            <input type="text" class="form-control" placeholder="Hash" value="${credential.hash || ''}">
-            <input type="text" class="form-control" placeholder="Type (ex: NTLM)" value="${credential.type || ''}">
-            <input type="text" class="form-control" placeholder="Source (ex: Mimikatz)" value="${credential.source || ''}">
-            <div class="input-group-append">
-                <button class="btn btn-outline-danger remove-credential-btn" type="button">🗑️</button>
+            <div class="row gx-2 gy-2 align-items-center"> <!-- gx-2 pour gouttière horizontale, gy-2 pour verticale -->
+                <div class="col-md-6 col-lg-3">
+                    <label class="form-label form-label-sm visually-hidden">Utilisateur</label> <!-- visually-hidden pour accessibilité -->
+                    <input type="text" class="form-control form-control-sm credential-username" placeholder="Utilisateur" value="${credential.username || ''}">
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <label class="form-label form-label-sm visually-hidden">Mot de passe</label>
+                    <input type="text" class="form-control form-control-sm credential-password" placeholder="Mot de passe" value="${credential.password || ''}">
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label form-label-sm visually-hidden">Hash</label>
+                    <input type="text" class="form-control form-control-sm credential-hash" placeholder="Hash" value="${credential.hash || ''}">
+                </div>
+                <div class="col-md-6 col-lg-2">
+                    <label class="form-label form-label-sm visually-hidden">Type</label>
+                    <input type="text" class="form-control form-control-sm credential-type" placeholder="Type (NTLM)" value="${credential.type || ''}">
+                </div>
+                <div class="col-lg-10"> <!-- Prend plus de place -->
+                     <label class="form-label form-label-sm visually-hidden">Source</label>
+                     <input type="text" class="form-control form-control-sm credential-source" placeholder="Source (Mimikatz)" value="${credential.source || ''}">
+                </div>
+                <div class="col-lg-2 text-end"> <!-- Bouton aligné à droite -->
+                    <button class="btn btn-outline-danger btn-sm remove-credential-btn" type="button" title="Supprimer ce credential">🗑️</button>
+                </div>
             </div>
         `;
+
         // Ajouter l'écouteur pour le bouton supprimer de CE groupe
         const removeBtn = credDiv.querySelector('.remove-credential-btn');
         if (removeBtn) {
@@ -1263,35 +1313,45 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(">>> addCredentialInputGroup: END");
     }
 
-    function renderEdgesInPanel(hostId) {
-        console.log(`>>> renderEdgesInPanel: START for ${hostId}`);
-        if (!existingEdgesListDiv) return;
-        existingEdgesListDiv.innerHTML = ''; // Vider la liste
+    function renderExistingEdges(hostId) {
+        console.log(`>>> renderExistingEdges: START for host ${hostId}`);
+        if (!existingEdgesListDiv) {
+            console.error("Element #existingEdgesList introuvable.");
+            return;
+        }
+        existingEdgesListDiv.innerHTML = ''; // Vider la liste actuelle
+
+        if (!hostData.edges || hostData.edges.length === 0) {
+            existingEdgesListDiv.innerHTML = '<p class="text-muted small">Aucune connexion sortante définie.</p>';
+            console.log("Aucun edge à afficher.");
+            return;
+        }
 
         const outgoingEdges = hostData.edges.filter(edge => edge.from === hostId);
 
         if (outgoingEdges.length === 0) {
-            existingEdgesListDiv.innerHTML = '<small><em>Aucune connexion sortante définie.</em></small>';
-        } else {
-            const list = document.createElement('ul');
-            list.className = 'list-unstyled';
-            outgoingEdges.forEach(edge => {
-                const listItem = document.createElement('li');
-                listItem.className = 'd-flex justify-content-between align-items-center mb-1';
-                listItem.innerHTML = `
-                    <span>Vers: <strong>${edge.to}</strong> ${edge.label ? `(${edge.label})` : ''}</span>
-                    <button class="btn btn-danger btn-sm remove-edge-btn" data-edge-id="${edge.id}">🗑️</button>
-                `;
-                // Ajouter écouteur pour supprimer cet edge spécifique
-                const removeBtn = listItem.querySelector('.remove-edge-btn');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', () => handleDeleteEdge(edge.id));
-                }
-                list.appendChild(listItem);
-            });
-            existingEdgesListDiv.appendChild(list);
+            existingEdgesListDiv.innerHTML = '<p class="text-muted small">Aucune connexion sortante définie pour cet hôte.</p>';
+            console.log(`Aucun edge sortant trouvé pour ${hostId}.`);
+            return;
         }
-        console.log(`>>> renderEdgesInPanel: END - ${outgoingEdges.length} edges rendered.`);
+
+        console.log(`Affichage de ${outgoingEdges.length} edge(s) sortant(s) pour ${hostId}`);
+        outgoingEdges.forEach(edge => {
+            const edgeDiv = document.createElement('div');
+            edgeDiv.className = 'edge-item d-flex justify-content-between align-items-center mb-1 p-1 border-bottom'; // Utilisation de classes Bootstrap pour la mise en forme
+            edgeDiv.innerHTML = `
+                <span>Vers: <strong>${sanitizeInput(edge.to)}</strong> (Label: <em>${sanitizeInput(edge.label || 'N/A')}</em>)</span>
+                <button class="btn btn-outline-danger btn-sm delete-edge-btn" data-edge-id="${edge.id}" title="Supprimer cette connexion">🗑️</button>
+            `;
+
+            const deleteBtn = edgeDiv.querySelector('.delete-edge-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => handleDeleteEdge(edge.id, hostId)); // Passer hostId pour re-render
+            }
+
+            existingEdgesListDiv.appendChild(edgeDiv);
+        });
+        console.log(">>> renderExistingEdges: END");
     }
 
     function openCategorySettingsPanel(categoryName) {
@@ -1474,15 +1534,38 @@ document.addEventListener('DOMContentLoaded', function() {
         // return temp.textContent || temp.innerText || "";
     }
 
+    // AJOUT DE LA FONCTION MANQUANTE
+    function findHostById(hostId) {
+        console.log(`>>> findHostById: Searching for host with ID: ${hostId}`);
+        if (!hostData || !hostData.categories) {
+            console.warn("findHostById: hostData or hostData.categories is not available.");
+            return null;
+        }
+
+        for (const categoryName in hostData.categories) {
+            const category = hostData.categories[categoryName];
+            // Vérifier si la catégorie et le conteneur d'hôtes existent
+            if (category && category.hosts && category.hosts[hostId]) {
+                console.log(`>>> findHostById: Host found in category "${categoryName}"`);
+                return {
+                    host: category.hosts[hostId],
+                    categoryName: categoryName
+                };
+            }
+        }
+
+        console.warn(`>>> findHostById: Host with ID "${hostId}" not found in any category.`);
+        return null; // Retourner null si l'hôte n'est trouvé dans aucune catégorie
+    }
 
     // --- Initialisation et Écouteurs d'Événements ---
 
-    function initialize() {
-        console.log(">>> initialize: START");
+    function setupEventListeners() { // RENOMMAGE de initialize en setupEventListeners
+        console.log(">>> setupEventListeners: START"); // Mise à jour du log
 
         // Vérifier si les éléments DOM essentiels sont présents
         if (!categoryTabsContainer || !addCategoryBtn || !categoryContentContainer || !networkMapDiv || !editPanel || !importSessionInput) {
-             console.error("Initialize: Un ou plusieurs éléments DOM critiques sont manquants. Vérifiez les IDs dans hostmanager.html.");
+             console.error("setupEventListeners: Un ou plusieurs éléments DOM critiques sont manquants. Vérifiez les IDs dans hostmanager.html.");
              alert("Erreur critique: Impossible d'initialiser l'application. Vérifiez la console.");
              return; // Arrêter l'initialisation
         }
@@ -1607,17 +1690,33 @@ document.addEventListener('DOMContentLoaded', function() {
            console.log("Theme observer attached.");
         }
 
-        // Chargement des données initiales
-        console.log("Calling loadData...");
-        loadData();
-        console.log("Calling renderAll...");
-        renderAll(); // Appel initial pour afficher l'état chargé
+        // Écouteur pour le bouton d'agrandissement du panneau (DÉPLACÉ ICI)
+        if (editPanelToggleWideBtn && editPanel) {
+            editPanelToggleWideBtn.addEventListener('click', () => {
+                editPanel.classList.toggle('wide-panel');
+                console.log("Panel wide mode toggled.");
+                // Optionnel: Redessiner/adapter la carte Vis si elle est affectée par la largeur
+                if (network && editPanel.classList.contains('wide-panel')) {
+                     // Peut-être redimensionner la carte si nécessaire
+                     // network.redraw(); ou network.setSize('100%', '500px');
+                }
+            });
+        } else {
+            console.warn("Toggle wide panel button or edit panel not found.");
+        }
+
+
+        // Chargement des données initiales (déplacé hors de cette fonction)
+        // console.log("Calling loadData...");
+        // loadData();
+        // console.log("Calling renderAll...");
+        // renderAll(); // Appel initial pour afficher l'état chargé
 
         // Initialiser l'état des onglets rapport
         switchToPreviewTab();
         updateMarkdownPreview();
 
-        console.log(">>> initialize: END - Initialisation Host Manager v3 terminée et écouteurs attachés."); // LOG 6
+        console.log(">>> setupEventListeners: END - Écouteurs attachés."); // Mise à jour du log
     }
 
     // --- Fonctions de Gestion des Onglets Rapport ---
@@ -1748,8 +1847,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Exécution au chargement du DOM ---
+    // Déplacer l'exécution principale ici, à la fin du script, dans l'écouteur DOMContentLoaded
 
-    // Lancer l'initialisation globale
-    initialize();
+    // Chargement initial des données
+    loadData();
+    // Rendu initial de l'interface
+    renderAll();
+    // Attachement des écouteurs d'événements
+    setupEventListeners(); // Appel de la fonction qui contient les addEventListener
+
+    console.log("Host Manager V2 Initialized and ready.");
+
 
 }); // Fin du DOMContentLoaded
