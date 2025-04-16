@@ -304,6 +304,56 @@
                 <!-- Les edges existants seront listés ici par JS -->
             </div>
 
+            <!-- ================================== -->
+            <!-- == NOUVELLE SECTION OUTPUTS BRUTS == -->
+            <!-- ================================== -->
+            <div id="editOutputsSection" class="mt-4 pt-3 border-top"> <!-- Ajout mt-4, pt-3 et border-top pour séparation visuelle -->
+                <h4>Outputs Bruts & Exploitation</h4>
+
+                <!-- Zone pour afficher les outputs existants et la navigation -->
+                <div id="outputNavigation" class="mb-2" style="display: none;">
+                    <!-- Les contrôles de navigation (onglets, boutons) seront ajoutés ici par JS -->
+                </div>
+                <div id="editOutputsContainer" class="mb-3" style="min-height: 50px;">
+                    <!-- Les outputs ajoutés seront affichés ici par JS -->
+                    <p class="text-muted small no-outputs-msg">Aucun output enregistré pour cet hôte.</p>
+                </div>
+
+                <!-- Zone pour ajouter un nouvel output (initialement cachée) -->
+                <div id="newOutputInputArea" class="mb-3 p-2 border rounded bg-light" style="display: none;">
+                    <h5 id="newOutputTitle" class="mb-2">Ajouter un Output</h5>
+                    <div class="form-group mb-2">
+                        <label for="newOutputContent" id="newOutputContentLabel">Contenu:</label>
+                        <textarea id="newOutputContent" class="form-control form-control-sm" rows="8" placeholder="Collez l'output ici..."></textarea>
+                    </div>
+                     <div class="form-group mb-2" id="newOutputSubTypeGroup" style="display: none;"> <!-- Pour le type de dump -->
+                        <label for="newOutputSubType">Type de Dump:</label>
+                        <input type="text" id="newOutputSubType" class="form-control form-control-sm" placeholder="ex: Mémoire LSASS, SAM Hive...">
+                    </div>
+                    <button type="button" id="saveNewOutputBtn" class="btn btn-success btn-sm mr-2">Enregistrer Output</button>
+                    <button type="button" id="cancelNewOutputBtn" class="btn btn-secondary btn-sm">Annuler</button>
+                </div>
+
+                <!-- Bouton principal pour ajouter un output -->
+                <button type="button" id="addOutputBtn" class="btn btn-info btn-sm mb-2">Ajouter un Output</button>
+
+                <!-- Sélection du type d'output (initialement cachée) -->
+                <div id="outputTypeSelection" class="mb-3 p-2 border rounded bg-light" style="display: none;">
+                    <p class="mb-1 small font-weight-bold">Choisir le type d'output :</p>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="Raw">Texte Brut</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="Secretsdump">Secretsdump</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="Mimikatz">Mimikatz</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="WinPEAS">WinPEAS</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="LinPEAS">LinPEAS</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="Dump">Dump (Fichier/Mémoire)</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm m-1" data-output-type="Custom">Custom</button>
+                    <button type="button" id="cancelOutputTypeSelectionBtn" class="btn btn-outline-danger btn-sm m-1 float-right" title="Annuler">X</button>
+                </div>
+            </div>
+            <!-- ================================== -->
+            <!-- == FIN NOUVELLE SECTION OUTPUTS == -->
+            <!-- ================================== -->
+
             <!-- Boutons d'action -->
             <div class="edit-panel-actions">
                 <button type="submit" class="btn btn-primary">Sauvegarder Modifications</button>

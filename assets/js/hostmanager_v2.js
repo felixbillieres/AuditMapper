@@ -48,6 +48,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryTemplateTypeSelect = document.getElementById('categoryTemplateTypeSelect');
     const saveCategorySettingsBtn = document.getElementById('saveCategorySettingsBtn');
     const editPanelToggleWideBtn = document.getElementById('toggleWidePanelBtn');
+    const editOutputsSection = document.getElementById('editOutputsSection');
+    const editOutputsContainer = document.getElementById('editOutputsContainer');
+    const addOutputBtn = document.getElementById('addOutputBtn');
+    const outputTypeSelection = document.getElementById('outputTypeSelection');
+    const newOutputInputArea = document.getElementById('newOutputInputArea');
+    const newOutputTitle = document.getElementById('newOutputTitle');
+    const newOutputContent = document.getElementById('newOutputContent');
+    const newOutputContentLabel = document.getElementById('newOutputContentLabel');
+    const newOutputSubTypeGroup = document.getElementById('newOutputSubTypeGroup');
+    const newOutputSubType = document.getElementById('newOutputSubType');
+    const saveNewOutputBtn = document.getElementById('saveNewOutputBtn');
+    const cancelNewOutputBtn = document.getElementById('cancelNewOutputBtn');
+    const cancelOutputTypeSelectionBtn = document.getElementById('cancelOutputTypeSelectionBtn');
+    const outputNavigation = document.getElementById('outputNavigation');
+    const noOutputsMsg = editOutputsContainer?.querySelector('.no-outputs-msg'); // Message "Aucun output"
+
     console.log("DOM references obtained.");
 
     // --- Constantes et Configuration ---
@@ -1247,6 +1263,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // editEdgeToInput.value = ''; // Ou pré-remplir si pertinent
             // editEdgeLabelInput.value = '';
 
+            // Afficher les outputs existants
+            renderHostOutputs(hostId); // APPEL À LA FONCTION MAINTENANT DÉFINIE
+
+            // Assurer que les zones d'ajout d'output sont cachées initialement
+            if (outputTypeSelection) outputTypeSelection.style.display = 'none';
+            if (newOutputInputArea) newOutputInputArea.style.display = 'none';
+            if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Afficher le bouton principal
+
             // Afficher le panneau
             editPanel.classList.add('open');
             console.log(`Panneau d'édition ouvert pour ${hostId}`);
@@ -1260,9 +1284,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function closeEditPanel() {
-        if (!editPanel) return;
-        editPanel.classList.remove('open');
-        console.log("Panneau d'édition fermé.");
+        console.log(">>> closeEditPanel: START");
+        if (editPanel) {
+            editPanel.classList.remove('open');
+            editPanel.classList.remove('wide-panel'); // S'assurer qu'il se referme en taille normale
+
+            // Cacher aussi les zones d'ajout d'output à la fermeture
+            if (outputTypeSelection) outputTypeSelection.style.display = 'none';
+            if (newOutputInputArea) newOutputInputArea.style.display = 'none';
+            if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
+
+            console.log("Panneau d'édition fermé.");
+        }
+        console.log(">>> closeEditPanel: END");
     }
 
     function addCredentialInputGroup(credential = {}) {
@@ -1558,9 +1592,262 @@ document.addEventListener('DOMContentLoaded', function() {
         return null; // Retourner null si l'hôte n'est trouvé dans aucune catégorie
     }
 
+    // --- Fonctions de Gestion des Outputs --- AJOUT DE CETTE SECTION COMPLÈTE
+
+    // Affiche les outputs pour un hôte donné dans le panneau
+    function renderHostOutputs(hostId) {
+        console.log(`>>> renderHostOutputs: START for host ${hostId}`);
+        if (!editOutputsContainer || !outputNavigation || !noOutputsMsg) {
+            console.error("renderHostOutputs: Output container, navigation element, or no-output message element not found.");
+            return;
+        }
+
+        const hostInfo = findHostById(hostId);
+        // Assurer que hostInfo.host.outputs est un tableau, même s'il n'existe pas encore
+        const outputs = hostInfo?.host?.outputs || [];
+        if (!Array.isArray(outputs)) {
+             console.warn(`Outputs for host ${hostId} is not an array, initializing.`);
+             if (hostInfo && hostInfo.host) {
+                 hostInfo.host.outputs = [];
+             } else {
+                 console.error("Cannot initialize outputs array as host object is missing.");
+                 return;
+             }
+        }
+
+
+        editOutputsContainer.innerHTML = ''; // Vider les anciens outputs affichés
+        outputNavigation.innerHTML = ''; // Vider la navigation
+        outputNavigation.style.display = 'none'; // Cacher la navigation par défaut
+        noOutputsMsg.style.display = 'none'; // Cacher le message par défaut
+
+        if (outputs.length === 0) {
+            console.log("No outputs to render.");
+            // S'assurer que noOutputsMsg existe avant de l'ajouter
+            if (noOutputsMsg) {
+                editOutputsContainer.appendChild(noOutputsMsg); // Remettre le message
+                noOutputsMsg.style.display = 'block'; // Afficher le message
+            } else {
+                editOutputsContainer.innerHTML = '<p class="text-muted small">Aucun output enregistré pour cet hôte.</p>'; // Fallback
+            }
+            return;
+        }
+
+        console.log(`Rendering ${outputs.length} outputs.`);
+
+        // Créer la structure de navigation (onglets)
+        const navTabs = document.createElement('ul');
+        navTabs.className = 'nav nav-tabs';
+        outputNavigation.appendChild(navTabs);
+        outputNavigation.style.display = 'block'; // Afficher la zone de navigation
+
+        outputs.forEach((output, index) => {
+            // Créer l'onglet de navigation
+            const navItem = document.createElement('li');
+            navItem.className = 'nav-item';
+            const navLink = document.createElement('a');
+            navLink.className = 'nav-link';
+            navLink.href = '#'; // Pour le style, mais l'action est gérée par JS
+            // Utiliser le type et l'index pour le nom de l'onglet, ou juste l'index si type manquant
+            navLink.textContent = `${output.type || 'Output'} #${index + 1}`;
+            navLink.dataset.outputId = output.id; // Lier l'onglet à l'output
+            if (index === 0) {
+                navLink.classList.add('active'); // Activer le premier onglet
+            }
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchOutputTab(output.id);
+            });
+            navItem.appendChild(navLink);
+            navTabs.appendChild(navItem);
+
+            // Créer l'élément pour afficher l'output
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'output-display-item';
+            outputDiv.dataset.outputId = output.id; // Lier le contenu à l'ID
+            outputDiv.style.display = (index === 0) ? 'block' : 'none'; // Afficher seulement le premier
+
+            // Header de l'output
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'output-display-header';
+            const typeStrong = document.createElement('strong');
+            typeStrong.textContent = output.type || 'Output Brut';
+            if (output.type === 'Dump' && output.subType) {
+                 typeStrong.textContent += ` (${output.subType})`;
+            }
+            const timestampSpan = document.createElement('span');
+            timestampSpan.className = 'output-timestamp ml-auto mr-2'; // ml-auto pousse à droite
+            timestampSpan.textContent = output.timestamp ? new Date(output.timestamp).toLocaleString() : 'Date inconnue';
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger btn-sm delete-output-btn';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.title = 'Supprimer cet output';
+            deleteBtn.addEventListener('click', () => handleDeleteOutput(output.id, hostId));
+
+            headerDiv.appendChild(typeStrong);
+            headerDiv.appendChild(timestampSpan);
+            headerDiv.appendChild(deleteBtn);
+
+            // Contenu de l'output
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'output-display-content';
+            const preElement = document.createElement('pre');
+            preElement.textContent = output.content || ''; // Afficher le contenu brut
+            contentDiv.appendChild(preElement);
+
+            outputDiv.appendChild(headerDiv);
+            outputDiv.appendChild(contentDiv);
+            editOutputsContainer.appendChild(outputDiv);
+        });
+
+        console.log(">>> renderHostOutputs: END");
+    }
+
+    // Gère le clic sur un onglet de navigation d'output
+    function switchOutputTab(outputIdToShow) {
+        console.log(`>>> switchOutputTab: Switching to output ${outputIdToShow}`);
+        if (!editOutputsContainer || !outputNavigation) return;
+
+        // Masquer tous les contenus d'output
+        const allOutputItems = editOutputsContainer.querySelectorAll('.output-display-item');
+        allOutputItems.forEach(item => item.style.display = 'none');
+
+        // Désactiver tous les onglets
+        const allNavLinks = outputNavigation.querySelectorAll('.nav-link');
+        allNavLinks.forEach(link => link.classList.remove('active'));
+
+        // Afficher l'output sélectionné et activer son onglet
+        const outputToShow = editOutputsContainer.querySelector(`.output-display-item[data-output-id="${outputIdToShow}"]`);
+        const navLinkToActivate = outputNavigation.querySelector(`.nav-link[data-output-id="${outputIdToShow}"]`);
+
+        if (outputToShow) {
+            outputToShow.style.display = 'block';
+        } else {
+            console.warn(`Output content not found for ID: ${outputIdToShow}`);
+        }
+        if (navLinkToActivate) {
+            navLinkToActivate.classList.add('active');
+        } else {
+             console.warn(`Navigation link not found for ID: ${outputIdToShow}`);
+        }
+        console.log(">>> switchOutputTab: END");
+    }
+
+    // Gère la suppression d'un output (ne sauvegarde pas globalement)
+    function handleDeleteOutput(outputId, hostId) {
+        console.log(`>>> handleDeleteOutput: START for output ${outputId} on host ${hostId}`);
+        if (!outputId || !hostId) {
+            console.error("handleDeleteOutput: Missing outputId or hostId.");
+            return;
+        }
+
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host || !Array.isArray(hostInfo.host.outputs)) {
+            console.error(`handleDeleteOutput: Host ${hostId} or its outputs array not found.`);
+            return;
+        }
+
+        const outputIndex = hostInfo.host.outputs.findIndex(out => out.id === outputId);
+
+        if (outputIndex === -1) {
+            console.warn(`handleDeleteOutput: Output with ID ${outputId} not found on host ${hostId}.`);
+            return;
+        }
+
+        // Confirmation (optionnelle)
+        // if (!confirm(`Supprimer l'output ${hostInfo.host.outputs[outputIndex].type || 'Output'} #${outputIndex + 1} ?`)) {
+        //     return;
+        // }
+
+        hostInfo.host.outputs.splice(outputIndex, 1); // Supprimer l'output du tableau
+        console.log(`Output ${outputId} removed from host ${hostId} object.`);
+
+        // Rafraîchir l'affichage des outputs dans le panneau
+        renderHostOutputs(hostId);
+        console.log(">>> handleDeleteOutput: END");
+        // Note: La sauvegarde globale se fera via le bouton "Sauvegarder Modifications" du panneau
+    }
+
+    // Ouvre et prépare la zone de saisie pour un nouveau type d'output
+    function openNewOutputInput(type) {
+        console.log(`>>> openNewOutputInput: START for type ${type}`);
+        if (!newOutputInputArea || !outputTypeSelection || !addOutputBtn || !newOutputTitle || !newOutputContent || !newOutputContentLabel || !newOutputSubTypeGroup) {
+            console.error("openNewOutputInput: One or more required elements for the input area are missing.");
+            return;
+        }
+
+        // Préparer la zone de saisie
+        newOutputTitle.textContent = `Ajouter Output: ${type}`;
+        newOutputContent.value = ''; // Vider le contenu précédent
+        newOutputSubType.value = ''; // Vider le sous-type
+        newOutputContent.placeholder = `Collez l'output ${type} ici...`;
+        newOutputContentLabel.textContent = `Contenu (${type}):`;
+
+        // Gérer le champ spécifique pour le type "Dump"
+        newOutputSubTypeGroup.style.display = (type === 'Dump') ? 'block' : 'none';
+
+        // Stocker le type pour la sauvegarde
+        newOutputInputArea.dataset.currentOutputType = type;
+
+        // Afficher/Cacher les bonnes sections
+        outputTypeSelection.style.display = 'none';
+        newOutputInputArea.style.display = 'block';
+        addOutputBtn.style.display = 'none'; // Garder le bouton principal caché
+
+        console.log(">>> openNewOutputInput: END - Input area ready.");
+    }
+
+    // Sauvegarde le nouvel output dans l'objet host (ne sauvegarde pas globalement)
+    function saveNewOutput() {
+        console.log(">>> saveNewOutput: START");
+        const hostId = editHostIdInput.value;
+        const type = newOutputInputArea.dataset.currentOutputType;
+        const content = newOutputContent.value.trim();
+        const subType = (type === 'Dump') ? newOutputSubType.value.trim() : undefined;
+
+        if (!hostId || !type || !content) {
+            alert("Erreur: Type ou contenu manquant pour l'output.");
+            console.error("saveNewOutput: Missing hostId, type, or content.");
+            return;
+        }
+
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host) {
+            alert("Erreur: Hôte non trouvé pour ajouter l'output.");
+            console.error("saveNewOutput: Host not found.");
+            return;
+        }
+
+        // S'assurer que le tableau outputs existe
+        if (!Array.isArray(hostInfo.host.outputs)) {
+            hostInfo.host.outputs = [];
+        }
+
+        const newOutput = {
+            id: `output-${generateUUID()}`,
+            type: type,
+            content: content,
+            timestamp: new Date().toISOString(), // Ajouter un timestamp
+        };
+        if (subType !== undefined && subType !== '') { // Ajouter subType seulement s'il est défini et non vide
+            newOutput.subType = subType;
+        }
+
+        hostInfo.host.outputs.push(newOutput);
+        console.log(`New output added to host ${hostId} object:`, newOutput);
+
+        // Rafraîchir l'affichage et cacher la zone de saisie
+        renderHostOutputs(hostId);
+        newOutputInputArea.style.display = 'none';
+        addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
+
+        console.log(">>> saveNewOutput: END");
+        // Note: La sauvegarde globale se fera via le bouton "Sauvegarder Modifications" du panneau
+    }
+
     // --- Initialisation et Écouteurs d'Événements ---
 
-    function setupEventListeners() { // RENOMMAGE de initialize en setupEventListeners
+    function setupEventListeners() {
         console.log(">>> setupEventListeners: START"); // Mise à jour du log
 
         // Vérifier si les éléments DOM essentiels sont présents
@@ -1690,31 +1977,69 @@ document.addEventListener('DOMContentLoaded', function() {
            console.log("Theme observer attached.");
         }
 
-        // Écouteur pour le bouton d'agrandissement du panneau (DÉPLACÉ ICI)
-        if (editPanelToggleWideBtn && editPanel) {
-            editPanelToggleWideBtn.addEventListener('click', () => {
-                editPanel.classList.toggle('wide-panel');
-                console.log("Panel wide mode toggled.");
-                // Optionnel: Redessiner/adapter la carte Vis si elle est affectée par la largeur
-                if (network && editPanel.classList.contains('wide-panel')) {
-                     // Peut-être redimensionner la carte si nécessaire
-                     // network.redraw(); ou network.setSize('100%', '500px');
+        // --- Panneau d'Édition Hôte ---
+        if (closePanelBtn) closePanelBtn.addEventListener('click', closeEditPanel);
+        if (editHostForm) editHostForm.addEventListener('submit', handleSaveHostFromPanel);
+        if (addCredentialBtn) addCredentialBtn.addEventListener('click', () => addCredentialInputGroup());
+        if (deleteHostFromPanelBtn) deleteHostFromPanelBtn.addEventListener('click', handleDeleteHostFromPanel);
+        if (addEdgeBtn) addEdgeBtn.addEventListener('click', handleAddEdge);
+        if (editPanelToggleWideBtn) editPanelToggleWideBtn.addEventListener('click', () => editPanel.classList.toggle('wide-panel'));
+
+        // --- Section Outputs ---
+        if (addOutputBtn) {
+            addOutputBtn.addEventListener('click', () => {
+                console.log("Bouton 'Ajouter un Output' cliqué !"); // Log de débogage
+                if (outputTypeSelection && newOutputInputArea && addOutputBtn) {
+                    outputTypeSelection.style.display = 'block'; // Afficher la sélection de type
+                    newOutputInputArea.style.display = 'none'; // Cacher la zone de saisie (au cas où)
+                    addOutputBtn.style.display = 'none'; // Cacher le bouton principal "Ajouter"
+                    console.log("Affichage de la sélection du type d'output.");
+                } else {
+                    console.error("Impossible d'afficher la sélection de type : un ou plusieurs éléments sont manquants.");
                 }
             });
+            console.log("Listener attaché à addOutputBtn."); // Confirmation
         } else {
-            console.warn("Toggle wide panel button or edit panel not found.");
+            console.warn("Le bouton #addOutputBtn n'a pas été trouvé.");
         }
 
+        if (outputTypeSelection) {
+            outputTypeSelection.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.tagName === 'BUTTON' && target.dataset.outputType) {
+                    console.log(`Type d'output sélectionné: ${target.dataset.outputType}`);
+                    openNewOutputInput(target.dataset.outputType);
+                } else if (target.id === 'cancelOutputTypeSelectionBtn') {
+                     console.log("Annulation de la sélection du type.");
+                     if (outputTypeSelection) outputTypeSelection.style.display = 'none';
+                     if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
+                }
+            });
+            console.log("Listener attaché à outputTypeSelection (délégation).");
+        } else {
+             console.warn("La zone #outputTypeSelection n'a pas été trouvée.");
+        }
 
-        // Chargement des données initiales (déplacé hors de cette fonction)
-        // console.log("Calling loadData...");
-        // loadData();
-        // console.log("Calling renderAll...");
-        // renderAll(); // Appel initial pour afficher l'état chargé
+        if (saveNewOutputBtn) {
+             saveNewOutputBtn.addEventListener('click', saveNewOutput);
+             console.log("Listener attaché à saveNewOutputBtn.");
+        } else {
+             console.warn("Le bouton #saveNewOutputBtn n'a pas été trouvé.");
+        }
 
-        // Initialiser l'état des onglets rapport
-        switchToPreviewTab();
-        updateMarkdownPreview();
+        if (cancelNewOutputBtn) {
+            cancelNewOutputBtn.addEventListener('click', () => {
+                console.log("Annulation de l'ajout d'output.");
+                if (newOutputInputArea) newOutputInputArea.style.display = 'none';
+                if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
+            });
+            console.log("Listener attaché à cancelNewOutputBtn.");
+        } else {
+             console.warn("Le bouton #cancelNewOutputBtn n'a pas été trouvé.");
+        }
+        // Les écouteurs pour supprimer outputs/credentials/edges sont ajoutés dynamiquement lors du rendu
+
+        // ... (écouteurs pour panneau settings, killchain, etc.) ...
 
         console.log(">>> setupEventListeners: END - Écouteurs attachés."); // Mise à jour du log
     }

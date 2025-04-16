@@ -2333,3 +2333,207 @@ body.dark-theme .exploitation-guide .guide-image,
 .credential-entry .remove-credential-btn {
     line-height: 1.2; /* Ajuster si nécessaire pour alignement vertical */
 }
+
+/* ... (styles existants pour .edit-panel) ... */
+
+/* --- Section Outputs Bruts dans le Panneau d'Édition --- */
+#editOutputsSection {
+    /* Styles de base déjà ajoutés via classes Bootstrap (mt-4, pt-3, border-top) */
+}
+
+#editOutputsSection h4 {
+    margin-bottom: 1rem;
+    color: var(--heading-color, #34495e); /* Utiliser variable si définie */
+}
+
+/* Conteneur des outputs affichés */
+#editOutputsContainer {
+    position: relative; /* Pour positionner les outputs affichés */
+    overflow: hidden; /* Pour gérer l'affichage d'un seul output à la fois si on utilise pas d'onglets */
+}
+
+.output-display-item {
+    border: 1px solid var(--border-color-light, #e1e4e8);
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    background-color: var(--card-bg, #fff);
+    /* display: none; */ /* Sera géré par JS pour la navigation */
+}
+.output-display-item.active {
+    display: block; /* Afficher l'output actif */
+}
+
+.output-display-header {
+    background-color: var(--background-color-secondary, #f8f9fa);
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-color-light, #e1e4e8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+}
+.output-display-header strong {
+    color: var(--primary-color, #007bff);
+}
+.output-display-header .output-timestamp {
+    font-size: 0.8em;
+    color: var(--text-color-muted, #6c757d);
+}
+.output-display-header .delete-output-btn {
+    padding: 0.1rem 0.4rem;
+    line-height: 1;
+    font-size: 0.8em;
+}
+
+.output-display-content {
+    padding: 0.75rem;
+}
+.output-display-content pre,
+.output-display-content textarea[readonly] {
+    background-color: var(--code-background-color, #f1f1f1);
+    border: 1px solid var(--border-color-light, #e1e4e8);
+    padding: 0.5rem;
+    border-radius: 4px;
+    max-height: 300px; /* Limiter la hauteur */
+    overflow: auto; /* Ajouter une barre de défilement */
+    font-size: 0.85em;
+    white-space: pre-wrap; /* Retour à la ligne */
+    word-wrap: break-word; /* Casser les mots longs */
+    margin-bottom: 0; /* Retirer marge par défaut */
+    color: var(--code-text-color, #333);
+}
+
+/* Zone d'ajout de nouvel output */
+#newOutputInputArea {
+    /* Styles de base via classes Bootstrap */
+}
+#newOutputInputArea h5 {
+    font-size: 1.1em;
+    color: var(--heading-color, #34495e);
+}
+
+/* Sélection du type d'output */
+#outputTypeSelection {
+    /* Styles de base via classes Bootstrap */
+}
+#outputTypeSelection p {
+    margin-bottom: 0.5rem !important;
+}
+#outputTypeSelection .btn {
+    margin: 2px; /* Espacement entre les boutons */
+}
+
+/* Navigation des outputs (exemple avec onglets) */
+#outputNavigation .nav-tabs {
+    margin-bottom: 0.5rem;
+    border-bottom-color: var(--border-color, #dee2e6);
+}
+#outputNavigation .nav-link {
+    font-size: 0.85em;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    border-color: transparent transparent var(--border-color, #dee2e6);
+    color: var(--text-color-muted, #6c757d);
+}
+#outputNavigation .nav-link:hover {
+    border-color: transparent transparent var(--border-color-light, #e9ecef);
+    background-color: var(--background-color-secondary, #f8f9fa);
+}
+#outputNavigation .nav-link.active {
+    font-weight: bold;
+    color: var(--primary-color, #007bff);
+    border-color: var(--border-color-light, #e9ecef) var(--border-color-light, #e9ecef) var(--card-bg, #fff); /* Pour faire ressortir l'onglet */
+    background-color: var(--card-bg, #fff);
+}
+
+
+/* --- Styles Dark Theme pour la section Outputs --- */
+body.dark-theme #editOutputsSection {
+    border-top-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #editOutputsSection h4 {
+    color: var(--dark-heading-color, #ffffff);
+}
+
+body.dark-theme #editOutputsContainer .no-outputs-msg {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+
+body.dark-theme .output-display-item {
+    border-color: var(--dark-border-color-light, #5a6268);
+    background-color: var(--dark-panel-section-bg, #36393f); /* Fond section dans panneau sombre */
+}
+body.dark-theme .output-display-header {
+    background-color: var(--dark-background-color-secondary, #2c2f33);
+    border-bottom-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme .output-display-header strong {
+    color: var(--dark-primary-color-light, #58a6ff);
+}
+body.dark-theme .output-display-header .output-timestamp {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme .output-display-header .delete-output-btn {
+    color: var(--dark-danger-color, #f67f89);
+    border-color: var(--dark-danger-color, #f67f89);
+}
+body.dark-theme .output-display-header .delete-output-btn:hover {
+    color: #fff;
+    background-color: var(--dark-danger-color, #f67f89);
+    border-color: var(--dark-danger-color, #f67f89);
+}
+
+body.dark-theme .output-display-content pre,
+body.dark-theme .output-display-content textarea[readonly] {
+    background-color: var(--dark-code-background-color, #40444b);
+    border-color: var(--dark-border-color-light, #5a6268);
+    color: var(--dark-code-text-color, #ddd);
+}
+
+body.dark-theme #newOutputInputArea,
+body.dark-theme #outputTypeSelection {
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #newOutputInputArea h5 {
+    color: var(--dark-heading-color, #ffffff);
+}
+body.dark-theme #outputTypeSelection p {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme #outputTypeSelection .btn-outline-secondary {
+    color: var(--dark-text-color-muted, #adb5bd);
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme #outputTypeSelection .btn-outline-secondary:hover {
+    background-color: var(--dark-background-color-hover-light, #3a3d40);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme #outputTypeSelection .btn-outline-danger {
+     color: var(--dark-danger-color, #f67f89);
+     border-color: var(--dark-danger-color, #f67f89);
+}
+body.dark-theme #outputTypeSelection .btn-outline-danger:hover {
+     color: #fff;
+     background-color: var(--dark-danger-color, #f67f89);
+}
+
+/* Navigation Dark Theme */
+body.dark-theme #outputNavigation .nav-tabs {
+    border-bottom-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #outputNavigation .nav-link {
+    border-color: transparent transparent var(--dark-border-color, #40444b);
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme #outputNavigation .nav-link:hover {
+    border-color: transparent transparent var(--dark-border-color-light, #5a6268);
+    background-color: var(--dark-background-color-hover-light, #3a3d40);
+}
+body.dark-theme #outputNavigation .nav-link.active {
+    color: var(--dark-primary-color-light, #58a6ff);
+    border-color: var(--dark-border-color-light, #5a6268) var(--dark-border-color-light, #5a6268) var(--dark-panel-section-bg, #36393f);
+    background-color: var(--dark-panel-section-bg, #36393f);
+}
+
+/* ... (reste du CSS) ... */
