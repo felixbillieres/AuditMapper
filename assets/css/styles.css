@@ -2537,3 +2537,64 @@ body.dark-theme #outputNavigation .nav-link.active {
 }
 
 /* ... (reste du CSS) ... */
+
+/* --- Section Exportation Arborescence (Vue Principale) --- */
+#nodeExportSection .card-title {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+#nodeExportSection .card-text {
+    /* margin-bottom: 1rem; */ /* Géré par mb-3 sur le <p> maintenant */
+}
+
+#nodeExportSection .export-option h6 {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-color-emphasis, #495057);
+    margin-bottom: 0.25rem;
+}
+
+body.dark-theme #nodeExportSection .export-option h6 {
+     color: var(--dark-text-color-emphasis, #f8f9fa);
+}
+
+/* Style pour le chemin sélectionné */
+#selectedDirPath {
+    font-style: italic;
+    word-break: break-all; /* Pour couper les chemins longs */
+}
+
+#nodeExportStatusMsg {
+    font-style: italic;
+    font-weight: bold;
+}
+#nodeExportStatusMsg.success {
+    color: var(--success-color, #28a745);
+}
+#nodeExportStatusMsg.error {
+    color: var(--danger-color, #dc3545);
+}
+#nodeExportStatusMsg.info {
+    color: var(--info-color, #17a2b8);
+}
+#nodeExportStatusMsg.warning {
+    color: var(--warning-color, #ffc107);
+}
+
+
+/* Dark theme adjustments */
+body.dark-theme #nodeExportSection {
+   background-color: var(--dark-card-bg, #2a2d30);
+   border-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #selectedDirPath {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+/* ... (styles dark pour success, error, info) ... */
+body.dark-theme #nodeExportStatusMsg.warning {
+    color: var(--dark-warning-color, #ffca6f);
+}
+
+
+/* ... (reste du CSS) ... */

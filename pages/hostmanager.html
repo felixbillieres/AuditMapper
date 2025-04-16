@@ -111,6 +111,55 @@
     <!-- Contenu Principal (Wrapper comme grepmaster.html) -->
     <div id="main-content" class="main-content">
 
+        <!-- ========================================== -->
+        <!-- == SECTION EXPORTATION ARBORESCENCE TXT == -->
+        <!-- ========================================== -->
+        <div id="nodeExportSection" class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Exporter les Informations des Nœuds</h5>
+                <p class="card-text small text-muted mb-3">
+                    Choisissez une méthode d'exportation :
+                </p>
+
+                <!-- Option 1: File System Access API -->
+                <div class="export-option mb-3 pb-3 border-bottom">
+                    <h6>Option 1: Export Direct vers Dossier (Chrome/Edge Recommandé)</h6>
+                    <p class="card-text small text-muted">
+                        Crée directement l'arborescence de dossiers et fichiers TXT dans un dossier que vous sélectionnez.
+                        <strong class="text-warning">Nécessite votre autorisation explicite.</strong>
+                    </p>
+                    <div class="d-flex justify-content-start align-items-center flex-wrap">
+                        <button type="button" id="selectExportDirBtn" class="btn btn-secondary btn-sm mr-2 mb-2">
+                            <i class="icon-folder"></i> Choisir le Dossier Destination...
+                        </button>
+                        <span id="selectedDirPath" class="mr-3 mb-2 small text-muted">Aucun dossier sélectionné</span>
+                        <button type="button" id="executeNodeExportBtn" class="btn btn-primary btn-sm mb-2" disabled>
+                            <i class="icon-download"></i> Exporter vers le Dossier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Option 2: Export ZIP -->
+                <div class="export-option">
+                     <h6>Option 2: Export en Archive ZIP (Tous Navigateurs)</h6>
+                     <p class="card-text small text-muted">
+                        Génère une archive ZIP contenant l'arborescence complète. Vous devrez ensuite la décompresser manuellement.
+                    </p>
+                    <div class="d-flex justify-content-start align-items-center">
+                        <button type="button" id="executeNodeExportZipBtn" class="btn btn-success btn-sm">
+                            <i class="icon-archive"></i>
+                            Générer et Télécharger l'Exportation ZIP
+                        </button>
+                    </div>
+                </div>
+
+                 <span id="nodeExportStatusMsg" class="mt-3 d-block small" style="min-height: 1.2em;"></span>
+            </div>
+        </div>
+        <!-- ========================================== -->
+        <!-- == FIN SECTION EXPORTATION ARBORESCENCE == -->
+        <!-- ========================================== -->
+
         <!-- Onglets des Catégories -->
         <div id="categoryTabs" class="category-tabs mb-3">
             <!-- Les onglets seront générés ici par JS -->
@@ -392,6 +441,10 @@
     <script src="/assets/js/theme.js"></script>   <!-- Pour le thème -->
     <script src="/assets/js/language.js"></script> <!-- Pour la langue (si utilisé) -->
     <script src="/assets/js/hostmanager_v2.js"></script> <!-- Script spécifique à la page -->
+
+    <!-- Assurez-vous que JSZip et FileSaver sont inclus -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 </body>
 </html>

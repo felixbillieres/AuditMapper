@@ -63,6 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelOutputTypeSelectionBtn = document.getElementById('cancelOutputTypeSelectionBtn');
     const outputNavigation = document.getElementById('outputNavigation');
     const noOutputsMsg = editOutputsContainer?.querySelector('.no-outputs-msg'); // Message "Aucun output"
+    const nodeExportSection = document.getElementById('nodeExportSection');
+    const selectExportDirBtn = document.getElementById('selectExportDirBtn'); // Nouveau bouton
+    const selectedDirPath = document.getElementById('selectedDirPath');       // Span pour afficher chemin
+    const executeNodeExportBtn = document.getElementById('executeNodeExportBtn');
+    const executeNodeExportZipBtn = document.getElementById('executeNodeExportZipBtn'); // Pour ZIP
+    const nodeExportStatusMsg = document.getElementById('nodeExportStatusMsg');
 
     console.log("DOM references obtained.");
 
@@ -82,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let activeCategory = null;
     let currentFilters = { category: '', tag: '' };
     let killchainReportContent = '';
+    let selectedDirectoryHandle = null; // Pour stocker le handle du dossier choisi
 
     // --- Fonctions de Persistance des Données ---
     function loadData() {
@@ -2041,6 +2048,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ... (écouteurs pour panneau settings, killchain, etc.) ...
 
+        // --- Section Exportation Arborescence --- MISE À JOUR DES ÉCOUTEURS
+        if (selectExportDirBtn) {
+            selectExportDirBtn.addEventListener('click', selectExportDirectory);
+            console.log("Listener attaché à selectExportDirBtn.");
+        } else {
+            console.warn("Le bouton #selectExportDirBtn n'a pas été trouvé.");
+        }
+
+        if (executeNodeExportBtn) {
+            executeNodeExportBtn.addEventListener('click', executeNodeTreeExport);
+            console.log("Listener attaché à executeNodeExportBtn.");
+        } else {
+            console.warn("Le bouton #executeNodeExportBtn n'a pas été trouvé.");
+        }
+
+        if (executeNodeExportZipBtn) {
+            executeNodeExportZipBtn.addEventListener('click', executeNodeTreeExportZip);
+            console.log("Listener attaché à executeNodeExportZipBtn.");
+        } else {
+            console.warn("Le bouton #executeNodeExportZipBtn n'a pas été trouvé.");
+        }
+
+        // Désactiver le bouton d'export initialement
+        if(executeNodeExportBtn) executeNodeExportBtn.disabled = true;
+
         console.log(">>> setupEventListeners: END - Écouteurs attachés."); // Mise à jour du log
     }
 
@@ -2184,5 +2216,291 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log("Host Manager V2 Initialized and ready.");
 
+    // --- Fonction d'Exportation Arborescence TXT via File System Access API --- MODIFICATION PROFONDE
+
+    // Fonction pour demander à l'utilisateur de choisir un dossier
+    async function selectExportDirectory() {
+        console.log(">>> selectExportDirectory: START");
+        nodeExportStatusMsg.textContent = ''; // Clear previous messages
+        nodeExportStatusMsg.className = 'mt-2 d-block small';
+        executeNodeExportBtn.disabled = true; // Désactiver tant qu'on n'a pas de handle valide
+        selectedDirPath.textContent = 'Sélection en cours...';
+
+        // Vérifier la compatibilité de l'API
+        if (!window.showDirectoryPicker) {
+            console.error("File System Access API (showDirectoryPicker) is not supported by this browser.");
+            nodeExportStatusMsg.textContent = "Erreur: Votre navigateur ne supporte pas la sélection de dossier directe.";
+            nodeExportStatusMsg.className = 'mt-2 d-block small error';
+            selectedDirPath.textContent = 'Non supporté';
+            selectExportDirBtn.disabled = true; // Désactiver le bouton si API non supportée
+            return;
+        }
+
+        try {
+            // Demander à l'utilisateur de choisir un dossier
+            const handle = await window.showDirectoryPicker();
+            selectedDirectoryHandle = handle; // Stocker le handle
+            selectedDirPath.textContent = `Dossier : ${handle.name}`; // Afficher le nom du dossier choisi
+            executeNodeExportBtn.disabled = false; // Activer le bouton d'export
+            nodeExportStatusMsg.textContent = "Dossier sélectionné. Prêt à exporter.";
+            nodeExportStatusMsg.className = 'mt-2 d-block small info';
+            console.log(">>> selectExportDirectory: END - Directory selected:", handle.name);
+        } catch (err) {
+            // Gérer l'erreur si l'utilisateur annule ou si l'API échoue
+            if (err.name === 'AbortError') {
+                console.log("User cancelled the directory selection.");
+                nodeExportStatusMsg.textContent = "Sélection du dossier annulée.";
+                nodeExportStatusMsg.className = 'mt-2 d-block small warning';
+            } else {
+                console.error("Error selecting directory:", err);
+                nodeExportStatusMsg.textContent = `Erreur lors de la sélection: ${err.message}`;
+                nodeExportStatusMsg.className = 'mt-2 d-block small error';
+            }
+            selectedDirectoryHandle = null; // Réinitialiser le handle
+            selectedDirPath.textContent = 'Aucun dossier sélectionné';
+        }
+    }
+
+    // Fonction principale d'exportation qui utilise le handle stocké
+    async function executeNodeTreeExport() {
+        console.log(">>> executeNodeTreeExport (FSA): START");
+        if (!selectedDirectoryHandle) { /* ... (vérifications comme avant) ... */ return; }
+        if (!executeNodeExportBtn || !nodeExportStatusMsg) { /* ... */ return; }
+
+        // Désactiver les boutons pendant l'export
+        executeNodeExportBtn.disabled = true;
+        selectExportDirBtn.disabled = true;
+        executeNodeExportZipBtn.disabled = true; // Désactiver aussi le bouton ZIP
+        nodeExportStatusMsg.textContent = "Exportation vers le dossier en cours...";
+        nodeExportStatusMsg.className = 'mt-3 d-block small info';
+
+        try {
+            const permissionStatus = await selectedDirectoryHandle.requestPermission({ mode: 'readwrite' });
+            if (permissionStatus !== 'granted') { throw new Error("Permission d'écriture refusée."); }
+
+            for (const categoryName in hostData.categories) {
+                if (!hostData.categories.hasOwnProperty(categoryName)) continue;
+                const categoryData = hostData.categories[categoryName];
+                const categoryDirHandle = await selectedDirectoryHandle.getDirectoryHandle(sanitizeFilename(categoryName), { create: true });
+
+                if (!categoryData.hosts) continue;
+
+                for (const hostId in categoryData.hosts) {
+                    if (!categoryData.hosts.hasOwnProperty(hostId)) continue;
+                    const host = categoryData.hosts[hostId];
+                    const hostDirHandle = await categoryDirHandle.getDirectoryHandle(sanitizeFilename(hostId), { create: true });
+
+                    // Utiliser l'helper pour obtenir le contenu
+                    const fileContents = generateHostFileContent(host, hostId, categoryName);
+
+                    // Écrire les fichiers
+                    await writeFile(hostDirHandle, "info.txt", fileContents.info);
+                    if (fileContents.credentials) {
+                        await writeFile(hostDirHandle, "credentials.txt", fileContents.credentials);
+                    }
+                    if (fileContents.outputs.length > 0) {
+                        const outputsDirHandle = await hostDirHandle.getDirectoryHandle("outputs", { create: true });
+                        for (const output of fileContents.outputs) {
+                            await writeFile(outputsDirHandle, output.filename, output.content);
+                        }
+                    }
+                    await writeFile(hostDirHandle, "edges.txt", fileContents.edges);
+                }
+            }
+
+            nodeExportStatusMsg.textContent = "Exportation vers dossier terminée avec succès !";
+            nodeExportStatusMsg.className = 'mt-3 d-block small success';
+            console.log(">>> executeNodeTreeExport (FSA): END - Success");
+
+        } catch (error) {
+            console.error("Erreur lors de l'exportation FSA:", error);
+            nodeExportStatusMsg.textContent = `Erreur (FSA): ${error.message}`;
+            nodeExportStatusMsg.className = 'mt-3 d-block small error';
+            console.log(">>> executeNodeTreeExport (FSA): END - Error");
+        } finally {
+            // Réactiver les boutons (sauf celui d'export FSA si handle perdu)
+            executeNodeExportBtn.disabled = !selectedDirectoryHandle;
+            selectExportDirBtn.disabled = false;
+            executeNodeExportZipBtn.disabled = false;
+            // ... (timeout pour effacer message comme avant) ...
+             setTimeout(() => {
+                 if (nodeExportStatusMsg) nodeExportStatusMsg.textContent = '';
+                 if (nodeExportStatusMsg) nodeExportStatusMsg.className = 'mt-3 d-block small';
+            }, 7000);
+        }
+    }
+
+    // Fonction utilitaire pour écrire un fichier FSA (INCHANGÉE)
+    async function writeFile(dirHandle, fileName, content) {
+        try {
+            const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            // console.log(`Fichier écrit: ${fileName}`); // Log si besoin
+        } catch (err) {
+            console.error(`Erreur lors de l'écriture du fichier ${fileName}:`, err);
+            throw err; // Propager l'erreur pour la gestion globale
+        }
+    }
+
+
+    // --- Option 2: Export ZIP ---
+
+    // Fonction d'exportation ZIP (RÉINTRODUITE et MODIFIÉE pour utiliser l'helper)
+    async function executeNodeTreeExportZip() {
+        console.log(">>> executeNodeTreeExportZip: START");
+        if (!executeNodeExportZipBtn || !nodeExportStatusMsg) { /* ... */ return; }
+
+        // Vérifier la présence des bibliothèques
+        if (typeof JSZip === 'undefined' || typeof saveAs === 'undefined') {
+             console.error("JSZip or FileSaver library not found.");
+             nodeExportStatusMsg.textContent = "Erreur: Bibliothèques JSZip/FileSaver manquantes.";
+             nodeExportStatusMsg.className = 'mt-3 d-block small error';
+             return;
+        }
+
+        // Désactiver les boutons pendant l'export
+        executeNodeExportZipBtn.disabled = true;
+        executeNodeExportBtn.disabled = true; // Désactiver aussi le bouton FSA
+        selectExportDirBtn.disabled = true;
+        nodeExportStatusMsg.textContent = "Génération de l'archive ZIP en cours...";
+        nodeExportStatusMsg.className = 'mt-3 d-block small info';
+
+        try {
+            const zip = new JSZip();
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+            for (const categoryName in hostData.categories) {
+                if (!hostData.categories.hasOwnProperty(categoryName)) continue;
+                const categoryData = hostData.categories[categoryName];
+                const categoryFolder = zip.folder(sanitizeFilename(categoryName));
+
+                if (!categoryData.hosts) continue;
+
+                for (const hostId in categoryData.hosts) {
+                    if (!categoryData.hosts.hasOwnProperty(hostId)) continue;
+                    const host = categoryData.hosts[hostId];
+                    const hostFolder = categoryFolder.folder(sanitizeFilename(hostId));
+
+                    // Utiliser l'helper pour obtenir le contenu
+                    const fileContents = generateHostFileContent(host, hostId, categoryName);
+
+                    // Ajouter les fichiers au ZIP
+                    hostFolder.file("info.txt", fileContents.info);
+                    if (fileContents.credentials) {
+                        hostFolder.file("credentials.txt", fileContents.credentials);
+                    }
+                    if (fileContents.outputs.length > 0) {
+                        const outputsFolder = hostFolder.folder("outputs");
+                        fileContents.outputs.forEach(output => {
+                            outputsFolder.file(output.filename, output.content);
+                        });
+                    }
+                    hostFolder.file("edges.txt", fileContents.edges);
+                }
+            }
+
+            // Générer et télécharger le ZIP
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            saveAs(zipBlob, `HostManager_Export_${timestamp}.zip`);
+
+            nodeExportStatusMsg.textContent = "Exportation ZIP générée avec succès !";
+            nodeExportStatusMsg.className = 'mt-3 d-block small success';
+            console.log(">>> executeNodeTreeExportZip: END - Success");
+
+        } catch (error) {
+            console.error("Erreur lors de la génération de l'export ZIP:", error);
+            nodeExportStatusMsg.textContent = `Erreur (ZIP): ${error.message}`;
+            nodeExportStatusMsg.className = 'mt-3 d-block small error';
+            console.log(">>> executeNodeTreeExportZip: END - Error");
+        } finally {
+            // Réactiver les boutons (sauf celui d'export FSA si handle perdu)
+             executeNodeExportZipBtn.disabled = false;
+             executeNodeExportBtn.disabled = !selectedDirectoryHandle;
+             selectExportDirBtn.disabled = false;
+            // ... (timeout pour effacer message comme avant) ...
+             setTimeout(() => {
+                 if (nodeExportStatusMsg) nodeExportStatusMsg.textContent = '';
+                 if (nodeExportStatusMsg) nodeExportStatusMsg.className = 'mt-3 d-block small';
+            }, 7000);
+        }
+    }
+
+
+    // Fonction utilitaire pour nettoyer les noms de fichiers/dossiers (INCHANGÉE)
+    function sanitizeFilename(name) {
+        return name.replace(/[\\/:*?"<>|]/g, '_');
+    }
+
+    // Helper pour générer le contenu des fichiers pour un hôte donné
+    function generateHostFileContent(host, hostId, categoryName) {
+        const content = {
+            info: '',
+            credentials: null, // Sera une string si des credentials existent
+            outputs: [],       // Tableau d'objets { filename: '...', content: '...' }
+            edges: ''
+        };
+
+        // a) info.txt
+        content.info = `Hôte: ${hostId}\n`;
+        content.info += `Catégorie: ${categoryName}\n`;
+        content.info += `Système: ${host.system || 'N/A'}\n`;
+        content.info += `Rôle: ${host.role || 'N/A'}\n`;
+        content.info += `Zone Réseau: ${host.zone || 'N/A'}\n`;
+        content.info += `Niveau Compromission: ${host.compromiseLevel || 'None'}\n`;
+        content.info += `\n--- Notes ---\n${host.notes || ''}\n`;
+        content.info += `\n--- Tags ---\n${Array.isArray(host.tags) ? host.tags.join(', ') : (host.tags || 'Aucun')}\n`;
+        content.info += `\n--- Techniques Exploitation ---\n${Array.isArray(host.exploitationTechniques) ? host.exploitationTechniques.map(t => `- ${t}`).join('\n') : (host.exploitationTechniques || 'Aucune')}\n`;
+        content.info += `\n--- Vulnérabilités ---\n${Array.isArray(host.vulnerabilities) ? host.vulnerabilities.map(v => `- ${v}`).join('\n') : (host.vulnerabilities || 'Aucune')}\n`;
+
+        // b) credentials.txt
+        if (host.credentials && host.credentials.length > 0) {
+            let credContent = "Type\tValeur\tSource\n";
+            credContent += "----\t------\t------\n";
+            host.credentials.forEach(cred => {
+                credContent += `${cred.type || 'N/A'}\t${cred.value || 'N/A'}\t${cred.source || 'N/A'}\n`;
+            });
+            content.credentials = credContent;
+        }
+
+        // c) outputs/
+        if (host.outputs && host.outputs.length > 0) {
+            host.outputs.forEach((output, index) => {
+                const outputFilename = sanitizeFilename(`${output.type || 'Output'}_${index + 1}_${output.id}.txt`);
+                let outputContent = `Type: ${output.type || 'N/A'}\n`;
+                if (output.subType) {
+                    outputContent += `Sous-Type: ${output.subType}\n`;
+                }
+                outputContent += `Timestamp: ${output.timestamp ? new Date(output.timestamp).toLocaleString() : 'N/A'}\n`;
+                outputContent += `--- Contenu ---\n\n${output.content || ''}`;
+                content.outputs.push({ filename: outputFilename, content: outputContent });
+            });
+        }
+
+        // d) edges.txt
+        let edgeContent = `--- Connexions Sortantes (Depuis ${hostId}) ---\n`;
+        const outgoingEdges = hostData.edges.filter(edge => edge.from === hostId);
+        if (outgoingEdges.length > 0) {
+            outgoingEdges.forEach(edge => {
+                edgeContent += `- Vers: ${edge.to} (Label: ${edge.label || 'Aucun'})\n`;
+            });
+        } else {
+            edgeContent += "(Aucune)\n";
+        }
+
+        edgeContent += `\n--- Connexions Entrantes (Vers ${hostId}) ---\n`;
+        const incomingEdges = hostData.edges.filter(edge => edge.to === hostId);
+        if (incomingEdges.length > 0) {
+            incomingEdges.forEach(edge => {
+                edgeContent += `- Depuis: ${edge.from} (Label: ${edge.label || 'Aucun'})\n`;
+            });
+        } else {
+            edgeContent += "(Aucune)\n";
+        }
+        content.edges = edgeContent;
+
+        return content;
+    }
 
 }); // Fin du DOMContentLoaded
