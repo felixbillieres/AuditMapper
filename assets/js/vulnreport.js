@@ -22,18 +22,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const screenshotPreview = document.getElementById('screenshotPreview');
     
     // Éléments DOM - Tableau de vulnérabilités
-    const criticalCountInput = document.getElementById('criticalCount');
-    const highCountInput = document.getElementById('highCount');
-    const mediumCountInput = document.getElementById('mediumCount');
-    const lowCountInput = document.getElementById('lowCount');
-    const infoCountInput = document.getElementById('infoCount');
     const generateTableButton = document.getElementById('generateTable');
     const tableOutputSection = document.getElementById('tableOutput');
     const copyTableButton = document.getElementById('copyTable');
     const downloadTableButton = document.getElementById('downloadTable');
+    const tableGraphContent = document.getElementById('tableGraph');
     const tableMarkdownContent = document.getElementById('tableMarkdown');
     const tableWordContent = document.getElementById('tableWord');
-    
+
+    /*
+    const title = document.getElementById("title");
+    const severity = document.getElementById("severity");
+    const CVSS = document.getElementById("CVSS");
+    */
+
     // Éléments DOM - Onglets de sortie
     const outputTabs = document.querySelectorAll('.output-tab');
     
@@ -209,20 +211,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Afficher le résultat
-        vulnMarkdownContent.textContent = markdown;
+        vulnMarkdownContent.textContent += markdown;
         
         // Générer la version Word (HTML formaté)
-        let wordHtml = `<h2>${title}</h2>`;
-        wordHtml += `<p><strong>Criticité:</strong> ${getSeverityText(severity)}</p>`;
+        let wordHtml = vulnWordContent.innerHTML;
+        wordHtml += '<div id="vuln">';
+        wordHtml += `<div><h2 id="title">${title}</h2></div>`;
+        wordHtml += `<div><p><strong>Criticité:</strong></p><p id="severity">${getSeverityText(severity)}</p></div>`;
         
         if (cvss) {
-            wordHtml += `<p><strong>Score CVSS:</strong> ${cvss}</p>`;
+            wordHtml += `<div><p><strong>Score CVSS:</strong></p><p id="CVSS">${cvss}</p></div>`;
         }
         
         if (customDescription) {
-            wordHtml += `<p>${customDescription.replace(/\n/g, '<br>')}</p>`;
+            wordHtml += `<p id="description">${customDescription.replace(/\n/g, '<br>')}</p>`;
         } else {
-            wordHtml += `<p>${getLoremIpsum(severity).replace(/\n/g, '<br>')}</p>`;
+            wordHtml += `<p id="description">${getLoremIpsum(severity).replace(/\n/g, '<br>')}</p>`;
         }
         
         if (screenshots.length > 0) {
@@ -234,131 +238,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 wordHtml += `</div>`;
             });
         }
+
+        wordHtml += '</div>';
         
         vulnWordContent.innerHTML = wordHtml;
         vulnOutputSection.style.display = 'block';
-    });
-    
-    // Génération de tableau de vulnérabilités
-    generateTableButton.addEventListener('click', function() {
-        const criticalCount = parseInt(criticalCountInput.value) || 0;
-        const highCount = parseInt(highCountInput.value) || 0;
-        const mediumCount = parseInt(mediumCountInput.value) || 0;
-        const lowCount = parseInt(lowCountInput.value) || 0;
-        const infoCount = parseInt(infoCountInput.value) || 0;
-        
-        // Générer le tableau Markdown
-        let markdown = '# Synthèse des vulnérabilités\n\n';
-        markdown += '| ID | Vulnérabilité | Criticité | Score CVSS |\n';
-        markdown += '|:---|:-------------|:----------|:-----------:|\n';
-        
-        let vulnId = 1;
-        
-        // Ajouter les vulnérabilités critiques
-        for (let i = 0; i < criticalCount; i++) {
-            markdown += `| VULN-${vulnId} | [Vulnérabilité critique ${i+1}] | Critique | [N/A] |\n`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités élevées
-        for (let i = 0; i < highCount; i++) {
-            markdown += `| VULN-${vulnId} | [Vulnérabilité élevée ${i+1}] | Élevée | [N/A] |\n`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités moyennes
-        for (let i = 0; i < mediumCount; i++) {
-            markdown += `| VULN-${vulnId} | [Vulnérabilité moyenne ${i+1}] | Moyenne | [N/A] |\n`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités faibles
-        for (let i = 0; i < lowCount; i++) {
-            markdown += `| VULN-${vulnId} | [Vulnérabilité faible ${i+1}] | Faible | [N/A] |\n`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités informatives
-        for (let i = 0; i < infoCount; i++) {
-            markdown += `| VULN-${vulnId} | [Note informative ${i+1}] | Informative | [N/A] |\n`;
-            vulnId++;
-        }
-        
-        // Afficher le résultat Markdown
-        tableMarkdownContent.textContent = markdown;
-        
-        // Générer la version HTML pour Word
-        let wordHtml = '<h1>Synthèse des vulnérabilités</h1>';
-        wordHtml += `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-            <tr style="background-color: #f2f2f2;">
-                <th style="text-align: left;">ID</th>
-                <th style="text-align: left;">Vulnérabilité</th>
-                <th style="text-align: left;">Criticité</th>
-                <th style="text-align: center;">Score CVSS</th>
-            </tr>`;
-            
-        vulnId = 1;
-        
-        // Ajouter les vulnérabilités critiques
-        for (let i = 0; i < criticalCount; i++) {
-            wordHtml += `<tr style="background-color: #ffdddd;">
-                <td>VULN-${vulnId}</td>
-                <td>[Vulnérabilité critique ${i+1}]</td>
-                <td>Critique</td>
-                <td style="text-align: center;">[N/A]</td>
-            </tr>`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités élevées
-        for (let i = 0; i < highCount; i++) {
-            wordHtml += `<tr style="background-color: #ffeecc;">
-                <td>VULN-${vulnId}</td>
-                <td>[Vulnérabilité élevée ${i+1}]</td>
-                <td>Élevée</td>
-                <td style="text-align: center;">[N/A]</td>
-            </tr>`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités moyennes
-        for (let i = 0; i < mediumCount; i++) {
-            wordHtml += `<tr style="background-color: #ffffcc;">
-                <td>VULN-${vulnId}</td>
-                <td>[Vulnérabilité moyenne ${i+1}]</td>
-                <td>Moyenne</td>
-                <td style="text-align: center;">[N/A]</td>
-            </tr>`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités faibles
-        for (let i = 0; i < lowCount; i++) {
-            wordHtml += `<tr style="background-color: #e6ffe6;">
-                <td>VULN-${vulnId}</td>
-                <td>[Vulnérabilité faible ${i+1}]</td>
-                <td>Faible</td>
-                <td style="text-align: center;">[N/A]</td>
-            </tr>`;
-            vulnId++;
-        }
-        
-        // Ajouter les vulnérabilités informatives
-        for (let i = 0; i < infoCount; i++) {
-            wordHtml += `<tr style="background-color: #e6f2ff;">
-                <td>VULN-${vulnId}</td>
-                <td>[Note informative ${i+1}]</td>
-                <td>Informative</td>
-                <td style="text-align: center;">[N/A]</td>
-            </tr>`;
-            vulnId++;
-        }
-        
-        wordHtml += '</table>';
-        
-        // Afficher le résultat Word
-        tableWordContent.innerHTML = wordHtml;
-        tableOutputSection.style.display = 'block';
+
+        generateTableVuln();
     });
     
     // Fonctions utilitaires pour copier et télécharger
@@ -403,6 +289,111 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadHtml(activeFormat.innerHTML, 'vulnerabilities-table.html');
         }
     });
+
+
+    // Génération de tableau de vulnérabilités
+    function generateTableVuln() {
+        var vulnerabilities = {
+            "Critique":[0,[],"red"],
+            "Élevée":[0,[],"orange"],
+            "Moyenne":[0,[],"yellow"],
+            "Faible":[0,[],"green"],
+            "Info":[0,[],"blue"]
+        };
+
+        document.querySelectorAll("#vuln").forEach( function(vuln) { 
+            vulnerabilities[vuln.children[1].lastChild.innerText][0] += 1;
+            vulnerabilities[vuln.children[1].lastChild.innerText][1].push([vuln.children[0].lastChild.innerText,vuln.children[2].lastChild.innerText]);
+        });
+
+        categories = Object.keys(vulnerabilities);
+        counts = Object.keys(vulnerabilities).map(function(key){return vulnerabilities[key][0];});
+        colors = Object.keys(vulnerabilities).map(function(key){return vulnerabilities[key][2];});
+
+        new Chart("tableGraph", {
+            type: "bar",
+            data: {
+                labels: categories,
+                datasets: [{
+                    backgroundColor: colors,
+                    data: counts
+                }]
+            },
+            options: {
+                legend: {display: false},
+                title: {
+                    display: true,
+                    text: "Vulnérabilités"
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            scaleSteps:1
+                        }
+                    }]
+                }
+            }
+        });
+        
+        // Générer le tableau Markdown
+        let markdown = '# Synthèse des vulnérabilités\n\n';
+        markdown += '| ID | Vulnérabilité | Criticité | Score CVSS |\n';
+        markdown += '|:---|:-------------|:----------|:-----------:|\n';
+
+        for (const [key, values] of Object.entries(vulnerabilities)){
+            markdown += tableMarkdownVuln(key,values[0],values[1]);
+        };
+        
+        // Afficher le résultat Markdown
+        tableMarkdownContent.textContent = markdown;
+
+        // Générer la version HTML pour Word
+        let wordHtml = '<h1>Synthèse des vulnérabilités</h1>';
+        wordHtml += `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+            <tr style="background-color: #f2f2f2;">
+                <th style="text-align: left;">ID</th>
+                <th style="text-align: left;">Vulnérabilité</th>
+                <th style="text-align: left;">Criticité</th>
+                <th style="text-align: center;">Score CVSS</th>
+            </tr>`;
+
+        for (const [key, values] of Object.entries(vulnerabilities)){
+            wordHtml += tableWordVuln(key,values[0],values[1],values[2]);
+        };
+
+        wordHtml += '</table>';
+        
+        // Afficher le résultat Word
+        tableWordContent.innerHTML = wordHtml;
+        tableOutputSection.style.display = 'block';
+    };
+
+
+    function tableMarkdownVuln(category, count, vuln){
+        text = "";
+
+        for (let i = 0; i < count; i++) {
+            text += `| VULN-${i+1} | ${vuln[i][0]} | ${category} | ${vuln[i][1]} |\n`;
+        }
+
+        return text;
+    }
+
+    function tableWordVuln(category, count, vuln, color) {
+        text = "";
+
+        for (let i = 0; i < count; i++) {
+            text += `<tr style="background-color: ${color};">
+            <td>VULN-${i+1}</td>
+            <td>${vuln[i][0]}</td>
+            <td>${category}</td>
+            <td style="text-align: center;">${vuln[i][1]}</td>
+            </tr>`
+        }
+
+        return text;
+    }
     
     function copyToClipboard(text) {
         const textarea = document.createElement('textarea');
@@ -482,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getLoremIpsum(severity) {
-        let base = "Une vulnérabilité a été identifiée qui pourrait ";
+        let base = "Une vulnérabilité a été identifiée dans le système qui pourrait ";
         
         switch (severity) {
             case 'critical':
@@ -501,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return "Cette note informative souligne une configuration ou une pratique qui, bien que non vulnérable en soi, pourrait être améliorée pour renforcer la posture de sécurité globale du système. Aucune action immédiate n'est requise.";
                 
             default:
-                return "Une vulnérabilité a été identifiée dans le système qui pourrait être exploitée par un attaquant pour compromettre la sécurité du système. Une correction devrait être implémentée selon le niveau de risque associé.";
+                return base + "être exploitée par un attaquant pour compromettre la sécurité du système. Une correction devrait être implémentée selon le niveau de risque associé.";
         }
     }
 }); 

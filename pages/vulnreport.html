@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Générateur de Rapport de Vulnérabilités</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/language.js"></script>
+    <script src="/assets/js/vulnreport.js"></script>
 </head>
 <body>
     <!-- Bouton pour afficher/masquer la sidebar -->
@@ -172,41 +178,7 @@
         </div>
         
         <!-- Onglet 2: Générateur de tableau de vulnérabilités -->
-        <div id="vuln-table" class="tab-content">
-            <div class="form-section">
-                <h2>Générateur de tableau des vulnérabilités</h2>
-                <p>Créez un tableau récapitulatif des vulnérabilités pour votre rapport.</p>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="criticalCount">Critique</label>
-                        <input type="number" id="criticalCount" class="number-input" value="0" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="highCount">Élevée</label>
-                        <input type="number" id="highCount" class="number-input" value="0" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="mediumCount">Moyenne</label>
-                        <input type="number" id="mediumCount" class="number-input" value="0" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="lowCount">Faible</label>
-                        <input type="number" id="lowCount" class="number-input" value="0" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="infoCount">Informative</label>
-                        <input type="number" id="infoCount" class="number-input" value="0" min="0">
-                    </div>
-                </div>
-                
-                <button id="generateTable" class="action-button">Générer le tableau</button>
-            </div>
-            
+        <div id="vuln-table" class="tab-content">            
             <div id="tableOutput" class="form-section" style="display: none;">
                 <h2>Tableau généré</h2>
                 <div class="output-tabs">
@@ -218,7 +190,9 @@
                     <button id="copyTable" class="action-button">Copier</button>
                     <button id="downloadTable" class="action-button">Télécharger</button>
                 </div>
-                
+                <div>
+                    <canvas id="tableGraph" style="width:100%;max-width:700px;"></canvas>
+                <div>
                 <div id="tableMarkdown" class="vuln-content code-block markdown-format active"></div>
                 <div id="tableWord" class="vuln-content word-format"></div>
             </div>
@@ -230,10 +204,5 @@
             <p>Made with ❤️ by Elliot Belt</p>
         </div>
     </footer>
-    
-    <script src="/assets/js/sidebar.js"></script>
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/language.js"></script>
-    <script src="/assets/js/vulnreport.js"></script>
 </body>
 </html> 
