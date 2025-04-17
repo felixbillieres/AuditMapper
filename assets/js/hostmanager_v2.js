@@ -124,13 +124,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function saveData() {
+        console.log(">>> saveData: Attempting to save data to localStorage..."); // LOG S1
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(hostData));
-            console.log("Données sauvegardées.");
+            const dataToSave = JSON.stringify(hostData); // LOG S2 - Vérifier si la sérialisation échoue
+            console.log(`Data size to save: ${dataToSave.length} characters.`);
+            localStorage.setItem(STORAGE_KEY, dataToSave);
+            console.log(">>> saveData: Data successfully saved to localStorage."); // LOG S3
             renderAll(); // Mettre à jour l'UI après sauvegarde
         } catch (e) {
-            console.error("Erreur sauvegarde localStorage:", e);
-            alert("Erreur sauvegarde. Vérifiez console.");
+            console.error(">>> saveData: Error saving to localStorage:", e); // LOG S4
+            alert("Erreur lors de la sauvegarde des données. Vérifiez la console. L'espace de stockage local est peut-être plein.");
         }
     }
 
@@ -1018,11 +1021,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleSaveHostFromPanel(event) {
         event.preventDefault(); // Empêcher la soumission standard du formulaire
-        console.log(">>> handleSaveHostFromPanel: START");
+        console.log(">>> handleSaveHostFromPanel: START"); // LOG 1
 
         const originalHostId = editHostIdInput.value;
         const originalCategory = editHostCategoryInput.value;
         const newHostId = sanitizeInput(editHostIpNameInput.value.trim()); // Le nouvel ID potentiel
+        console.log(`Original ID: ${originalHostId}, Category: ${originalCategory}, New ID: ${newHostId}`); // LOG 2
 
         if (!newHostId) {
             alert("Le nom/IP de l'hôte ne peut pas être vide.");
@@ -1030,88 +1034,118 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Vérifier si l'hôte original existe toujours
-        if (!hostData.categories[originalCategory]?.hosts?.[originalHostId]) {
-            console.error(`Erreur sauvegarde: Hôte original ${originalHostId} dans ${originalCategory} introuvable.`);
-            alert("Erreur: Impossible de trouver l'hôte original à modifier.");
-            closeEditPanel();
-            return;
+        const hostInfo = findHostById(originalHostId); // Utiliser findHostById pour simplifier
+        if (!hostInfo || hostInfo.categoryName !== originalCategory) {
+             console.error(`Erreur sauvegarde: Hôte original ${originalHostId} dans ${originalCategory} introuvable ou catégorie incorrecte.`);
+             alert("Erreur: Impossible de trouver l'hôte original à modifier.");
+             closeEditPanel();
+             return;
         }
+        console.log("Original host found."); // LOG 3
 
         // Vérifier si le nouvel ID existe déjà (s'il est différent de l'original)
         if (newHostId !== originalHostId) {
             let idExists = false;
-            for (const cat in hostData.categories) {
-                if (hostData.categories[cat]?.hosts?.[newHostId]) {
-                    idExists = true;
-                    break;
-                }
+            // Simplification: findHostById cherche dans toutes les catégories
+            if (findHostById(newHostId)) {
+                 idExists = true;
             }
             if (idExists) {
                 alert(`L'IP/Nom d'hôte "${newHostId}" existe déjà. Veuillez en choisir un autre.`);
                 return;
             }
+            console.log("New host ID is different and available."); // LOG 4
         }
 
-        // Collecter toutes les données du formulaire
-        const updatedHostData = {
-            services: editHostServicesInput.value.trim(),
-            notes: editHostNotesTextarea.value.trim(),
-            tags: editHostTagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
-            system: document.getElementById('editHostSystem').value.trim(),
-            role: document.getElementById('editHostRole').value.trim(),
-            zone: document.getElementById('editHostZone').value.trim(),
-            compromiseLevel: document.getElementById('editHostCompromiseLevel').value,
-            exploitationTechniques: document.getElementById('editHostTechniques').value.split(',').map(t => t.trim()).filter(Boolean),
-            vulnerabilities: document.getElementById('editHostVulnerabilities').value.split(',').map(t => t.trim()).filter(Boolean),
-            credentials: [] // Sera rempli ci-dessous
-        };
+        // --- Collecter toutes les données du formulaire ---
+        console.log("Collecting form data..."); // LOG 5
+        // Récupérer l'objet hôte existant pour le mettre à jour (inclut déjà les outputs ajoutés via saveNewOutput)
+        const hostToUpdate = hostInfo.host;
 
-        // Collecter les credentials
+        // Mettre à jour les champs simples
+        hostToUpdate.services = editHostServicesInput.value.trim();
+        hostToUpdate.notes = editHostNotesTextarea.value.trim();
+        hostToUpdate.tags = editHostTagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        hostToUpdate.system = document.getElementById('editHostSystem').value.trim() || null; // Mettre null si vide
+        hostToUpdate.role = document.getElementById('editHostRole').value.trim();
+        hostToUpdate.zone = document.getElementById('editHostZone').value.trim();
+        hostToUpdate.compromiseLevel = document.getElementById('editHostCompromiseLevel').value;
+        hostToUpdate.exploitationTechniques = document.getElementById('editHostTechniques').value.split(',').map(t => t.trim()).filter(Boolean);
+        hostToUpdate.vulnerabilities = document.getElementById('editHostVulnerabilities').value.split(',').map(t => t.trim()).filter(Boolean);
+
+        // --- Collecter les credentials ---
+        console.log("Collecting credentials..."); // LOG 6
+        const collectedCredentials = []; // Toujours recréer à partir du formulaire
         const credentialGroups = editCredentialsContainer.querySelectorAll('.credential-group');
-        credentialGroups.forEach(group => {
-            const inputs = group.querySelectorAll('input, select');
-            if (inputs.length >= 4) { // S'assurer qu'on a tous les champs
+        console.log(`Found ${credentialGroups.length} credential groups in the form.`); // LOG 7
+
+        credentialGroups.forEach((group, index) => {
+            const inputs = group.querySelectorAll('input, select'); // Sélecteur correct
+            console.log(`Processing credential group ${index + 1}, found ${inputs.length} inputs/selects.`); // LOG 8
+            // Vérifier si on a bien les 5 éléments attendus (user, pass, hash, type, source) + le bouton delete (donc >= 5 inputs/selects)
+            // Ajustement: Le bouton n'est pas un input/select, donc on attend 5.
+            if (inputs.length >= 5) {
                 const username = inputs[0].value.trim();
                 const password = inputs[1].value.trim(); // Type=password ou text
                 const hash = inputs[2].value.trim();
-                const type = inputs[3].value;
-                const source = inputs[4] ? inputs[4].value.trim() : ''; // Champ source optionnel
-                // Ajouter seulement si au moins un champ est rempli (ou selon votre logique)
+                const type = inputs[3].value; // Le select
+                const source = inputs[4].value.trim(); // Le champ source
+                // Ajouter seulement si au moins un champ significatif est rempli
                 if (username || password || hash) {
-                    updatedHostData.credentials.push({ username, password, hash, type, source });
+                    const cred = { username, password, hash, type, source };
+                    collectedCredentials.push(cred);
+                    console.log("Collected credential:", cred); // LOG 9
+                } else {
+                     console.log(`Credential group ${index + 1} skipped (empty).`); // LOG 10
                 }
+            } else {
+                 console.warn(`Credential group ${index + 1} skipped, expected >= 5 inputs/selects, found: ${inputs.length}`, group); // LOG 11
             }
         });
+        // Remplacer complètement les anciens credentials par ceux du formulaire
+        hostToUpdate.credentials = collectedCredentials;
+        console.log("Final collected credentials for host:", hostToUpdate.credentials); // LOG 12
 
-        // --- Logique de mise à jour ---
-        // 1. Supprimer l'ancien hôte (si l'ID a changé)
+        // --- Logique de mise à jour de l'ID si nécessaire ---
+        console.log("Applying updates to hostData..."); // LOG 13
         if (newHostId !== originalHostId) {
+            console.log(`Host ID changed from ${originalHostId} to ${newHostId}. Updating hostData and edges.`); // LOG 14
+            // 1. Supprimer l'ancien hôte
             delete hostData.categories[originalCategory].hosts[originalHostId];
-            console.log(`Ancien hôte ${originalHostId} supprimé.`);
-        }
+            console.log(`Deleted old host entry: hostData.categories[${originalCategory}].hosts[${originalHostId}]`); // LOG 15
 
-        // 2. Ajouter/Mettre à jour l'hôte avec le nouvel ID et les nouvelles données
-        hostData.categories[originalCategory].hosts[newHostId] = updatedHostData;
-        console.log(`Hôte ${newHostId} ajouté/mis à jour dans ${originalCategory}.`);
+            // 2. Ajouter le nouvel hôte avec les données mises à jour
+            hostData.categories[originalCategory].hosts[newHostId] = hostToUpdate;
+            console.log(`Added new host entry: hostData.categories[${originalCategory}].hosts[${newHostId}]`); // LOG 16
 
-        // 3. Mettre à jour les edges si l'ID a changé
-        if (newHostId !== originalHostId) {
+            // 3. Mettre à jour les edges
+            let edgeUpdatedCount = 0;
             hostData.edges.forEach(edge => {
                 if (edge.from === originalHostId) {
                     edge.from = newHostId;
-                    console.log(`Edge ${edge.id} 'from' mis à jour vers ${newHostId}`);
+                    edgeUpdatedCount++;
+                    // console.log(`Edge ${edge.id} 'from' updated to ${newHostId}`);
                 }
                 if (edge.to === originalHostId) {
                     edge.to = newHostId;
-                     console.log(`Edge ${edge.id} 'to' mis à jour vers ${newHostId}`);
+                    edgeUpdatedCount++;
+                    // console.log(`Edge ${edge.id} 'to' updated to ${newHostId}`);
                 }
             });
+             console.log(`Updated ${edgeUpdatedCount} edge references.`); // LOG 17
+        } else {
+            // Si l'ID n'a pas changé, on s'assure juste que l'objet dans hostData est bien celui qu'on a mis à jour.
+            // Normalement, hostToUpdate EST déjà une référence à l'objet dans hostData,
+            // donc les modifications précédentes l'ont déjà affecté. Pas besoin de réassigner.
+             console.log(`Host ID (${originalHostId}) did not change. Updates applied directly to hostData object.`); // LOG 18
         }
 
-        // 4. Sauvegarder et fermer
+        // --- Sauvegarder et fermer ---
+        console.log("Calling saveData()..."); // LOG 19
         saveData(); // Sauvegarde et déclenche renderAll()
+        console.log("Calling closeEditPanel()..."); // LOG 20
         closeEditPanel();
-        console.log("Modifications sauvegardées.");
+        console.log(">>> handleSaveHostFromPanel: END - Modifications sauvegardées."); // LOG 21
     }
 
     function handleDeleteHostFromPanel() {
@@ -1212,146 +1246,181 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Fonctions de Gestion des Panneaux (Edit, Settings) ---
 
     function openEditPanel(hostId) {
-        console.log(`>>> openEditPanel: START for host ${hostId}`);
-        if (!editPanel || !hostId) {
-            console.error("Panneau d'édition ou ID d'hôte manquant.");
-            return;
-        }
-
-        const hostInfo = findHostById(hostId);
-        if (!hostInfo) {
-            console.error(`Hôte avec ID ${hostId} non trouvé.`);
-            alert(`Erreur: Hôte ${hostId} non trouvé.`);
-            return;
-        }
-        const { host, categoryName } = hostInfo;
-
+        console.log(`>>> openEditPanel: START for host ${hostId}`); // Log 1
         try {
-            // Remplir les champs de base
-            editHostIdInput.value = hostId;
-            editHostCategoryInput.value = categoryName;
-            editHostIpNameInput.value = hostId; // L'ID est le nom/IP ici
-            // CORRECTION ICI: host.services est une chaîne, pas un tableau
-            editHostServicesInput.value = typeof host.services === 'string' ? host.services : '';
-            editHostNotesTextarea.value = host.notes || '';
-            // Les tags sont aussi une chaîne, mais on pourrait vouloir les traiter comme un tableau à l'avenir
-            editHostTagsInput.value = Array.isArray(host.tags) ? host.tags.join(', ') : (host.tags || '');
-
-            // Remplir les nouveaux champs
-            const systemSelect = document.getElementById('editHostSystem');
-            const roleInput = document.getElementById('editHostRole');
-            const zoneInput = document.getElementById('editHostZone');
-            const compromiseSelect = document.getElementById('editHostCompromiseLevel');
-            const techniquesTextarea = document.getElementById('editHostTechniques');
-            const vulnerabilitiesTextarea = document.getElementById('editHostVulnerabilities');
-
-            if (systemSelect) systemSelect.value = host.system || '';
-            if (roleInput) roleInput.value = host.role || '';
-            if (zoneInput) zoneInput.value = host.zone || '';
-            if (compromiseSelect) compromiseSelect.value = host.compromiseLevel || 'None';
-            // Pour techniques et vulnérabilités, s'assurer qu'ils sont bien des chaînes si stockés comme tableaux
-            if (techniquesTextarea) techniquesTextarea.value = Array.isArray(host.exploitationTechniques) ? host.exploitationTechniques.join(', ') : (host.exploitationTechniques || '');
-            if (vulnerabilitiesTextarea) vulnerabilitiesTextarea.value = Array.isArray(host.vulnerabilities) ? host.vulnerabilities.join(', ') : (host.vulnerabilities || '');
-
-
-            // Vider et remplir les credentials
-            editCredentialsContainer.innerHTML = ''; // Vider les anciens
-            if (host.credentials && Array.isArray(host.credentials)) {
-                host.credentials.forEach(cred => addCredentialInputGroup(cred));
-            } else {
-                // Ajouter un champ vide si aucun credential n'existe
-                addCredentialInputGroup();
+            // Vérifier si l'ID est valide avant de chercher
+            if (!hostId) {
+                console.error(">>> openEditPanel: ERROR - hostId is null or empty.");
+                alert("Erreur interne: ID d'hôte invalide fourni.");
+                return;
             }
 
-            // Vider et remplir les edges sortants
-            renderExistingEdges(hostId); // Appel à la fonction maintenant définie
+            const hostInfo = findHostById(hostId);
+            console.log(">>> openEditPanel: hostInfo from findHostById:", hostInfo); // Log 2
 
-            // Remplir le champ "To" pour l'ajout d'edge (suggérer des voisins ?)
-            // editEdgeToInput.value = ''; // Ou pré-remplir si pertinent
-            // editEdgeLabelInput.value = '';
+            if (!hostInfo || !hostInfo.host || !hostInfo.categoryName) {
+                console.error(`>>> openEditPanel: ERROR - Host info not found or incomplete for ID ${hostId}. hostInfo:`, hostInfo);
+                alert(`Erreur: Impossible de trouver les informations complètes pour l'hôte ${hostId}.`);
+                return;
+            }
 
-            // Afficher les outputs existants
-            renderHostOutputs(hostId); // APPEL À LA FONCTION MAINTENANT DÉFINIE
+            const { host, categoryName } = hostInfo;
+            console.log(`>>> openEditPanel: Found host object:`, host); // Log 3
+            console.log(`>>> openEditPanel: Found categoryName: ${categoryName}`); // Log 4
 
-            // Assurer que les zones d'ajout d'output sont cachées initialement
-            if (outputTypeSelection) outputTypeSelection.style.display = 'none';
-            if (newOutputInputArea) newOutputInputArea.style.display = 'none';
-            if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Afficher le bouton principal
+            // Remplir les champs cachés cruciaux
+            console.log(`>>> openEditPanel: Setting hidden editHostIdInput.value = ${hostId}`); // Log 5
+            editHostIdInput.value = hostId;
+            console.log(`>>> openEditPanel: Setting hidden editHostCategoryInput.value = ${categoryName}`); // Log 6
+            editHostCategoryInput.value = categoryName;
 
-            // Afficher le panneau
-            editPanel.classList.add('open');
-            console.log(`Panneau d'édition ouvert pour ${hostId}`);
+            // Remplir les champs visibles
+            console.log(`>>> openEditPanel: Setting visible editHostIpNameInput.value = ${hostId}`); // Log 7
+            editHostIpNameInput.value = hostId; // L'ID est le nom/IP ici
+
+            console.log(`>>> openEditPanel: Setting services (raw data: ${host.services})`); // Log 8
+            editHostServicesInput.value = host.services || '';
+
+            console.log(`>>> openEditPanel: Setting notes (raw data length: ${host.notes?.length || 0})`); // Log 9
+            editHostNotesTextarea.value = host.notes || '';
+
+            console.log(`>>> openEditPanel: Setting tags (raw data: ${host.tags})`); // Log 10
+            editHostTagsInput.value = Array.isArray(host.tags) ? host.tags.join(', ') : (host.tags || '');
+
+            console.log(`>>> openEditPanel: Setting system (raw data: ${host.system})`); // Log 11
+            document.getElementById('editHostSystem').value = host.system || '';
+
+            console.log(`>>> openEditPanel: Setting role (raw data: ${host.role})`); // Log 12
+            document.getElementById('editHostRole').value = host.role || '';
+
+            console.log(`>>> openEditPanel: Setting zone (raw data: ${host.zone})`); // Log 13
+            document.getElementById('editHostZone').value = host.zone || '';
+
+            console.log(`>>> openEditPanel: Setting compromiseLevel (raw data: ${host.compromiseLevel})`); // Log 14
+            document.getElementById('editHostCompromiseLevel').value = host.compromiseLevel || 'None';
+
+            console.log(`>>> openEditPanel: Setting exploitationTechniques (raw data: ${host.exploitationTechniques})`); // Log 15
+            document.getElementById('editHostTechniques').value = Array.isArray(host.exploitationTechniques) ? host.exploitationTechniques.join(', ') : (host.exploitationTechniques || '');
+
+            console.log(`>>> openEditPanel: Setting vulnerabilities (raw data: ${host.vulnerabilities})`); // Log 16
+            document.getElementById('editHostVulnerabilities').value = Array.isArray(host.vulnerabilities) ? host.vulnerabilities.join(', ') : (host.vulnerabilities || '');
+
+            // Vider et remplir les credentials
+            console.log(">>> openEditPanel: Clearing and rendering credentials..."); // Log 17
+            editCredentialsContainer.innerHTML = ''; // Vider d'abord
+            renderHostCredentials(hostId); // Afficher les credentials existants via la NOUVELLE fonction
+
+            // Afficher un placeholder SEULEMENT si aucun credential n'a été rendu
+            if (editCredentialsContainer.children.length === 0) {
+                console.log(">>> openEditPanel: No existing credentials found, adding placeholder."); // Log 18
+                addCredentialInputGroup(); // Appeler sans argument pour un placeholder vide
+            }
+
+            // Vider et remplir les edges
+            console.log(">>> openEditPanel: Clearing and rendering edges..."); // Log 19
+            existingEdgesListDiv.innerHTML = ''; // Vider d'abord
+            renderExistingEdges(hostId);
+
+            // Vider et remplir les outputs
+            console.log(">>> openEditPanel: Clearing and rendering outputs..."); // Log 20
+            editOutputsContainer.innerHTML = ''; // Vider d'abord
+            renderHostOutputs(hostId);
+
+            // Afficher le panneau en ajoutant la classe 'open'
+            console.log(">>> openEditPanel: Adding 'open' class to editPanel."); // Log 21
+            editPanel.classList.add('open');   // Nouvelle méthode (probablement correcte pour votre CSS)
+            console.log(">>> openEditPanel: END - Panel should be open for", hostId); // Log 22
 
         } catch (error) {
-            console.error("Erreur lors du remplissage du panneau d'édition:", error);
-            alert("Une erreur s'est produite lors de l'ouverture du panneau d'édition. Vérifiez la console.");
-            closeEditPanel(); // Fermer le panneau en cas d'erreur grave
+            // Log amélioré de l'erreur
+            console.error(`>>> openEditPanel: CRITICAL ERROR while processing host ${hostId}:`, error); // Log E1
+            alert(`Une erreur critique est survenue lors de l'ouverture du panneau pour ${hostId}. Vérifiez la console.`);
         }
-        console.log(">>> openEditPanel: END");
     }
 
     function closeEditPanel() {
-        console.log(">>> closeEditPanel: START");
         if (editPanel) {
-            editPanel.classList.remove('open');
-            editPanel.classList.remove('wide-panel'); // S'assurer qu'il se referme en taille normale
-
-            // Cacher aussi les zones d'ajout d'output à la fermeture
-            if (outputTypeSelection) outputTypeSelection.style.display = 'none';
-            if (newOutputInputArea) newOutputInputArea.style.display = 'none';
-            if (addOutputBtn) addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
-
-            console.log("Panneau d'édition fermé.");
+            // Cacher le panneau en retirant la classe 'open'
+            // editPanel.style.display = 'none'; // Ancienne méthode
+            editPanel.classList.remove('open'); // Nouvelle méthode
+            console.log("Edit panel closed.");
         }
-        console.log(">>> closeEditPanel: END");
+        // Reset potentiellement large fields
+        if (killchainReportPreviewTextarea) killchainReportPreviewTextarea.value = '';
+        if (killchainReportRenderedPreviewDiv) killchainReportRenderedPreviewDiv.innerHTML = '';
     }
 
-    function addCredentialInputGroup(credential = {}) {
-        console.log(">>> addCredentialInputGroup: START");
-        if (!editCredentialsContainer) return;
+    // Modifier addCredentialInputGroup pour gérer les données existantes OU un placeholder
+    function addCredentialInputGroup(credential = null) { // Accepte un objet credential ou null
+        console.log(`>>> addCredentialInputGroup: START (Credential data: ${credential ? 'Provided' : 'None'})`);
+        const container = editCredentialsContainer;
+        if (!container) {
+            console.error("Credential container not found!");
+            return;
+        }
 
-        const credDiv = document.createElement('div');
-        // Utilisation des classes Bootstrap pour une grille responsive
-        credDiv.className = 'credential-entry border rounded p-2 mb-2 bg-light'; // Style de base pour chaque entrée
+        const group = document.createElement('div');
+        group.className = 'credential-group form-row align-items-end mb-2';
+        group.style.display = 'flex';
+        group.style.flexWrap = 'wrap';
+        group.style.gap = '0.5rem';
 
-        credDiv.innerHTML = `
-            <div class="row gx-2 gy-2 align-items-center"> <!-- gx-2 pour gouttière horizontale, gy-2 pour verticale -->
-                <div class="col-md-6 col-lg-3">
-                    <label class="form-label form-label-sm visually-hidden">Utilisateur</label> <!-- visually-hidden pour accessibilité -->
-                    <input type="text" class="form-control form-control-sm credential-username" placeholder="Utilisateur" value="${credential.username || ''}">
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <label class="form-label form-label-sm visually-hidden">Mot de passe</label>
-                    <input type="text" class="form-control form-control-sm credential-password" placeholder="Mot de passe" value="${credential.password || ''}">
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <label class="form-label form-label-sm visually-hidden">Hash</label>
-                    <input type="text" class="form-control form-control-sm credential-hash" placeholder="Hash" value="${credential.hash || ''}">
-                </div>
-                <div class="col-md-6 col-lg-2">
-                    <label class="form-label form-label-sm visually-hidden">Type</label>
-                    <input type="text" class="form-control form-control-sm credential-type" placeholder="Type (NTLM)" value="${credential.type || ''}">
-                </div>
-                <div class="col-lg-10"> <!-- Prend plus de place -->
-                     <label class="form-label form-label-sm visually-hidden">Source</label>
-                     <input type="text" class="form-control form-control-sm credential-source" placeholder="Source (Mimikatz)" value="${credential.source || ''}">
-                </div>
-                <div class="col-lg-2 text-end"> <!-- Bouton aligné à droite -->
-                    <button class="btn btn-outline-danger btn-sm remove-credential-btn" type="button" title="Supprimer ce credential">🗑️</button>
-                </div>
+        // Pré-remplir les valeurs si un credential est fourni, sinon laisser vide
+        const username = credential?.username || '';
+        const password = credential?.password || '';
+        const hash = credential?.hash || '';
+        const type = credential?.type || 'Password'; // Défaut à 'Password' si nouveau
+        const source = credential?.source || '';
+
+        // Structure HTML avec valeurs pré-remplies ou placeholders
+        group.innerHTML = `
+            <div style="flex: 1 1 100px;"> <!-- User -->
+                <label class="small mb-0 d-block">User</label>
+                <input type="text" class="form-control form-control-sm" placeholder="Username" value="${sanitizeInput(username)}">
+            </div>
+            <div style="flex: 1 1 100px;"> <!-- Password -->
+                <label class="small mb-0 d-block">Password</label>
+                <input type="password" class="form-control form-control-sm" placeholder="Password" value="${sanitizeInput(password)}">
+            </div>
+            <div style="flex: 1 1 100px;"> <!-- Hash -->
+                <label class="small mb-0 d-block">Hash</label>
+                <input type="text" class="form-control form-control-sm" placeholder="Hash" value="${sanitizeInput(hash)}">
+            </div>
+            <div style="flex: 0 1 120px;"> <!-- Type -->
+                <label class="small mb-0 d-block">Type</label>
+                <select class="form-control form-control-sm">
+                    <option value="Password" ${type === 'Password' ? 'selected' : ''}>Password</option>
+                    <option value="Hash" ${type === 'Hash' ? 'selected' : ''}>Hash</option>
+                    <option value="Token" ${type === 'Token' ? 'selected' : ''}>Token</option>
+                    <option value="Key" ${type === 'Key' ? 'selected' : ''}>Key</option>
+                    <option value="Other" ${type === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+            </div>
+            <div style="flex: 1 1 100px;"> <!-- Source -->
+                <label class="small mb-0 d-block">Source</label>
+                <input type="text" class="form-control form-control-sm" placeholder="Source" value="${sanitizeInput(source)}">
+            </div>
+            <div style="flex: 0 0 auto; align-self: flex-end;"> <!-- Bouton Supprimer -->
+                <button type="button" class="btn btn-danger btn-sm remove-credential-btn" title="Supprimer ce credential">&times;</button>
             </div>
         `;
 
-        // Ajouter l'écouteur pour le bouton supprimer de CE groupe
-        const removeBtn = credDiv.querySelector('.remove-credential-btn');
+        // Mettre la valeur sélectionnée pour le select (après l'ajout au DOM serait plus sûr, mais on essaie comme ça)
+        const selectElement = group.querySelector('select');
+        if (selectElement) selectElement.value = type; // Assigner la valeur après création
+
+        // Ajouter l'écouteur pour le bouton supprimer
+        const removeBtn = group.querySelector('.remove-credential-btn');
         if (removeBtn) {
             removeBtn.addEventListener('click', function() {
-                credDiv.remove();
-                console.log("Groupe credential supprimé.");
+                console.log("Remove credential button clicked.");
+                group.remove();
+                // La suppression réelle des données se fait lors de la sauvegarde globale via handleSaveHostFromPanel
             });
         }
-        editCredentialsContainer.appendChild(credDiv);
-        console.log(">>> addCredentialInputGroup: END");
+
+        container.appendChild(group);
+        console.log(">>> addCredentialInputGroup: END - Group added.");
     }
 
     function renderExistingEdges(hostId) {
@@ -1575,28 +1644,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // return temp.textContent || temp.innerText || "";
     }
 
-    // AJOUT DE LA FONCTION MANQUANTE
+    // --- Fonctions Utilitaires ---
     function findHostById(hostId) {
-        console.log(`>>> findHostById: Searching for host with ID: ${hostId}`);
-        if (!hostData || !hostData.categories) {
-            console.warn("findHostById: hostData or hostData.categories is not available.");
+        console.log(`>>> findHostById: Searching for host with ID: ${hostId}`); // Log existant
+        if (!hostId) {
+            console.warn(">>> findHostById: Called with null or empty hostId.");
             return null;
         }
-
         for (const categoryName in hostData.categories) {
-            const category = hostData.categories[categoryName];
-            // Vérifier si la catégorie et le conteneur d'hôtes existent
-            if (category && category.hosts && category.hosts[hostId]) {
-                console.log(`>>> findHostById: Host found in category "${categoryName}"`);
-                return {
-                    host: category.hosts[hostId],
-                    categoryName: categoryName
-                };
+            if (hostData.categories[categoryName]?.hosts?.[hostId]) {
+                console.log(`>>> findHostById: Host found in category "${categoryName}"`); // Log existant
+                // Retourner une copie pour éviter les modifications accidentelles par référence ? Non, on veut modifier l'original.
+                return { host: hostData.categories[categoryName].hosts[hostId], categoryName: categoryName };
             }
         }
-
-        console.warn(`>>> findHostById: Host with ID "${hostId}" not found in any category.`);
-        return null; // Retourner null si l'hôte n'est trouvé dans aucune catégorie
+        console.warn(`>>> findHostById: Host with ID ${hostId} not found in any category.`);
+        return null; // Hôte non trouvé
     }
 
     // --- Fonctions de Gestion des Outputs --- AJOUT DE CETTE SECTION COMPLÈTE
@@ -1848,6 +1911,10 @@ document.addEventListener('DOMContentLoaded', function() {
         newOutputInputArea.style.display = 'none';
         addOutputBtn.style.display = 'inline-block'; // Réafficher le bouton principal
 
+        // --- AJOUT DE LA SAUVEGARDE IMMÉDIATE ---
+        saveData(); // Sauvegarde les données globales (y compris le nouvel output) et rafraîchit l'UI
+        // -----------------------------------------
+
         console.log(">>> saveNewOutput: END");
         // Note: La sauvegarde globale se fera via le bouton "Sauvegarder Modifications" du panneau
     }
@@ -1991,6 +2058,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (deleteHostFromPanelBtn) deleteHostFromPanelBtn.addEventListener('click', handleDeleteHostFromPanel);
         if (addEdgeBtn) addEdgeBtn.addEventListener('click', handleAddEdge);
         if (editPanelToggleWideBtn) editPanelToggleWideBtn.addEventListener('click', () => editPanel.classList.toggle('wide-panel'));
+        console.log("Listeners for Edit Panel attached."); // Ajout d'un log pour confirmer
 
         // --- Section Outputs ---
         if (addOutputBtn) {
@@ -2072,6 +2140,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Désactiver le bouton d'export initialement
         if(executeNodeExportBtn) executeNodeExportBtn.disabled = true;
+        if(executeNodeExportZipBtn) executeNodeExportZipBtn.disabled = false; // Assurez-vous que le bouton ZIP est activé par défaut
 
         console.log(">>> setupEventListeners: END - Écouteurs attachés."); // Mise à jour du log
     }
@@ -2456,10 +2525,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // b) credentials.txt
         if (host.credentials && host.credentials.length > 0) {
-            let credContent = "Type\tValeur\tSource\n";
-            credContent += "----\t------\t------\n";
+            // CORRECTION ICI: Utiliser les champs corrects (username, password, hash)
+            let credContent = "Username\tPassword\tHash\tType\tSource\n";
+            credContent += "--------\t--------\t----\t----\t------\n";
             host.credentials.forEach(cred => {
-                credContent += `${cred.type || 'N/A'}\t${cred.value || 'N/A'}\t${cred.source || 'N/A'}\n`;
+                // Utiliser les bonnes propriétés de l'objet credential
+                const user = cred.username || '';
+                const pass = cred.password || '';
+                const hashVal = cred.hash || '';
+                const type = cred.type || 'N/A';
+                const source = cred.source || 'N/A';
+                credContent += `${user}\t${pass}\t${hashVal}\t${type}\t${source}\n`;
             });
             content.credentials = credContent;
         }
@@ -2501,6 +2577,29 @@ document.addEventListener('DOMContentLoaded', function() {
         content.edges = edgeContent;
 
         return content;
+    }
+
+    // NOUVELLE FONCTION : Pour afficher les credentials existants dans le panneau
+    function renderHostCredentials(hostId) {
+        console.log(`>>> renderHostCredentials: START for host ${hostId}`);
+        if (!editCredentialsContainer) {
+            console.error("Element #editCredentialsContainer introuvable.");
+            return;
+        }
+        // Pas besoin de vider ici, openEditPanel le fait déjà avant d'appeler
+
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host || !Array.isArray(hostInfo.host.credentials) || hostInfo.host.credentials.length === 0) {
+            console.log(`Aucun credential à afficher pour ${hostId}.`);
+            // Ne rien faire, openEditPanel ajoutera le placeholder si nécessaire
+            return;
+        }
+
+        console.log(`Affichage de ${hostInfo.host.credentials.length} credential(s) pour ${hostId}`);
+        hostInfo.host.credentials.forEach(cred => {
+            addCredentialInputGroup(cred); // Passer l'objet credential existant
+        });
+        console.log(">>> renderHostCredentials: END");
     }
 
 }); // Fin du DOMContentLoaded
