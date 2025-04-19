@@ -21,7 +21,6 @@ Une collection d'outils web conçue pour assister les professionnels de la sécu
 L'application est principalement accessible via une interface web. Les différentes fonctionnalités sont organisées en sections distinctes :
 
 *   **Accueil (`index.html`)** : Présentation générale et accès aux différents modules.
-*   **Générateur de Rapport (`pages/index.html`)** : Module principal pour la création de rapports Markdown.
 *   **Host Manager (`pages/hostmanager.html`)** : Outil avancé de gestion des hôtes et de cartographie.
 *   **Outils (`pages/tools.html`, `pages/privesc.html`)** : Bibliothèques de commandes et guides.
 *   **Parsers (`pages/hostsmaker.html`, `pages/grepmaster.html`)** : Outils d'analyse et de formatage de données.

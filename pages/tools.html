@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outils de Pentest</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1, h2, h3, h4 { color: #333; }
+        .tool-section { margin-bottom: 30px; border: 1px solid #eee; padding: 15px; border-radius: 5px; }
+        .tool-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .tool-item { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
+        .tool-item h3 { margin-top: 0; color: #555; }
+        .tool-item h4 { color: #777; margin-bottom: 5px; }
+        .tool-item p { color: #666; margin-bottom: 10px; }
+        code { display: block; background-color: #eee; padding: 10px; border-radius: 3px; overflow-x: auto; color: #222; }
+        .category-title { font-size: 1.5em; color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
+    </style>
     <script>
         // Informations spécifiques à cette page
         window.pageInfo = {
@@ -17,73 +29,299 @@
 <body>
     <div id="page-content" style="display: none;">
         <h1>Outils de Pentest</h1>
+
+        <div class="category-title">Reconnaissance et Énumération Initiale</div>
         <div class="tool-section">
-            <h2>Outils disponibles</h2>
             <div class="tool-list">
                 <div class="tool-item">
-                    <h3>IPScan.py</h3>
-                    <p>Scanner de reconnaissance automatisé pour l'énumération initiale.</p>
-                    <code>wget https://github.com/votre-repo/IPScan.py -O IPScan.py</code>
+                    <h3>Nmap</h3>
+                    <p>Scanner de ports et découverte de services.</p>
+                    <code># Déjà installé sur Kali</code>
                 </div>
                 <div class="tool-item">
-                    <h3>Username Generator</h3>
-                    <p>Générateur d'identifiants utilisateurs avec différents niveaux de complexité.</p>
-                    <code>wget https://github.com/votre-repo/username-generator.py -O username-generator.py</code>
+                    <h3>AutoRecon</h3>
+                    <p>Automatise l'énumération initiale (ports, services, vulnérabilités de base).</p>
+                    <code>git clone https://github.com/Tib3rius/AutoRecon.git</code>
                 </div>
                 <div class="tool-item">
-                    <h3>WinPEAS</h3>
-                    <p>Outil pour l'énumération des privilèges sous Windows.</p>
-                    <code>wget https://github.com/peass-ng/PEASS-ng/releases/download/20250301-c97fb02a/winPEASany.exe -OutFile winPEASany.exe</code>
+                    <h3>RustScan</h3>
+                    <p>Scanner de ports extrêmement rapide.</p>
+                    <code>git clone https://github.com/RustScan/RustScan.git; cd RustScan; cargo build --release</code>
                 </div>
+                <div class="tool-item">
+                    <h3>dirsearch</h3>
+                    <p>Outil pour découvrir des répertoires et fichiers web.</p>
+                    <code>git clone https://github.com/maurosoria/dirsearch.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>GoBuster</h3>
+                    <p>Alternative à dirsearch, également très efficace (écrit en Go).</p>
+                    <code>go install github.com/OJ/gobuster@latest</code>
+                </div>
+                <div class="tool-item">
+                    <h3>ffuf</h3>
+                    <p>Fuzzer web puissant et rapide (écrit en Go).</p>
+                    <code>go install github.com/ffuf/ffuf@latest</code>
+                </div>
+                <div class="tool-item">
+                    <h3>WhatWeb</h3>
+                    <p>Identifie les technologies utilisées par un site web.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Nikto</h3>
+                    <p>Scanner de vulnérabilités web.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>dnsrecon</h3>
+                    <p>Outil d'énumération DNS.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>enum4linux-ng</h3>
+                    <p>Énumération d'informations à partir de systèmes Windows via SMB (successeur d'enum4linux).</p>
+                    <code>git clone https://github.com/cddmp/enum4linux-ng.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>smbclient</h3>
+                    <p>Client pour accéder aux partages SMB.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>rpcclient</h3>
+                    <p>Utilitaires pour interagir avec les services RPC.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>ldapsearch</h3>
+                    <p>Utile pour interroger LDAP (Active Directory).</p>
+                    <code># Déjà installé sur Kali (paquet ldap-utils)</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-title">Privilege Escalation (Linux)</div>
+        <div class="tool-section">
+            <div class="tool-list">
                 <div class="tool-item">
                     <h3>LinPEAS</h3>
-                    <p>Outil pour l'énumération des privilèges sous Linux.</p>
-                    <code>wget https://github.com/peass-ng/PEASS-ng/releases/download/20250301-c97fb02a/linpeas.sh -O linpeas.sh</code>
+                    <p>Script d'énumération complet pour les vulnérabilités d'escalade de privilèges sous Linux.</p>
+                    <code>wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh -O linpeas.sh; chmod +x linpeas.sh</code>
                 </div>
                 <div class="tool-item">
                     <h3>pspy</h3>
                     <p>Outil pour surveiller les processus sous Linux.</p>
-                    <code>wget https://github.com/DominicBreuker/pspy/releases/download/v1.2.1/pspy64 -O pspy64</code>
+                    <code>wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64 -O pspy64; chmod +x pspy64</code>
+                    <code>wget https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32 -O pspy32; chmod +x pspy32</code>
+                </div>
+                <div class="tool-item">
+                    <h3>GTFOBins</h3>
+                    <p>Collection de binaires Unix qui peuvent être utilisés pour contourner les restrictions de sécurité.</p>
+                    <code># Site web : https://gtfobins.github.io/</code>
+                </div>
+                <div class="tool-item">
+                    <h3>searchsploit</h3>
+                    <p>Base de données d'exploits locaux et distants.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>linux-kernel-exploits</h3>
+                    <p>Répertoire d'exploits pour le kernel Linux.</p>
+                    <code>git clone https://github.com/SecWiki/linux-kernel-exploits.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>kernel-exploits</h3>
+                    <p>Autre répertoire d'exploits pour le kernel Linux.</p>
+                    <code>git clone https://github.com/lucyoa/kernel-exploits.git</code>
                 </div>
             </div>
         </div>
+
+        <div class="category-title">Privilege Escalation (Windows)</div>
         <div class="tool-section">
-            <h2>Outils de Pivoting</h2>
+            <div class="tool-list">
+                <div class="tool-item">
+                    <h3>WinPEAS</h3>
+                    <p>Outil pour l'énumération des privilèges sous Windows.</p>
+                    <code>wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany.exe -OutFile winPEASany.exe</code>
+                </div>
+                <div class="tool-item">
+                    <h3>AccessChk</h3>
+                    <p>Utilité en ligne de commande pour afficher les autorisations.</p>
+                    <code># Télécharger le Sysinternals Suite : https://learn.microsoft.com/fr-fr/sysinternals/downloads/sysinternals-suite</code>
+                </div>
+                <div class="tool-item">
+                    <h3>PowerUp</h3>
+                    <p>Script PowerShell pour identifier les vecteurs d'escalade de privilèges Windows.</p>
+                    <code>git clone https://github.com/HarmJ0y/PowerUp.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Seatbelt</h3>
+                    <p>Autre outil PowerShell pour l'énumération de la sécurité locale de Windows.</p>
+                    <code>git clone https://github.com/GhostPack/Seatbelt.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>WES-NG</h3>
+                    <p>Base de données hors ligne des exploits Windows basée sur les informations systeminfo.</p>
+                    <code>git clone https://github.com/bitsadmin/wesng.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>SharpUp</h3>
+                    <p>Version C# de PowerUp (nécessite .NET sur la cible).</p>
+                    <code>git clone https://github.com/GhostPack/SharpUp.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>LOLBAS</h3>
+                    <p>Collection de binaires, scripts et librairies Windows signés utilisables pour des actions malveillantes.</p>
+                    <code># Site web : https://lolbas-project.github.io/</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-title">Active Directory Exploitation</div>
+        <div class="tool-section">
+            <div class="tool-list">
+                <div class="tool-item">
+                    <h3>BloodHound</h3>
+                    <p>Outil pour visualiser les relations dans Active Directory et identifier les chemins d'attaque.</p>
+                    <code>git clone https://github.com/BloodHoundAD/BloodHound.git</code>
+                    <code>git clone https://github.com/BloodHoundAD/SharpHound.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Impacket</h3>
+                    <p>Collection d'outils Python pour travailler avec les protocoles réseau (inclut des outils AD).</p>
+                    <code>git clone https://github.com/fortra/impacket.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>CrackMapExec (CME)</h3>
+                    <p>Boîte à outils post-exploitation pour tester et abuser des environnements Windows/Active Directory.</p>
+                    <code>git clone https://github.com/byt3bl33d3r/CrackMapExec.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Mimikatz</h3>
+                    <p>Outil puissant pour extraire les mots de passe, les tickets Kerberos, etc.</p>
+                    <code># Chercher l'exécutable sur GitHub (souvent dans des dépôts comme gentilkiwi/mimikatz)</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Rubeus</h3>
+                    <p>Ensemble d'outils C# pour l'interaction brute avec Kerberos.</p>
+                    <code>git clone https://github.com/GhostPack/Rubeus.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>PowerSploit</h3>
+                    <p>Framework PowerShell post-exploitation (inclut PowerView pour l'énumération AD).</p>
+                    <code>git clone https://github.com/PowerShellMafia/PowerSploit.git</code>
+                </div>
+                <div class="tool-item">
+                    <h3>evil-winrm</h3>
+                    <p>Shell WinRM pour une utilisation offensive.</p>
+                    <code>gem install evil-winrm</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Kerbrute</h3>
+                    <p>Outil pour la force brute des noms d'utilisateurs et des mots de passe Kerberos.</p>
+                    <code>git clone https://github.com/ropnop/kerbrute.git; cd kerbrute; go build</code>
+                </div>
+                <div class="tool-item">
+                    <h3>ADAPE-Script</h3>
+                    <p>Script PowerShell pour automatiser certaines tâches d'énumération et d'évaluation AD.</p>
+                    <code>git clone https://github.com/hausec/ADAPE-Script.git</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-title">Outils de Pivoting et Transfert de Fichiers</div>
+        <div class="tool-section">
             <div class="tool-list">
                 <div class="tool-item">
                     <h3>Ligolo-ng</h3>
                     <p>Outil de pivoting moderne pour le tunneling.</p>
                     <h4>Installation Agent</h4>
-                    <code>wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_agent_0.5.1_linux_amd64.tar.gz</code>
-                    <h4>Configuration du Proxy</h4>
-                    <code>sudo ip tuntap add user $(whoami) mode tun ligolo
-sudo ip link set ligolo up
-sudo ip route add [RÉSEAU_CIBLE] dev ligolo</code>
+                    <code>wget https://github.com/nicocha30/ligolo-ng/releases/latest/download/ligolo-ng_agent_linux_amd64.tar.gz</code>
+                    <h4>Installation Proxy</h4>
+                    <code>wget https://github.com/nicocha30/ligolo-ng/releases/latest/download/ligolo-ng_proxy_linux_amd64.tar.gz</code>
                 </div>
-                
                 <div class="tool-item">
                     <h3>Chisel</h3>
                     <p>Outil de tunneling TCP/UDP sur HTTP.</p>
-                    <h4>Installation</h4>
-                    <code>wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz</code>
-                    <h4>Utilisation</h4>
-                    <code># Sur la machine attaquante (serveur)
-./chisel server -p 8080 --reverse
-
-# Sur la machine cible (client)
-./chisel client [IP_ATTAQUANT]:8080 R:8001:127.0.0.1:8001</code>
+                    <code>wget https://github.com/jpillora/chisel/releases/latest/download/chisel_linux_amd64.gz; gunzip chisel_linux_amd64.gz; chmod +x chisel_linux_amd64</code>
                 </div>
-                
                 <div class="tool-item">
                     <h3>Sshuttle</h3>
                     <p>VPN transparent via SSH.</p>
-                    <h4>Installation</h4>
-                    <code>apt-get install sshuttle</code>
-                    <h4>Utilisation</h4>
-                    <code>sshuttle -r user@target_host 0.0.0.0/0 -x target_host</code>
+                    <code>sudo apt-get install sshuttle</code>
+                </div>
+                <div class="tool-item">
+                    <h3>socat</h3>
+                    <p>Utilité de relais réseau polyvalente.</p>
+                    <code>sudo apt-get install socat</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Netcat (nc)</h3>
+                    <p>Utilité réseau pour lire et écrire des données à travers des connexions réseau.</p>
+                    <code># Déjà installé sur Kali (souvent `netcat-traditional` ou `ncat`)</code>
+                </div>
+                <div class="tool-item">
+                    <h3>ncat</h3>
+                    <p>Version moderne de Netcat avec plus de fonctionnalités.</p>
+                    <code>sudo apt-get install ncat</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Python SimpleHTTPServer / http.server</h3>
+                    <p>Serveur web simple pour le transfert de fichiers.</p>
+                    <code>python -m SimpleHTTPServer 80 (Python 2)</code>
+                    <code>python3 -m http.server 80 (Python 3)</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Impacket smbserver.py</h3>
+                    <p>Mettre en place un serveur SMB pour le transfert de fichiers.</p>
+                    <code># Nécessite Impacket : python3 -m pip install impacket</code>
+                    <code>sudo python3 /opt/impacket/examples/smbserver.py share /path/to/share</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-title">Outils Divers</div>
+        <div class="tool-section">
+            <div class="tool-list">
+                <div class="tool-item">
+                    <h3>tmux</h3>
+                    <p>Multiplexeur de terminal.</p>
+                    <code>sudo apt-get install tmux</code>
+                </div>
+                <div class="tool-item">
+                    <h3>screen</h3>
+                    <p>Autre multiplexeur de terminal.</p>
+                    <code>sudo apt-get install screen</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Metasploit Framework</h3>
+                    <p>Framework pour l'exploitation.</p>
+                    <code># Déjà installé sur Kali</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Wireshark</h3>
+                    <p>Analyseur de protocole réseau.</p>
+                    <code>sudo apt-get install wireshark</code>
+                </div>
+                <div class="tool-item">
+                    <h3>tcpdump</h3>
+                    <p>Analyseur de paquets en ligne de commande.</p>
+                    <code>sudo apt-get install tcpdump</code>
+                </div>
+                <div class="tool-item">
+                    <h3>Hashcat</h3>
+                    <p>Outil de cracking de mots de passe.</p>
+                    <code>sudo apt-get install hashcat</code>
+                </div>
+                <div class="tool-item">
+                    <h3>John the Ripper</h3>
+                    <p>Autre outil de cracking de mots de passe.</p>
+                    <code>sudo apt-get install john</code>
                 </div>
             </div>
         </div>
     </div>
 </body>
-</html> 
+</html>

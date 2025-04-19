@@ -2598,3 +2598,60 @@ body.dark-theme #nodeExportStatusMsg.warning {
 
 
 /* ... (reste du CSS) ... */
+
+/* --- Styles Dark Theme pour la page Outils (tools.html) - Amélioré --- */
+body.dark-theme .category-title {
+    color: var(--dark-text-color-emphasis, #f8f9fa); /* Texte plus blanc */
+    border-bottom: 2px solid var(--dark-primary-color-light, #58a6ff); /* Bordure accentuée */
+    padding-bottom: 8px; /* Un peu plus d'espace */
+    margin-bottom: 20px; /* Augmenter marge basse */
+}
+
+body.dark-theme .tool-section {
+    background-color: var(--dark-card-bg, #2c2f33);
+    border: 1px solid var(--dark-border-color, #40444b); /* Garder bordure standard */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35); /* Ombre légèrement plus prononcée */
+    padding: 20px; /* Augmenter padding interne */
+}
+
+body.dark-theme .tool-item {
+    background-color: var(--dark-panel-bg, #25282c); /* Fond légèrement plus sombre/différent */
+    border: 1px solid var(--dark-border-color-light, #5a6268); /* Bordure un peu plus claire */
+    border-left: 3px solid var(--dark-primary-color, #0d6efd); /* Bordure gauche accentuée */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); /* Ombre subtile pour relief */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Effet au survol */
+    padding: 18px; /* Ajuster padding */
+}
+
+body.dark-theme .tool-item:hover {
+    transform: translateY(-3px); /* Léger soulèvement au survol */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Ombre plus marquée au survol */
+}
+
+body.dark-theme .tool-item h3 {
+    color: var(--dark-primary-color-light, #58a6ff); /* Utiliser couleur accent pour le titre */
+    margin-bottom: 12px; /* Plus d'espace sous le titre */
+}
+
+body.dark-theme .tool-item p {
+    color: var(--dark-text-color, #e0e0e0); /* Texte description plus clair */
+    font-size: 0.95em; /* Légèrement plus grand */
+}
+
+body.dark-theme .tool-item code {
+    background-color: var(--dark-code-bg, #282c34);
+    color: var(--dark-code-text, #abb2bf);
+    border: 1px solid var(--dark-border-color, #40444b); /* Bordure standard code */
+    border-radius: 4px; /* Coins arrondis */
+    padding: 12px; /* Plus de padding */
+    margin-top: 10px; /* Espace au-dessus */
+    cursor: text; /* Curseur texte standard */
+    transition: border-color 0.2s ease; /* Transition pour survol */
+}
+
+body.dark-theme .tool-item code:hover {
+    border-color: var(--dark-border-color-light, #5a6268); /* Bordure plus claire au survol */
+    background-color: var(--dark-code-bg, #282c34); /* Garder le fond */
+}
+
+/* ... (reste du CSS) ... */
