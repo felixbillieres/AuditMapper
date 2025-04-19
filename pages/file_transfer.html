@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide de Transfert de Fichiers</title>
+    <!-- Bootstrap CSS (Optionnel, si utilisé ailleurs) -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- VOTRE CSS EXTERNE -->
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <!-- Font Awesome (si utilisé pour les icônes) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+</head>
+<body class=""> <!-- La classe dark-theme sera gérée par theme.js -->
+
+    <!-- Bouton Sidebar Toggle (comme grepmaster.html) -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i>☰</i> <!-- Utilisation de l'icône texte comme hostmanager -->
+    </button>
+
+    <!-- Sidebar (Structure identique à hostmanager.html) -->
+    <div id="sidebar" class="sidebar">
+        <a href="/index.html" class="sidebar-header">
+            <h2>Pentest Tools</h2>
+            <p>Suite d'outils pour pentest</p>
+        </a>
+        <div class="sidebar-content">
+            <ul class="sidebar-nav">
+                <div class="sidebar-category">Générateur</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostmanager.html" class="sidebar-nav-link">
+                        <i>🖥️</i> Host Manager
+                    </a>
+                </li>
+                <div class="sidebar-category">Outils</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/tools.html" class="sidebar-nav-link">
+                        <i>🛠️</i> Bibliothèque d'outils
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
+                <!-- Lien Actif pour la nouvelle page -->
+                <li class="sidebar-nav-item">
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
+                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
+                    </a>
+                </li>
+                <div class="sidebar-category">Parsers</div>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
+                        <i>🌐</i> /etc/hosts Maker
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                        <i>🔍</i> Grep Master
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/vulnreport.html" class="sidebar-nav-link">
+                        <i>🔒</i> Rapport de Vulnérabilités
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Header (Structure identique à grepmaster.html) -->
+    <header id="main-header" class="main-header">
+        <div class="header-container">
+            <!-- Titre spécifique à la page -->
+            <h1>Guide de Transfert de Fichiers</h1>
+            <div class="header-controls">
+                <!-- Sélecteur de langue (si vous l'utilisez ici) -->
+                <div class="language-selector">
+                    <button id="languageDropdown" class="language-dropdown">
+                        <i class="icon-language">🌍</i>
+                        <span id="currentLanguage">Français</span>
+                        <i class="dropdown-arrow">▼</i>
+                    </button>
+                    <div id="languageMenu" class="language-menu">
+                        <div class="language-option" data-lang="fr">
+                            <span class="language-flag">🇫🇷</span>Français
+                        </div>
+                        <div class="language-option" data-lang="en">
+                            <span class="language-flag">🇬🇧</span>English
+                        </div>
+                        <!-- Autres langues -->
+                    </div>
+                </div>
+                <!-- Bouton Thème -->
+                <button id="toggleTheme" class="theme-toggle">
+                    <i class="icon-theme">🌓</i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal (Wrapper comme grepmaster.html) -->
+    <div id="main-content" class="main-content">
+
+        <!-- Section Sélection OS -->
+        <!-- Utilisation de card pour un style cohérent -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title">Transfert de Fichiers Facile</h2>
+                <div class="d-flex align-items-end justify-content-center flex-wrap">
+                    <div class="form-group mr-3 mb-2">
+                        <label for="os-source">OS Source</label>
+                        <select id="os-source" class="form-control form-control-sm"> <!-- form-control-sm pour taille réduite -->
+                            <option value="Linux" selected>Linux</option>
+                            <option value="Windows">Windows</option>
+                        </select>
+                    </div>
+                    <div class="mx-3 mb-2 align-self-center"> <!-- mb-2 pour alignement -->
+                        <i class="fas fa-arrow-right fa-lg" style="color: var(--primary-color, #3498db);"></i> <!-- Icône FontAwesome -->
+                    </div>
+                    <div class="form-group ml-3 mb-2">
+                        <label for="os-destination">OS Destination</label>
+                        <select id="os-destination" class="form-control form-control-sm"> <!-- form-control-sm -->
+                            <option value="Linux">Linux</option>
+                            <option value="Windows" selected>Windows</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Guide de Transfert Dynamique -->
+        <!-- Utilisation de card pour le conteneur principal du guide -->
+        <div class="card shadow-sm">
+             <div class="card-header bg-light"> <!-- En-tête pour le titre -->
+                <h2 id="transfer-title" class="mb-0 h5">Sélectionnez les OS Source et Destination</h2> <!-- Style de titre ajusté -->
+            </div>
+            <div class="card-body">
+                <div id="transfer-guide-content">
+                    <!-- Le contenu (cartes de méthodes) sera généré ici par JavaScript -->
+                     <p class="text-muted placeholder-message">Sélectionnez les systèmes source et destination pour voir les méthodes de transfert.</p>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Fin #main-content -->
+
+    <!-- Footer (Structure identique à grepmaster.html) -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>Made with ❤️ by Elliot Belt</p>
+        </div>
+    </footer>
+
+    <!-- Scripts JS -->
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/language.js"></script> <!-- Assurez-vous que ce script existe et fonctionne -->
+    <script src="/assets/js/file_transfer.js"></script> <!-- Script spécifique à cette page -->
+
+</body>
+</html> 

