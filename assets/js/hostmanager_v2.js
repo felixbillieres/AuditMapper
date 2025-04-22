@@ -69,6 +69,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const executeNodeExportBtn = document.getElementById('executeNodeExportBtn');
     const executeNodeExportZipBtn = document.getElementById('executeNodeExportZipBtn'); // Pour ZIP
     const nodeExportStatusMsg = document.getElementById('nodeExportStatusMsg');
+    const exploitationStepsSection = document.getElementById('exploitationStepsSection');
+    const exploitationStepsListDiv = document.getElementById('exploitationStepsList');
+    const addExploitationStepBtn = document.getElementById('addExploitationStepBtn');
+    const noExploitationStepsMsg = document.querySelector('.no-exploitation-steps-msg');
+
+    // Références pour la modale des détails de l'étape
+    const exploitationStepDetailModal = document.getElementById('exploitationStepDetailModal');
+    const exploitationStepDetailForm = document.getElementById('exploitationStepDetailForm');
+    const stepDetailModalStepId = document.getElementById('stepDetailModalStepId');
+    const stepDetailModalOrder = document.getElementById('stepDetailModalOrder');
+    const stepDetailModalTitle = document.getElementById('stepDetailModalTitle');
+    const stepDetailModalContent = document.getElementById('stepDetailModalContent');
+    const stepDetailModalScreenshotUrl = document.getElementById('stepDetailModalScreenshotUrl');
+    const stepDetailModalScreenshotPreview = document.getElementById('stepDetailModalScreenshotPreview');
+    const saveExploitationStepBtn = document.getElementById('saveExploitationStepBtn');
 
     console.log("DOM references obtained.");
 
@@ -120,6 +135,21 @@ document.addEventListener('DOMContentLoaded', function() {
              if (hostData.categories[catName].templateType === undefined) { // Assurer présence templateType
                  hostData.categories[catName].templateType = null;
              }
+            if (hostData.categories[catName] && hostData.categories[catName].hosts) {
+                for (const hostId in hostData.categories[catName].hosts) {
+                    const host = hostData.categories[catName].hosts[hostId];
+                    if (host && !Array.isArray(host.exploitationSteps)) { // Assurer présence exploitationSteps
+                        host.exploitationSteps = [];
+                    }
+                    // Assurer que chaque étape a un ID et un ordre si ce n'était pas le cas
+                    if (host && host.exploitationSteps) {
+                        host.exploitationSteps.forEach(step => {
+                            if (!step.id) step.id = generateUUID();
+                            if (typeof step.order !== 'number') step.order = 1; // Donner un ordre par défaut
+                        });
+                    }
+                }
+            }
         }
     }
 
@@ -1009,7 +1039,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const newHost = {
             services: '', notes: '', tags: [], credentials: [],
             system: null, role: 'Unknown', zone: 'Unknown', compromiseLevel: 'None',
-            exploitationTechniques: [], vulnerabilities: []
+            exploitationTechniques: [], vulnerabilities: [],
+            outputs: [], // Assurez-vous que outputs est initialisé
+            exploitationSteps: [] // <<<< AJOUT: Initialiser le tableau des étapes
         };
 
         hostData.categories[categoryName].hosts[sanitizedIpName] = newHost;
@@ -1325,6 +1357,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">>> openEditPanel: Clearing and rendering outputs..."); // Log 20
             editOutputsContainer.innerHTML = ''; // Vider d'abord
             renderHostOutputs(hostId);
+
+            // === NOUVEAU: Vider et remplir les étapes d'exploitation ===
+            console.log(">>> openEditPanel: Clearing and rendering exploitation steps..."); // Log N1
+            renderExploitationSteps(hostId); // Afficher les étapes existantes
 
             // Afficher le panneau en ajoutant la classe 'open'
             console.log(">>> openEditPanel: Adding 'open' class to editPanel."); // Log 21
@@ -2142,6 +2178,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if(executeNodeExportBtn) executeNodeExportBtn.disabled = true;
         if(executeNodeExportZipBtn) executeNodeExportZipBtn.disabled = false; // Assurez-vous que le bouton ZIP est activé par défaut
 
+        // Écouteurs pour le panneau d'édition
+        if (editPanel) {
+            // ... (écouteurs existants pour closePanelBtn, toggleWidePanelBtn, editHostForm submit, etc.)
+            if (addExploitationStepBtn) {
+                addExploitationStepBtn.addEventListener('click', handleAddExploitationStep);
+            }
+        }
+
+        // Écouteurs pour la modale des détails de l'étape
+        if (saveExploitationStepBtn) {
+            saveExploitationStepBtn.addEventListener('click', handleSaveExploitationStep);
+        }
+        // Mettre à jour l'aperçu quand l'URL change dans la modale
+         if (stepDetailModalScreenshotUrl) {
+            stepDetailModalScreenshotUrl.addEventListener('input', () => {
+                updateScreenshotPreview(stepDetailModalScreenshotUrl.value);
+            });
+        }
+         // Fermeture de la modale Bootstrap (si Bootstrap JS est utilisé)
+         $('#exploitationStepDetailModal').on('hidden.bs.modal', function () {
+             // Optionnel: faire quelque chose à la fermeture, comme vider explicitement
+             exploitationStepDetailForm.reset();
+             stepDetailModalScreenshotPreview.innerHTML = '';
+         });
+
         console.log(">>> setupEventListeners: END - Écouteurs attachés."); // Mise à jour du log
     }
 
@@ -2600,6 +2661,372 @@ document.addEventListener('DOMContentLoaded', function() {
             addCredentialInputGroup(cred); // Passer l'objet credential existant
         });
         console.log(">>> renderHostCredentials: END");
+    }
+
+    // ========================================================
+    // == NOUVELLES FONCTIONS POUR LES ÉTAPES D'EXPLOITATION ==
+    // ========================================================
+
+    /**
+     * Affiche la liste des étapes d'exploitation pour un hôte donné dans le panneau.
+     * @param {string} hostId L'ID de l'hôte (IP/Nom).
+     */
+    function renderExploitationSteps(hostId) {
+        console.log(`>>> renderExploitationSteps: START for host ${hostId}`);
+        if (!exploitationStepsListDiv || !noExploitationStepsMsg) {
+            console.error("renderExploitationSteps: Steps list container or no-steps message element not found.");
+            return;
+        }
+
+        const hostInfo = findHostById(hostId);
+        // Assurer que hostInfo.host.exploitationSteps est un tableau
+        const steps = hostInfo?.host?.exploitationSteps || [];
+        if (!Array.isArray(steps)) {
+            console.warn(`Exploitation steps for host ${hostId} is not an array, initializing.`);
+            if (hostInfo && hostInfo.host) {
+                hostInfo.host.exploitationSteps = [];
+            } else {
+                console.error("Cannot initialize exploitation steps array as host object is missing.");
+                return;
+            }
+        }
+
+        exploitationStepsListDiv.innerHTML = ''; // Vider la liste
+        noExploitationStepsMsg.style.display = 'none'; // Cacher le message par défaut
+
+        if (steps.length === 0) {
+            console.log("No exploitation steps to render.");
+            exploitationStepsListDiv.appendChild(noExploitationStepsMsg); // Remettre le message
+            noExploitationStepsMsg.style.display = 'block'; // Afficher le message
+            return;
+        }
+
+        console.log(`Rendering ${steps.length} exploitation steps.`);
+
+        // Trier les étapes par leur propriété 'order'
+        const sortedSteps = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        sortedSteps.forEach((step, index) => {
+            const stepElement = document.createElement('div');
+            stepElement.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center exploitation-step-item';
+            stepElement.dataset.stepId = step.id;
+
+            const stepContent = document.createElement('span');
+            stepContent.innerHTML = `
+                <span class="step-order mr-2 text-muted small">#${step.order || '?'}</span>
+                <strong class="step-title">${sanitizeInput(step.title) || 'Étape sans titre'}</strong>
+                ${step.screenshotUrl ? '<i class="icon-screenshot text-info ml-2" title="Capture d\'écran associée">📷</i>' : ''}
+            `;
+            stepContent.style.cursor = 'pointer'; // Indiquer qu'on peut cliquer
+            stepContent.addEventListener('click', () => openExploitationStepModal(hostId, step.id)); // Ouvrir la modale au clic
+
+            const stepActions = document.createElement('div');
+            stepActions.className = 'step-actions';
+
+            // Boutons pour réordonner (simplifié : échange l'ordre avec le précédent/suivant)
+            const moveUpBtn = document.createElement('button');
+            moveUpBtn.className = 'btn btn-outline-secondary btn-sm mr-1 move-step-btn';
+            moveUpBtn.innerHTML = '↑';
+            moveUpBtn.title = 'Monter';
+            moveUpBtn.disabled = index === 0; // Désactiver si c'est le premier
+            moveUpBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Empêcher l'ouverture de la modale
+                handleMoveStep(hostId, step.id, 'up');
+            });
+
+            const moveDownBtn = document.createElement('button');
+            moveDownBtn.className = 'btn btn-outline-secondary btn-sm mr-1 move-step-btn';
+            moveDownBtn.innerHTML = '↓';
+            moveDownBtn.title = 'Descendre';
+            moveDownBtn.disabled = index === sortedSteps.length - 1; // Désactiver si c'est le dernier
+            moveDownBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Empêcher l'ouverture de la modale
+                handleMoveStep(hostId, step.id, 'down');
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger btn-sm delete-step-btn';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.title = 'Supprimer cette étape';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Empêcher l'ouverture de la modale
+                handleDeleteExploitationStep(hostId, step.id);
+            });
+
+            stepActions.appendChild(moveUpBtn);
+            stepActions.appendChild(moveDownBtn);
+            stepActions.appendChild(deleteBtn);
+
+            stepElement.appendChild(stepContent);
+            stepElement.appendChild(stepActions);
+            exploitationStepsListDiv.appendChild(stepElement);
+        });
+
+        console.log(">>> renderExploitationSteps: END");
+    }
+
+    /**
+     * Ouvre la modale pour ajouter ou éditer une étape d'exploitation.
+     * @param {string} hostId L'ID de l'hôte.
+     * @param {string|null} stepId L'ID de l'étape à éditer, ou null pour une nouvelle étape.
+     */
+    function openExploitationStepModal(hostId, stepId = null) {
+        console.log(`>>> openExploitationStepModal: host=${hostId}, step=${stepId}`);
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host) {
+            console.error("Cannot open step modal: host not found or host data invalid.");
+            return;
+        }
+        // Assurer l'existence du tableau
+        hostInfo.host.exploitationSteps = hostInfo.host.exploitationSteps || [];
+
+        exploitationStepDetailForm.reset(); // Réinitialiser le formulaire
+        stepDetailModalScreenshotPreview.innerHTML = ''; // Vider l'aperçu
+
+        if (stepId) {
+            // Mode Édition
+            const step = hostInfo.host.exploitationSteps.find(s => s.id === stepId);
+            if (!step) {
+                console.error(`Step with ID ${stepId} not found for host ${hostId}.`);
+                alert("Erreur : Étape introuvable.");
+                return;
+            }
+            document.getElementById('exploitationStepDetailModalLabel').textContent = "Modifier l'Étape";
+            stepDetailModalStepId.value = step.id;
+            stepDetailModalOrder.value = step.order || 1;
+            stepDetailModalTitle.value = step.title || '';
+            stepDetailModalContent.value = step.content || '';
+            stepDetailModalScreenshotUrl.value = step.screenshotUrl || '';
+            updateScreenshotPreview(step.screenshotUrl || ''); // Mettre à jour l'aperçu
+        } else {
+            // Mode Ajout
+            document.getElementById('exploitationStepDetailModalLabel').textContent = "Ajouter une Nouvelle Étape";
+            stepDetailModalStepId.value = ''; // Pas d'ID existant
+            // Calculer le prochain numéro d'ordre
+            const maxOrder = hostInfo.host.exploitationSteps.reduce((max, s) => Math.max(max, s.order || 0), 0);
+            stepDetailModalOrder.value = maxOrder + 1;
+            // Les autres champs sont vides par défaut grâce au reset()
+        }
+
+        // Afficher la modale (nécessite Bootstrap JS ou une gestion manuelle)
+        $('#exploitationStepDetailModal').modal('show');
+    }
+
+    /**
+     * Gère le clic sur le bouton "Ajouter une Étape".
+     */
+    function handleAddExploitationStep() {
+        const hostId = document.getElementById('editHostId').value;
+        if (!hostId) {
+            console.error("Cannot add step: No host ID found in edit panel.");
+            alert("Erreur : Impossible d'ajouter une étape sans hôte sélectionné.");
+            return;
+        }
+        openExploitationStepModal(hostId, null); // Ouvre la modale en mode ajout
+    }
+
+    /**
+     * Gère la sauvegarde des détails d'une étape depuis la modale.
+     */
+    function handleSaveExploitationStep() {
+        const hostId = document.getElementById('editHostId').value;
+        const stepId = stepDetailModalStepId.value;
+        const order = parseInt(stepDetailModalOrder.value, 10);
+        const title = stepDetailModalTitle.value.trim();
+        const content = stepDetailModalContent.value.trim();
+        const screenshotUrl = stepDetailModalScreenshotUrl.value.trim();
+
+        if (!hostId) {
+            console.error("Cannot save step: No host ID.");
+            return;
+        }
+        if (isNaN(order) || order < 1) {
+            alert("Veuillez entrer un numéro d'ordre valide (entier positif).");
+            return;
+        }
+         if (!title) {
+            alert("Veuillez entrer un titre pour l'étape.");
+            return;
+        }
+
+
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host) {
+            console.error("Cannot save step: Host not found or data invalid.");
+            return;
+        }
+        hostInfo.host.exploitationSteps = hostInfo.host.exploitationSteps || [];
+
+        const newStepData = {
+            id: stepId || generateUUID(), // Générer un nouvel ID si ajout
+            order: order,
+            title: title,
+            content: content,
+            screenshotUrl: screenshotUrl
+        };
+
+        if (stepId) {
+            // Mise à jour
+            const stepIndex = hostInfo.host.exploitationSteps.findIndex(s => s.id === stepId);
+            if (stepIndex > -1) {
+                hostInfo.host.exploitationSteps[stepIndex] = newStepData;
+                console.log(`Step ${stepId} updated for host ${hostId}.`);
+            } else {
+                console.error(`Step ${stepId} not found for update.`);
+                return; // Ne rien faire si l'étape n'est pas trouvée
+            }
+        } else {
+            // Ajout
+            hostInfo.host.exploitationSteps.push(newStepData);
+            console.log(`New step added for host ${hostId}.`);
+        }
+
+        saveData(); // Sauvegarder toutes les données
+        renderExploitationSteps(hostId); // Re-rendre la liste des étapes
+
+        // Fermer la modale (nécessite Bootstrap JS ou gestion manuelle)
+        $('#exploitationStepDetailModal').modal('hide');
+    }
+
+    /**
+     * Gère la suppression d'une étape d'exploitation.
+     * @param {string} hostId L'ID de l'hôte.
+     * @param {string} stepId L'ID de l'étape à supprimer.
+     */
+    function handleDeleteExploitationStep(hostId, stepId) {
+        if (!confirm("Êtes-vous sûr de vouloir supprimer cette étape d'exploitation ?")) {
+            return;
+        }
+
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host || !hostInfo.host.exploitationSteps) {
+            console.error("Cannot delete step: Host or steps data not found.");
+            return;
+        }
+
+        const initialLength = hostInfo.host.exploitationSteps.length;
+        hostInfo.host.exploitationSteps = hostInfo.host.exploitationSteps.filter(s => s.id !== stepId);
+
+        if (hostInfo.host.exploitationSteps.length < initialLength) {
+            console.log(`Step ${stepId} deleted for host ${hostId}.`);
+            saveData();
+            renderExploitationSteps(hostId);
+        } else {
+            console.warn(`Step ${stepId} not found for deletion.`);
+        }
+    }
+
+    /**
+     * Gère le déplacement d'une étape vers le haut ou le bas dans la liste.
+     * Simplifié : échange les numéros d'ordre avec l'étape adjacente dans la liste triée.
+     * @param {string} hostId L'ID de l'hôte.
+     * @param {string} stepId L'ID de l'étape à déplacer.
+     * @param {'up' | 'down'} direction La direction du déplacement.
+     */
+    function handleMoveStep(hostId, stepId, direction) {
+        const hostInfo = findHostById(hostId);
+        if (!hostInfo || !hostInfo.host || !hostInfo.host.exploitationSteps) return;
+
+        const steps = hostInfo.host.exploitationSteps;
+        // Travailler sur une copie triée pour trouver les voisins
+        const sortedSteps = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
+        const currentIndex = sortedSteps.findIndex(s => s.id === stepId);
+
+        if (currentIndex === -1) return; // Étape non trouvée
+
+        let swapIndex = -1;
+        if (direction === 'up' && currentIndex > 0) {
+            swapIndex = currentIndex - 1;
+        } else if (direction === 'down' && currentIndex < sortedSteps.length - 1) {
+            swapIndex = currentIndex + 1;
+        }
+
+        if (swapIndex !== -1) {
+            // Trouver les étapes originales dans le tableau non trié
+            const stepToMove = steps.find(s => s.id === sortedSteps[currentIndex].id);
+            const stepToSwapWith = steps.find(s => s.id === sortedSteps[swapIndex].id);
+
+            if (stepToMove && stepToSwapWith) {
+                // Échanger leurs numéros d'ordre
+                const tempOrder = stepToMove.order;
+                stepToMove.order = stepToSwapWith.order;
+                stepToSwapWith.order = tempOrder;
+
+                console.log(`Swapped order between step ${stepToMove.id} and ${stepToSwapWith.id}`);
+                saveData();
+                renderExploitationSteps(hostId); // Re-rendre pour refléter le nouvel ordre
+            }
+        }
+    }
+
+
+    /**
+     * Met à jour l'aperçu de la capture d'écran dans la modale.
+     * @param {string} url L'URL de l'image.
+     */
+    function updateScreenshotPreview(url) {
+        stepDetailModalScreenshotPreview.innerHTML = ''; // Vider
+        if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))) {
+            // Tenter d'afficher l'image si c'est une URL web ou un chemin absolu local
+            // Note: Les chemins relatifs simples peuvent ne pas fonctionner comme prévu ici.
+            // Note 2: L'accès aux fichiers locaux (file:///) est restreint par les navigateurs.
+            const img = document.createElement('img');
+            img.src = url;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '180px'; // Limiter la hauteur dans l'aperçu
+            img.alt = 'Aperçu capture d\'écran';
+            img.onerror = () => { // Gérer l'erreur si l'image ne charge pas
+                 stepDetailModalScreenshotPreview.innerHTML = '<p class="text-danger small">Impossible de charger l\'aperçu de l\'image.</p>';
+            };
+            stepDetailModalScreenshotPreview.appendChild(img);
+        } else if (url) {
+             stepDetailModalScreenshotPreview.innerHTML = '<p class="text-muted small">Aperçu non disponible pour ce chemin.</p>';
+        }
+    }
+
+    // --- Initialisation ---
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("Host Manager V2 Initializing...");
+        loadData();
+        initializeNetwork();
+        renderAll(); // Ceci inclut maintenant le rendu initial des catégories, etc.
+        initializeEventListeners(); // Appel de la fonction principale d'initialisation des écouteurs
+        updateCategoryFilterOptions(); // Mettre à jour les options de filtre au démarrage
+        console.log("Host Manager V2 Ready.");
+    });
+
+    // --- Initialisation et Écouteurs d'Événements ---
+
+    function initializeEventListeners() {
+        // ... (écouteurs existants pour addCategoryBtn, applyFiltersBtn, etc.)
+
+        // Écouteurs pour le panneau d'édition
+        if (editPanel) {
+            // ... (écouteurs existants pour closePanelBtn, toggleWidePanelBtn, editHostForm submit, etc.)
+            if (addExploitationStepBtn) {
+                addExploitationStepBtn.addEventListener('click', handleAddExploitationStep);
+            }
+        }
+
+        // Écouteurs pour la modale des détails de l'étape
+        if (saveExploitationStepBtn) {
+            saveExploitationStepBtn.addEventListener('click', handleSaveExploitationStep);
+        }
+        // Mettre à jour l'aperçu quand l'URL change dans la modale
+         if (stepDetailModalScreenshotUrl) {
+            stepDetailModalScreenshotUrl.addEventListener('input', () => {
+                updateScreenshotPreview(stepDetailModalScreenshotUrl.value);
+            });
+        }
+         // Fermeture de la modale Bootstrap (si Bootstrap JS est utilisé)
+         $('#exploitationStepDetailModal').on('hidden.bs.modal', function () {
+             // Optionnel: faire quelque chose à la fermeture, comme vider explicitement
+             exploitationStepDetailForm.reset();
+             stepDetailModalScreenshotPreview.innerHTML = '';
+         });
+
+
+        // ... (autres écouteurs existants pour export, import, delete all, etc.)
     }
 
 }); // Fin du DOMContentLoaded

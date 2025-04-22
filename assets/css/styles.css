@@ -880,9 +880,9 @@ body.dark-theme .category-tab .remove-category-btn {
 }
 body.dark-theme .category-tab .category-settings-btn:hover,
 body.dark-theme .category-tab .remove-category-btn:hover {
-    color: var(--dark-text-color); opacity: 1;
+    color: var(--dark-text-color, #e0e0e0); opacity: 1;
 }
-body.dark-theme .category-tab .remove-category-btn:hover { color: var(--dark-danger-color); }
+body.dark-theme .category-tab .remove-category-btn:hover { color: var(--dark-danger-color, #f67f89); }
 
 /* Contenu Catégorie (Cartes Hôte) */
 body.dark-theme .category-content .card { /* Surcharge si nécessaire */
@@ -2653,5 +2653,145 @@ body.dark-theme .tool-item code:hover {
     border-color: var(--dark-border-color-light, #5a6268); /* Bordure plus claire au survol */
     background-color: var(--dark-code-bg, #282c34); /* Garder le fond */
 }
+
+/* ... (reste du CSS) ... */
+
+/* --- Section Étapes d'Exploitation dans le Panneau d'Édition --- */
+#exploitationStepsSection h4 {
+    margin-bottom: 1rem;
+    color: var(--heading-color, #34495e);
+}
+
+#exploitationStepsList .list-group-item {
+    padding: 0.5rem 0.75rem; /* Padding réduit pour les étapes */
+    background-color: var(--card-bg, #fff);
+    border-color: var(--border-color-light, #e1e4e8);
+    margin-bottom: 5px; /* Petit espace entre les étapes */
+}
+#exploitationStepsList .list-group-item:hover {
+    background-color: var(--background-color-hover-light, #f8f9fa);
+}
+
+.exploitation-step-item .step-order {
+    display: inline-block;
+    min-width: 25px; /* Pour aligner les titres */
+    text-align: right;
+}
+
+.exploitation-step-item .step-title {
+    color: var(--text-color, #333);
+}
+
+.exploitation-step-item .step-actions {
+    /* Les boutons sont déjà stylés par Bootstrap, mais on peut ajuster */
+    white-space: nowrap; /* Empêcher le retour à la ligne des boutons */
+}
+
+.exploitation-step-item .step-actions .btn {
+    padding: 0.1rem 0.4rem; /* Boutons plus petits */
+    line-height: 1.2;
+    font-size: 0.8em;
+}
+
+.exploitation-step-item .icon-screenshot {
+    font-size: 0.9em;
+    cursor: default; /* Pas d'action directe sur l'icône */
+}
+
+.no-exploitation-steps-msg {
+    /* Style existant via text-muted small */
+}
+
+/* Styles pour la modale (Bootstrap gère la base) */
+#exploitationStepDetailModal .modal-body {
+    /* Augmenter potentiellement la hauteur max si besoin */
+    max-height: calc(100vh - 210px); /* Exemple: hauteur max pour le corps */
+    overflow-y: auto;
+}
+
+#exploitationStepDetailModal .form-label-sm { /* Si vous utilisez des labels plus petits */
+    font-size: 0.85rem;
+}
+
+#exploitationStepDetailModal textarea {
+    font-family: monospace; /* Utile pour le contenu technique */
+    font-size: 0.9em;
+}
+
+#stepDetailModalScreenshotPreview img {
+    display: block; /* Assure que l'image est sur sa propre ligne */
+    margin-top: 5px;
+    border: 1px solid var(--border-color-light, #ddd);
+    border-radius: 3px;
+}
+
+
+/* --- Styles Dark Theme pour Étapes Exploitation --- */
+body.dark-theme #exploitationStepsList .list-group-item {
+    background-color: var(--dark-panel-section-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #exploitationStepsList .list-group-item:hover {
+    background-color: var(--dark-background-color-hover, #40444b);
+}
+body.dark-theme .exploitation-step-item .step-order {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme .exploitation-step-item .step-title {
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme .exploitation-step-item .icon-screenshot {
+    color: var(--dark-info-color, #6cb2eb); /* Ajuster la couleur de l'icône */
+}
+body.dark-theme .exploitation-step-item .step-actions .btn-outline-secondary {
+    color: var(--dark-text-color-muted, #adb5bd);
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme .exploitation-step-item .step-actions .btn-outline-secondary:hover {
+    background-color: var(--dark-border-color-light, #5a6268);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme .exploitation-step-item .step-actions .btn-outline-danger {
+     color: var(--dark-danger-color, #f07178);
+     border-color: var(--dark-danger-border, #f07178);
+}
+body.dark-theme .exploitation-step-item .step-actions .btn-outline-danger:hover {
+     background-color: var(--dark-danger-color, #f07178);
+     color: white;
+}
+
+/* Styles Dark Theme pour la Modale */
+body.dark-theme #exploitationStepDetailModal .modal-content {
+    background-color: var(--dark-panel-bg, #25282c);
+    color: var(--dark-text-color, #e0e0e0);
+}
+body.dark-theme #exploitationStepDetailModal .modal-header {
+    border-bottom-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #exploitationStepDetailModal .modal-header .close {
+    color: var(--dark-text-color, #e0e0e0);
+    opacity: 0.8;
+}
+body.dark-theme #exploitationStepDetailModal .modal-footer {
+    border-top-color: var(--dark-border-color, #40444b);
+}
+body.dark-theme #exploitationStepDetailModal .form-control {
+    background-color: var(--dark-input-bg-color, #40444b);
+    color: var(--dark-text-color, #e0e0e0);
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme #exploitationStepDetailModal label {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+body.dark-theme #stepDetailModalScreenshotPreview img {
+    border-color: var(--dark-border-color-light, #5a6268);
+}
+body.dark-theme #stepDetailModalScreenshotPreview .text-danger {
+    color: var(--dark-danger-color, #f07178) !important;
+}
+body.dark-theme #stepDetailModalScreenshotPreview .text-muted {
+    color: var(--dark-text-color-muted, #adb5bd) !important;
+}
+
 
 /* ... (reste du CSS) ... */

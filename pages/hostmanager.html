@@ -409,6 +409,23 @@
             <!-- == FIN NOUVELLE SECTION OUTPUTS == -->
             <!-- ================================== -->
 
+            <!-- ======================================== -->
+            <!-- == NOUVELLE SECTION ÉTAPES EXPLOITATION == -->
+            <!-- ======================================== -->
+            <div id="exploitationStepsSection" class="mt-4 pt-3 border-top">
+                <h4>Étapes d'Exploitation</h4>
+                <div id="exploitationStepsList" class="list-group mb-3">
+                    <!-- Les étapes seront listées ici par JS -->
+                    <p class="text-muted small no-exploitation-steps-msg">Aucune étape d'exploitation enregistrée pour cet hôte.</p>
+                </div>
+                <button type="button" id="addExploitationStepBtn" class="btn btn-secondary btn-sm mb-3">
+                    <i class="icon-plus"></i> Ajouter une Étape
+                </button>
+            </div>
+            <!-- ======================================== -->
+            <!-- == FIN SECTION ÉTAPES EXPLOITATION == -->
+            <!-- ======================================== -->
+
             <!-- Boutons d'action -->
             <div class="edit-panel-actions">
                 <button type="submit" class="btn btn-primary">Sauvegarder Modifications</button>
@@ -416,6 +433,51 @@
             </div>
         </form>
     </div>
+
+    <!-- MODALE POUR LES DÉTAILS D'UNE ÉTAPE D'EXPLOITATION (Initialement cachée) -->
+    <div class="modal fade" id="exploitationStepDetailModal" tabindex="-1" aria-labelledby="exploitationStepDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg"> <!-- modal-lg pour plus d'espace -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exploitationStepDetailModalLabel">Détails de l'Étape</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="exploitationStepDetailForm">
+                        <input type="hidden" id="stepDetailModalStepId">
+                        <div class="form-group row">
+                            <label for="stepDetailModalOrder" class="col-sm-2 col-form-label">Ordre:</label>
+                            <div class="col-sm-3">
+                                <input type="number" class="form-control form-control-sm" id="stepDetailModalOrder" min="1" step="1" required>
+                            </div>
+                             <label for="stepDetailModalTitle" class="col-sm-1 col-form-label">Titre:</label>
+                             <div class="col-sm-6">
+                                <input type="text" class="form-control form-control-sm" id="stepDetailModalTitle" placeholder="Ex: Scan Initial, Escalade Privilèges..." required>
+                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="stepDetailModalContent">Contenu (Commandes, Notes, etc.):</label>
+                            <textarea class="form-control" id="stepDetailModalContent" rows="10" placeholder="Détaillez les commandes exécutées, les résultats importants, les observations..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="stepDetailModalScreenshotUrl">URL/Chemin Capture d'écran (Optionnel):</label>
+                            <input type="text" class="form-control form-control-sm" id="stepDetailModalScreenshotUrl" placeholder="Ex: /screenshots/step1.png ou http://.../image.jpg">
+                        </div>
+                        <div id="stepDetailModalScreenshotPreview" class="mt-2" style="max-height: 200px; overflow: auto;">
+                            <!-- L'aperçu de l'image sera chargé ici si une URL est valide -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" id="saveExploitationStepBtn" class="btn btn-primary">Sauvegarder Étape</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIN MODALE -->
 
     <!-- Panneau Paramètres Catégorie (Initialement caché) -->
     <!-- Placé HORS de main-content -->
@@ -443,6 +505,14 @@
     </footer>
 
     <!-- Scripts JS -->
+    <!-- jQuery (Doit être chargé AVANT Bootstrap JS) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Popper.js (Requis par Bootstrap JS pour les tooltips, popovers, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <!-- Bootstrap JS (Dépend de jQuery et Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Vos autres scripts -->
     <script src="/assets/js/sidebar.js"></script> <!-- Pour la sidebar -->
     <script src="/assets/js/theme.js"></script>   <!-- Pour le thème -->
     <script src="/assets/js/language.js"></script> <!-- Pour la langue (si utilisé) -->
