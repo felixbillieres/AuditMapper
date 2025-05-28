@@ -3053,3 +3053,141 @@ body.dark-theme #network-map {
 .legend-text {
     color: var(--text-color);
 }
+
+/* Styles pour la sidebar améliorée */
+.edit-panel-header {
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 20px;
+    z-index: 10;
+}
+
+.edit-panel-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+
+.edit-panel-content {
+    padding: 20px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.credential-item,
+.exploitation-step-item,
+.vulnerability-item {
+    background: var(--body-bg);
+    transition: all 0.2s ease;
+}
+
+.credential-item:hover,
+.exploitation-step-item:hover,
+.vulnerability-item:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color) !important;
+}
+
+.card-header h5 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.card-header i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+/* Mode sombre pour les nouveaux éléments */
+body.dark-theme .credential-item,
+body.dark-theme .exploitation-step-item,
+body.dark-theme .vulnerability-item {
+    background: var(--dark-panel-section-bg);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .credential-item:hover,
+body.dark-theme .exploitation-step-item:hover,
+body.dark-theme .vulnerability-item:hover {
+    background: var(--dark-background-color-hover);
+}
+
+/* Styles pour les formulaires inline dans la sidebar */
+.credential-add-form {
+    background: var(--hover-bg) !important;
+    border: 2px dashed var(--primary-color) !important;
+}
+
+.credential-add-form h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Styles pour les modals */
+.modal {
+    z-index: 1060;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.modal-header {
+    background: var(--tab-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    color: var(--text-color);
+}
+
+.modal-body {
+    background: var(--card-bg);
+    color: var(--text-color);
+}
+
+.modal-footer {
+    background: var(--tab-bg);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Amélioration des étapes d'exploitation */
+.exploitation-step-item {
+    border-left: 4px solid var(--primary-color);
+    background: var(--card-bg);
+}
+
+.exploitation-step-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Badges pour les credentials */
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* Mode sombre pour les modals */
+body.dark-theme .modal-content {
+    background: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+    background: var(--tab-bg);
+    border-color: var(--border-color);
+}
+
+body.dark-theme .credential-add-form {
+    background: var(--hover-bg) !important;
+    border-color: var(--primary-color) !important;
+}
+
+body.dark-theme .exploitation-step-item {
+    background: var(--card-bg);
+    border-left-color: var(--primary-color);
+}

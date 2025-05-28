@@ -5,7 +5,7 @@ services:
     build: .
     container_name: pentesting-template-generator
     ports:
-      - "12396:80"
+      - "12489:80"
     volumes:
       - ./:/usr/share/nginx/html
     restart: unless-stopped
