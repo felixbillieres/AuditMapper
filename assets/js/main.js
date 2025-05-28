@@ -424,4 +424,176 @@ document.addEventListener('DOMContentLoaded', function() {
             breachCredentials.style.display = assumedBreachCheckbox && assumedBreachCheckbox.checked ? 'block' : 'none';
         }, 3000);
     }
-}); 
+});
+
+// Ajouter cette fonction pour agréger les credentials
+function aggregateCredentials() {
+    const hostData = hostManager.getData();
+    const allCredentials = [];
+    
+    // Parcourir toutes les catégories et tous les hôtes
+    for (const categoryName in hostData.categories) {
+        const category = hostData.categories[categoryName];
+        if (category.hosts) {
+            for (const hostId in category.hosts) {
+                const host = category.hosts[hostId];
+                if (host.credentials && host.credentials.length > 0) {
+                    host.credentials.forEach(cred => {
+                        allCredentials.push({
+                            ...cred,
+                            hostId: hostId,
+                            category: categoryName
+                        });
+                    });
+                }
+            }
+        }
+    }
+    
+    return allCredentials;
+}
+
+// Modifier la fonction updateAggregatedData existante
+function updateAggregatedData() {
+    const hostData = hostManager.getData();
+    const aggregatedDataDiv = document.getElementById('aggregatedData');
+    
+    if (!aggregatedDataDiv) return;
+
+    let totalHosts = 0;
+    let compromisedHosts = 0;
+    const allTags = new Set();
+    const allCredentials = aggregateCredentials();
+
+    // Compter les hôtes et tags
+    for (const categoryName in hostData.categories) {
+        const category = hostData.categories[categoryName];
+        if (category.hosts) {
+            for (const hostId in category.hosts) {
+                totalHosts++;
+                const host = category.hosts[hostId];
+                
+                if (host.compromiseLevel && host.compromiseLevel !== 'None') {
+                    compromisedHosts++;
+                }
+                
+                if (host.tags) {
+                    host.tags.forEach(tag => allTags.add(tag));
+                }
+            }
+        }
+    }
+
+    // Créer le contenu agrégé avec les credentials
+    let credentialsHtml = '';
+    if (allCredentials.length > 0) {
+        // Grouper par type
+        const credsByType = {};
+        allCredentials.forEach(cred => {
+            if (!credsByType[cred.type]) {
+                credsByType[cred.type] = [];
+            }
+            credsByType[cred.type].push(cred);
+        });
+
+        credentialsHtml = `
+            <div class="mb-3">
+                <h6><i class="fas fa-key"></i> Identifiants trouvés (${allCredentials.length})</h6>
+                <div class="credentials-aggregate">
+        `;
+
+        for (const [type, creds] of Object.entries(credsByType)) {
+            credentialsHtml += `
+                <div class="credential-type-group mb-2">
+                    <strong class="text-primary">${type.toUpperCase()}:</strong>
+                    <div class="ml-3">
+            `;
+            
+            creds.forEach(cred => {
+                const credText = `${cred.username}${cred.password ? ':' + cred.password : ''} (${cred.hostId})`;
+                credentialsHtml += `
+                    <div class="credential-item-aggregate" onclick="copyToClipboard('${credText.replace(/'/g, "\\'")}')">
+                        <code>${cred.username}${cred.password ? ':••••••••' : ''}</code>
+                        <small class="text-muted ml-2">@ ${cred.hostId}</small>
+                        <i class="fas fa-copy ml-1" title="Cliquer pour copier"></i>
+                    </div>
+                `;
+            });
+            
+            credentialsHtml += `
+                    </div>
+                </div>
+            `;
+        }
+
+        credentialsHtml += `
+                </div>
+            </div>
+        `;
+    }
+
+    aggregatedDataDiv.innerHTML = `
+        <h5>📊 Données Agrégées (Cliquer pour copier)</h5>
+        
+        <div class="mb-3">
+            <h6><i class="fas fa-server"></i> Statistiques</h6>
+            <div onclick="copyToClipboard('Total: ${totalHosts} hôtes, Compromis: ${compromisedHosts}')" class="clickable-data">
+                <strong>Total:</strong> ${totalHosts} hôtes | <strong>Compromis:</strong> ${compromisedHosts}
+                <i class="fas fa-copy ml-1"></i>
+            </div>
+        </div>
+
+        ${credentialsHtml}
+
+        <div class="mb-3">
+            <h6><i class="fas fa-tags"></i> Tags utilisés (${allTags.size})</h6>
+            <div onclick="copyToClipboard('${Array.from(allTags).join(', ')}')" class="clickable-data">
+                ${Array.from(allTags).map(tag => `<span class="badge badge-secondary mr-1">${tag}</span>`).join('')}
+                <i class="fas fa-copy ml-1"></i>
+            </div>
+        </div>
+    `;
+}
+
+// Fonction pour copier dans le presse-papiers
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Afficher une notification temporaire
+        showNotification('Copié dans le presse-papiers !', 'success');
+    }).catch(() => {
+        // Fallback pour les navigateurs plus anciens
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Copié dans le presse-papiers !', 'success');
+    });
+}
+
+// Fonction pour afficher des notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} notification-toast`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 250px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 2000);
+} 

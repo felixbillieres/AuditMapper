@@ -8,6 +8,7 @@ export class HostUI {
         this.editPanel = null;
         this.editHostForm = null;
         this.currentEditingHost = null;
+        this.currentScreenshot = null;
     }
 
     initialize() {
@@ -936,124 +937,112 @@ export class HostUI {
 
     addExploitationStep() {
         if (!this.currentEditingHost) return;
-
-        // Créer et afficher le modal pour l'étape d'exploitation
+        
         this.showExploitationStepModal();
     }
 
-    showExploitationStepModal(stepIndex = null) {
-        // Supprimer le modal existant s'il y en a un
-        const existingModal = document.getElementById('exploitationStepModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        const isEdit = stepIndex !== null;
-        const step = isEdit ? this.currentEditingHost.data.exploitationSteps[stepIndex] : null;
+    showExploitationStepModal(editIndex = null) {
+        const isEdit = editIndex !== null;
+        const step = isEdit ? this.currentEditingHost.data.exploitationSteps[editIndex] : null;
 
         const modal = document.createElement('div');
+        modal.className = 'modal fade';
         modal.id = 'exploitationStepModal';
-        modal.className = 'modal fade show';
-        modal.style.display = 'block';
-        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        
         modal.innerHTML = `
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
                             <i class="fas fa-crosshairs"></i> 
-                            ${isEdit ? 'Modifier l\'étape d\'exploitation' : 'Nouvelle étape d\'exploitation'}
+                            ${isEdit ? 'Modifier' : 'Nouvelle'} étape d'exploitation
                         </h5>
                         <button type="button" class="close" onclick="hostManager.modules.hostUI.closeExploitationStepModal()">
                             <span>&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="exploitationStepForm">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="stepTitle">Titre de l'étape *</label>
-                                        <input type="text" id="stepTitle" class="form-control" 
-                                               value="${step?.title || ''}" 
-                                               placeholder="ex: Exploitation Shellshock, Privilege Escalation">
-                                    </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="stepTitle">Titre *:</label>
+                                    <input type="text" id="stepTitle" class="form-control" value="${step?.title || ''}" placeholder="ex: Exploitation SQLi">
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="stepSeverity">Sévérité</label>
-                                        <select id="stepSeverity" class="form-control">
-                                            <option value="Low" ${step?.severity === 'Low' ? 'selected' : ''}>🟢 Low</option>
-                                            <option value="Medium" ${step?.severity === 'Medium' ? 'selected' : ''}>🟡 Medium</option>
-                                            <option value="High" ${step?.severity === 'High' ? 'selected' : ''}>🟠 High</option>
-                                            <option value="Critical" ${step?.severity === 'Critical' ? 'selected' : ''}>🔴 Critical</option>
-                                        </select>
-                                    </div>
+                                
+                                <div class="form-group">
+                                    <label for="stepTool">Outil utilisé:</label>
+                                    <input type="text" id="stepTool" class="form-control" value="${step?.tool || ''}" placeholder="ex: sqlmap, metasploit">
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="stepDescription">Description</label>
-                                <textarea id="stepDescription" class="form-control" rows="3" 
-                                          placeholder="Description détaillée de l'étape...">${step?.description || ''}</textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="stepCommand">Commande/Payload</label>
-                                <textarea id="stepCommand" class="form-control" rows="2" 
-                                          placeholder="Commande utilisée, payload, etc...">${step?.command || ''}</textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="stepTool">Outil utilisé</label>
-                                        <input type="text" id="stepTool" class="form-control" 
-                                               value="${step?.tool || ''}" 
-                                               placeholder="ex: Metasploit, Burp Suite, Custom">
-                                    </div>
+                                
+                                <div class="form-group">
+                                    <label for="stepCVE">CVE (optionnel):</label>
+                                    <input type="text" id="stepCVE" class="form-control" value="${step?.cve || ''}" placeholder="ex: CVE-2021-1234">
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="stepCVE">CVE (optionnel)</label>
-                                        <input type="text" id="stepCVE" class="form-control" 
-                                               value="${step?.cve || ''}" 
-                                               placeholder="ex: CVE-2014-6271">
-                                    </div>
+                                
+                                <div class="form-group">
+                                    <label for="stepSeverity">Sévérité:</label>
+                                    <select id="stepSeverity" class="form-control">
+                                        <option value="Low" ${step?.severity === 'Low' ? 'selected' : ''}>🟢 Low</option>
+                                        <option value="Medium" ${step?.severity === 'Medium' ? 'selected' : ''}>🟡 Medium</option>
+                                        <option value="High" ${step?.severity === 'High' ? 'selected' : ''}>🟠 High</option>
+                                        <option value="Critical" ${step?.severity === 'Critical' ? 'selected' : ''}>🔴 Critical</option>
+                                    </select>
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="stepScreenshot">Screenshot/Preuve</label>
-                                <input type="url" id="stepScreenshot" class="form-control" 
-                                       value="${step?.screenshot || ''}" 
-                                       placeholder="URL vers une image ou chemin local">
-                                <small class="form-text text-muted">
-                                    Vous pouvez coller une URL d'image ou un chemin vers un fichier local
-                                </small>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="stepDescription">Description:</label>
+                                    <textarea id="stepDescription" class="form-control" rows="3" placeholder="Description de l'étape...">${step?.description || ''}</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="stepCommand">Commande:</label>
+                                    <textarea id="stepCommand" class="form-control" rows="2" placeholder="Commande utilisée...">${step?.command || ''}</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="stepNotes">Notes:</label>
+                                    <textarea id="stepNotes" class="form-control" rows="2" placeholder="Notes additionnelles...">${step?.notes || ''}</textarea>
+                                </div>
                             </div>
-
-                            <div id="screenshotPreview" class="mt-2"></div>
-
-                            <div class="form-group">
-                                <label for="stepOutput">Sortie/Résultat</label>
-                                <textarea id="stepOutput" class="form-control" rows="4" 
-                                          placeholder="Sortie de la commande, résultat obtenu...">${step?.output || ''}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Screenshot:</label>
+                                    <div class="screenshot-upload-area" id="screenshotUploadArea">
+                                        <div class="upload-instructions">
+                                            <i class="fas fa-image fa-2x mb-2"></i>
+                                            <p>Collez une image (Ctrl+V) ou glissez-déposez un fichier</p>
+                                            <input type="file" id="screenshotFile" accept="image/*" style="display: none;">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('screenshotFile').click()">
+                                                <i class="fas fa-folder-open"></i> Choisir un fichier
+                                            </button>
+                                        </div>
+                                        <div id="screenshotPreview" style="display: none;">
+                                            <img id="previewImage" style="max-width: 100%; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;">
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="hostManager.modules.hostUI.removeScreenshot()">
+                                                    <i class="fas fa-trash"></i> Supprimer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                <label for="stepNotes">Notes additionnelles</label>
-                                <textarea id="stepNotes" class="form-control" rows="2" 
-                                          placeholder="Notes, observations, recommandations...">${step?.notes || ''}</textarea>
-                            </div>
-                        </form>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stepOutput">Résultat/Output:</label>
+                            <textarea id="stepOutput" class="form-control" rows="6" placeholder="Résultat de la commande ou de l'exploitation...">${step?.output || ''}</textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="hostManager.modules.hostUI.closeExploitationStepModal()">
                             Annuler
                         </button>
-                        <button type="button" class="btn btn-primary" onclick="hostManager.modules.hostUI.saveExploitationStep(${stepIndex})">
+                        <button type="button" class="btn btn-primary" onclick="hostManager.modules.hostUI.saveExploitationStep(${editIndex})">
                             <i class="fas fa-save"></i> ${isEdit ? 'Modifier' : 'Ajouter'}
                         </button>
                     </div>
@@ -1062,42 +1051,118 @@ export class HostUI {
         `;
 
         document.body.appendChild(modal);
-
-        // Ajouter l'événement pour la prévisualisation du screenshot
-        const screenshotInput = document.getElementById('stepScreenshot');
-        screenshotInput.addEventListener('input', () => {
-            this.updateScreenshotPreview(screenshotInput.value);
-        });
-
-        // Prévisualiser le screenshot existant si en mode édition
+        
+        // Configurer les événements pour le screenshot
+        this.setupScreenshotHandling();
+        
+        // Si on édite et qu'il y a déjà un screenshot
         if (step?.screenshot) {
-            this.updateScreenshotPreview(step.screenshot);
+            this.displayScreenshot(step.screenshot);
         }
-
-        // Focus sur le titre
-        document.getElementById('stepTitle').focus();
+        
+        // Afficher la modal
+        if (window.$ && $.fn.modal) {
+            $(modal).modal('show');
+        } else {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
     }
 
-    updateScreenshotPreview(url) {
-        const preview = document.getElementById('screenshotPreview');
-        if (!preview) return;
-
-        preview.innerHTML = '';
+    setupScreenshotHandling() {
+        const uploadArea = document.getElementById('screenshotUploadArea');
+        const fileInput = document.getElementById('screenshotFile');
         
-        if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))) {
-            const img = document.createElement('img');
-            img.src = url;
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '200px';
-            img.style.border = '1px solid #ddd';
-            img.style.borderRadius = '4px';
-            img.alt = 'Aperçu screenshot';
-            img.onerror = () => {
-                preview.innerHTML = '<p class="text-danger small">❌ Impossible de charger l\'image</p>';
-            };
-            preview.appendChild(img);
-        } else if (url) {
-            preview.innerHTML = '<p class="text-muted small">📁 Fichier local (aperçu non disponible)</p>';
+        if (!uploadArea || !fileInput) return;
+
+        // Gestion du drag & drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                this.handleImageFile(files[0]);
+            }
+        });
+
+        // Gestion du collage (Ctrl+V)
+        document.addEventListener('paste', (e) => {
+            // Vérifier si on est dans la modal d'exploitation
+            if (document.getElementById('exploitationStepModal')) {
+                const items = e.clipboardData.items;
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        this.handleImageFile(file);
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Gestion de la sélection de fichier
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handleImageFile(e.target.files[0]);
+            }
+        });
+    }
+
+    handleImageFile(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Veuillez sélectionner un fichier image.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.displayScreenshot(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    displayScreenshot(imageSrc) {
+        const uploadArea = document.getElementById('screenshotUploadArea');
+        const preview = document.getElementById('screenshotPreview');
+        const previewImage = document.getElementById('previewImage');
+        const instructions = uploadArea.querySelector('.upload-instructions');
+
+        if (preview && previewImage && instructions) {
+            previewImage.src = imageSrc;
+            instructions.style.display = 'none';
+            preview.style.display = 'block';
+            
+            // Stocker l'image en base64 pour la sauvegarde
+            this.currentScreenshot = imageSrc;
+        }
+    }
+
+    removeScreenshot() {
+        const uploadArea = document.getElementById('screenshotUploadArea');
+        const preview = document.getElementById('screenshotPreview');
+        const instructions = uploadArea.querySelector('.upload-instructions');
+        const fileInput = document.getElementById('screenshotFile');
+
+        if (preview && instructions) {
+            preview.style.display = 'none';
+            instructions.style.display = 'block';
+            this.currentScreenshot = null;
+            
+            if (fileInput) {
+                fileInput.value = '';
+            }
         }
     }
 
@@ -1107,7 +1172,6 @@ export class HostUI {
         const command = document.getElementById('stepCommand')?.value.trim() || '';
         const tool = document.getElementById('stepTool')?.value.trim() || '';
         const cve = document.getElementById('stepCVE')?.value.trim() || '';
-        const screenshot = document.getElementById('stepScreenshot')?.value.trim() || '';
         const output = document.getElementById('stepOutput')?.value.trim() || '';
         const notes = document.getElementById('stepNotes')?.value.trim() || '';
         const severity = document.getElementById('stepSeverity')?.value || 'Medium';
@@ -1123,7 +1187,7 @@ export class HostUI {
             command,
             tool,
             cve,
-            screenshot,
+            screenshot: this.currentScreenshot || '', // Utiliser l'image stockée
             output,
             notes,
             severity,
@@ -1147,19 +1211,37 @@ export class HostUI {
         // Sauvegarder immédiatement
         this.saveCurrentHostData();
 
+        // Réinitialiser la variable screenshot
+        this.currentScreenshot = null;
+
         this.closeExploitationStepModal();
         this.populateExploitationStepsSection(this.currentEditingHost.data.exploitationSteps);
     }
 
-    closeExploitationStepModal() {
-        const modal = document.getElementById('exploitationStepModal');
-        if (modal) {
-            modal.remove();
+    editExploitationStep(index) {
+        if (!this.currentEditingHost?.data.exploitationSteps || !this.currentEditingHost.data.exploitationSteps[index]) {
+            return;
         }
+
+        this.showExploitationStepModal(index);
     }
 
-    editExploitationStep(index) {
-        this.showExploitationStepModal(index);
+    removeExploitationStep(index) {
+        if (!this.currentEditingHost || !this.currentEditingHost.data.exploitationSteps) return;
+
+        if (confirm('Supprimer cette étape d\'exploitation ?')) {
+            this.currentEditingHost.data.exploitationSteps.splice(index, 1);
+            
+            // Réorganiser les ordres
+            this.currentEditingHost.data.exploitationSteps.forEach((step, idx) => {
+                step.order = idx + 1;
+            });
+            
+            // Sauvegarder immédiatement
+            this.saveCurrentHostData();
+            
+            this.populateExploitationStepsSection(this.currentEditingHost.data.exploitationSteps);
+        }
     }
 
     populateExploitationStepsSection(steps) {
@@ -1176,6 +1258,16 @@ export class HostUI {
         // Trier par ordre
         const sortedSteps = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
 
+        // Ajouter les contrôles de réorganisation
+        container.innerHTML = `
+            <div class="mb-2">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Utilisez les flèches pour réorganiser les étapes
+                </small>
+            </div>
+        `;
+
         sortedSteps.forEach((step, index) => {
             const severityIcon = {
                 'Low': '🟢',
@@ -1190,12 +1282,19 @@ export class HostUI {
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="flex-grow-1">
                         <h6 class="mb-1">
+                            <span class="step-order-badge badge badge-primary mr-2">${index + 1}</span>
                             ${severityIcon} ${step.title}
                             ${step.cve ? `<span class="badge badge-warning ml-2">${step.cve}</span>` : ''}
                         </h6>
                         ${step.tool ? `<small class="text-info">🔧 ${step.tool}</small>` : ''}
                     </div>
                     <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" onclick="hostManager.modules.hostUI.moveStepUp(${steps.indexOf(step)})" title="Monter" ${index === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="hostManager.modules.hostUI.moveStepDown(${steps.indexOf(step)})" title="Descendre" ${index === sortedSteps.length - 1 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
                         <button type="button" class="btn btn-outline-secondary" onclick="hostManager.modules.hostUI.editExploitationStep(${steps.indexOf(step)})" title="Éditer">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1217,7 +1316,8 @@ export class HostUI {
                 ${step.screenshot ? `
                     <div class="mb-2">
                         <small class="text-muted">Screenshot:</small><br>
-                        <img src="${step.screenshot}" alt="Screenshot" style="max-width: 100%; max-height: 150px; border: 1px solid #ddd; border-radius: 4px;" 
+                        <img src="${step.screenshot}" alt="Screenshot" style="max-width: 100%; max-height: 200px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" 
+                             onclick="hostManager.modules.hostUI.viewFullScreenshot('${step.screenshot}')"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <p class="text-danger small" style="display: none;">❌ Image non disponible</p>
                     </div>
@@ -1236,243 +1336,53 @@ export class HostUI {
         });
     }
 
-    removeExploitationStep(index) {
-        if (!this.currentEditingHost || !this.currentEditingHost.data.exploitationSteps) return;
-
-        if (confirm('Supprimer cette étape d\'exploitation ?')) {
-            this.currentEditingHost.data.exploitationSteps.splice(index, 1);
-            
-            // Sauvegarder immédiatement
-            this.saveCurrentHostData();
-            
-            this.populateExploitationStepsSection(this.currentEditingHost.data.exploitationSteps);
-        }
-    }
-
-    addOutput() {
-        if (!this.currentEditingHost) return;
-
-        // Créer un formulaire inline dans la sidebar
-        const container = document.getElementById('outputsList');
-        if (!container) return;
-
-        // Vérifier s'il y a déjà un formulaire d'ajout ouvert
-        if (container.querySelector('.output-add-form')) {
-            return; // Un formulaire est déjà ouvert
-        }
-
-        const addForm = document.createElement('div');
-        addForm.className = 'output-add-form mb-3 p-3 border rounded bg-light';
-        addForm.innerHTML = `
-            <h6 class="mb-3"><i class="fas fa-plus"></i> Nouvelle sortie/Output</h6>
-            <div class="form-group">
-                <label for="newOutputTitle">Titre:</label>
-                <input type="text" id="newOutputTitle" class="form-control form-control-sm" placeholder="ex: nmap scan, sqlmap dump, etc.">
-            </div>
-            <div class="form-group">
-                <label for="newOutputType">Type:</label>
-                <select id="newOutputType" class="form-control form-control-sm">
-                    <option value="scan">Scan réseau</option>
-                    <option value="enumeration">Énumération</option>
-                    <option value="exploit">Exploitation</option>
-                    <option value="dump">Dump de données</option>
-                    <option value="shell">Shell/Command</option>
-                    <option value="file">Fichier récupéré</option>
-                    <option value="other">Autre</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="newOutputCommand">Commande utilisée:</label>
-                <input type="text" id="newOutputCommand" class="form-control form-control-sm" placeholder="ex: nmap -sV -sC target">
-            </div>
-            <div class="form-group">
-                <label for="newOutputContent">Contenu/Résultat:</label>
-                <textarea id="newOutputContent" class="form-control form-control-sm" rows="8" placeholder="Collez ici le résultat de votre commande, dump, ou toute sortie..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="newOutputNotes">Notes:</label>
-                <textarea id="newOutputNotes" class="form-control form-control-sm" rows="2" placeholder="Notes additionnelles sur cette sortie..."></textarea>
-            </div>
-            <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-secondary btn-sm mr-2" onclick="hostManager.modules.hostUI.cancelAddOutput()">
-                    Annuler
-                </button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="hostManager.modules.hostUI.saveNewOutput()">
-                    <i class="fas fa-save"></i> Sauvegarder
-                </button>
-            </div>
-        `;
-
-        container.insertBefore(addForm, container.firstChild);
-        document.getElementById('newOutputTitle').focus();
-    }
-
-    saveNewOutput() {
-        const title = document.getElementById('newOutputTitle')?.value.trim() || '';
-        const type = document.getElementById('newOutputType')?.value || 'other';
-        const command = document.getElementById('newOutputCommand')?.value.trim() || '';
-        const content = document.getElementById('newOutputContent')?.value.trim() || '';
-        const notes = document.getElementById('newOutputNotes')?.value.trim() || '';
-
-        if (!title && !content) {
-            alert('Veuillez entrer au moins un titre ou du contenu.');
-            return;
-        }
-
-        const newOutput = {
-            title: title || 'Output sans titre',
-            type,
-            command,
-            content,
-            notes,
-            timestamp: new Date().toISOString()
-        };
-
-        if (!this.currentEditingHost.data.outputs) {
-            this.currentEditingHost.data.outputs = [];
-        }
-
-        this.currentEditingHost.data.outputs.push(newOutput);
+    moveStepUp(stepIndex) {
+        if (!this.currentEditingHost?.data.exploitationSteps || stepIndex <= 0) return;
         
-        // Sauvegarder immédiatement
+        const steps = this.currentEditingHost.data.exploitationSteps;
+        const sortedSteps = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
+        
+        // Échanger les ordres
+        const temp = sortedSteps[stepIndex].order;
+        sortedSteps[stepIndex].order = sortedSteps[stepIndex - 1].order;
+        sortedSteps[stepIndex - 1].order = temp;
+        
         this.saveCurrentHostData();
+        this.populateExploitationStepsSection(steps);
+    }
+
+    moveStepDown(stepIndex) {
+        if (!this.currentEditingHost?.data.exploitationSteps) return;
         
-        this.cancelAddOutput();
-        this.populateOutputsSection(this.currentEditingHost.data.outputs);
-    }
-
-    cancelAddOutput() {
-        const form = document.querySelector('.output-add-form');
-        if (form) {
-            form.remove();
-        }
-    }
-
-    removeOutput(index) {
-        if (!this.currentEditingHost || !this.currentEditingHost.data.outputs) return;
-
-        if (confirm('Supprimer cette sortie ?')) {
-            this.currentEditingHost.data.outputs.splice(index, 1);
-            
-            // Sauvegarder immédiatement
-            this.saveCurrentHostData();
-            
-            this.populateOutputsSection(this.currentEditingHost.data.outputs);
-        }
-    }
-
-    populateOutputsSection(outputs) {
-        const container = document.getElementById('outputsList');
-        if (!container) return;
-
-        // Garder le formulaire d'ajout s'il existe
-        const addForm = container.querySelector('.output-add-form');
-        container.innerHTML = '';
+        const steps = this.currentEditingHost.data.exploitationSteps;
+        const sortedSteps = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
         
-        if (addForm) {
-            container.appendChild(addForm);
-        }
-
-        if (!outputs || outputs.length === 0) {
-            const emptyMsg = document.createElement('p');
-            emptyMsg.className = 'text-muted small';
-            emptyMsg.textContent = 'Aucune sortie enregistrée.';
-            container.appendChild(emptyMsg);
-            return;
-        }
-
-        outputs.forEach((output, index) => {
-            const typeIcon = {
-                'scan': '🔍',
-                'enumeration': '📋',
-                'exploit': '💥',
-                'dump': '📊',
-                'shell': '💻',
-                'file': '📄',
-                'other': '📝'
-            }[output.type] || '📝';
-
-            const outputElement = document.createElement('div');
-            outputElement.className = 'output-item mb-3 p-3 border rounded';
-            outputElement.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">
-                            ${typeIcon} ${output.title}
-                            <span class="badge badge-info ml-2">${output.type}</span>
-                        </h6>
-                        ${output.command ? `<small class="text-muted">💻 ${output.command}</small>` : ''}
-                    </div>
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-secondary" onclick="hostManager.modules.hostUI.viewOutput(${index})" title="Voir en détail">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-danger" onclick="hostManager.modules.hostUI.removeOutput(${index})" title="Supprimer">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                ${output.content ? `
-                    <div class="mb-2">
-                        <pre class="small bg-light p-2 rounded" style="max-height: 120px; overflow-y: auto; white-space: pre-wrap;">${output.content.substring(0, 500)}${output.content.length > 500 ? '...' : ''}</pre>
-                    </div>
-                ` : ''}
-                
-                ${output.notes ? `<div class="text-muted small">📝 ${output.notes}</div>` : ''}
-                
-                <small class="text-muted">🕒 ${new Date(output.timestamp).toLocaleString()}</small>
-            `;
-            container.appendChild(outputElement);
-        });
+        if (stepIndex >= sortedSteps.length - 1) return;
+        
+        // Échanger les ordres
+        const temp = sortedSteps[stepIndex].order;
+        sortedSteps[stepIndex].order = sortedSteps[stepIndex + 1].order;
+        sortedSteps[stepIndex + 1].order = temp;
+        
+        this.saveCurrentHostData();
+        this.populateExploitationStepsSection(steps);
     }
 
-    viewOutput(index) {
-        if (!this.currentEditingHost || !this.currentEditingHost.data.outputs) return;
-        
-        const output = this.currentEditingHost.data.outputs[index];
-        if (!output) return;
-
-        // Créer une modal pour afficher le contenu complet
+    viewFullScreenshot(imageSrc) {
         const modal = document.createElement('div');
         modal.className = 'modal fade';
-        modal.id = 'outputViewModal';
+        modal.id = 'screenshotViewModal';
         modal.innerHTML = `
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">${output.title}</h5>
-                        <button type="button" class="close" onclick="hostManager.modules.hostUI.closeOutputModal()">
+                        <h5 class="modal-title">Screenshot</h5>
+                        <button type="button" class="close" onclick="hostManager.modules.hostUI.closeScreenshotModal()">
                             <span>&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <strong>Type:</strong> <span class="badge badge-info">${output.type}</span>
-                            ${output.command ? `<br><strong>Commande:</strong> <code>${output.command}</code>` : ''}
-                        </div>
-                        
-                        ${output.content ? `
-                            <div class="mb-3">
-                                <strong>Contenu:</strong>
-                                <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto; white-space: pre-wrap;">${output.content}</pre>
-                            </div>
-                        ` : ''}
-                        
-                        ${output.notes ? `
-                            <div class="mb-3">
-                                <strong>Notes:</strong>
-                                <p>${output.notes}</p>
-                            </div>
-                        ` : ''}
-                        
-                        <small class="text-muted">Créé le: ${new Date(output.timestamp).toLocaleString()}</small>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" onclick="hostManager.modules.hostUI.closeOutputModal()">Fermer</button>
-                        <button type="button" class="btn btn-primary" onclick="hostManager.modules.hostUI.copyOutputContent(${index})">
-                            <i class="fas fa-copy"></i> Copier le contenu
-                        </button>
+                    <div class="modal-body text-center">
+                        <img src="${imageSrc}" alt="Screenshot" style="max-width: 100%; height: auto;">
                     </div>
                 </div>
             </div>
@@ -1480,7 +1390,6 @@ export class HostUI {
 
         document.body.appendChild(modal);
         
-        // Afficher la modal (utilise Bootstrap si disponible)
         if (window.$ && $.fn.modal) {
             $(modal).modal('show');
         } else {
@@ -1489,8 +1398,8 @@ export class HostUI {
         }
     }
 
-    closeOutputModal() {
-        const modal = document.getElementById('outputViewModal');
+    closeScreenshotModal() {
+        const modal = document.getElementById('screenshotViewModal');
         if (modal) {
             modal.remove();
         }
@@ -1594,6 +1503,23 @@ export class HostUI {
             this.hostManager.modules.reports.generateHostReport(this.currentEditingHost.id);
         } else {
             alert('Module de rapports non disponible');
+        }
+    }
+
+    closeExploitationStepModal() {
+        const modal = document.getElementById('exploitationStepModal');
+        if (modal) {
+            // Si Bootstrap est disponible, utiliser la méthode Bootstrap
+            if (window.$ && $.fn.modal) {
+                $(modal).modal('hide');
+                // Supprimer le modal après fermeture
+                $(modal).on('hidden.bs.modal', function() {
+                    modal.remove();
+                });
+            } else {
+                // Sinon, suppression directe
+                modal.remove();
+            }
         }
     }
 }
