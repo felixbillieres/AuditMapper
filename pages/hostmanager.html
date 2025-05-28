@@ -215,6 +215,27 @@
             </div>
         </div>
 
+        <!-- Dans la section du réseau, après le div network-map -->
+        <div class="network-legend">
+            <h6>Légende</h6>
+            <div class="legend-item">
+                <span class="legend-emoji">👑</span>
+                <span class="legend-text">Accès root/admin</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-emoji">🔓</span>
+                <span class="legend-text">Accès partiel</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-emoji">🦶</span>
+                <span class="legend-text">Foothold initial</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-emoji">🎯</span>
+                <span class="legend-text">Non compromis</span>
+            </div>
+        </div>
+
         <!-- Données Agrégées -->
         <div class="card aggregated-data-section mt-3"> <!-- Ajout de mt-3 -->
             <div class="card-header">
@@ -516,7 +537,7 @@
     <script src="/assets/js/sidebar.js"></script> <!-- Pour la sidebar -->
     <script src="/assets/js/theme.js"></script>   <!-- Pour le thème -->
     <script src="/assets/js/language.js"></script> <!-- Pour la langue (si utilisé) -->
-    <script src="/assets/js/hostmanager_v2.js"></script> <!-- Script spécifique à la page -->
+    <script type="module" src="/assets/js/hostmanager/main.js"></script>
 
     <!-- Assurez-vous que JSZip et FileSaver sont inclus -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
