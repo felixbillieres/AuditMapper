@@ -45,47 +45,47 @@ export class OutputManager {
     }
 
     populateOutputsSection(outputs) {
-        console.log(">>> populateOutputsSection: START");
-        this.outputsData = outputs || [];
+        console.log(">>> populateOutputsSection called with:", outputs);
         
-        const container = document.getElementById('editOutputsContainer');
-        const noOutputsMsg = container?.querySelector('.no-outputs-msg');
-        
-        if (!container) return;
-
-        // Vider le container mais garder le message "no outputs"
-        const children = Array.from(container.children);
-        children.forEach(child => {
-            if (!child.classList.contains('no-outputs-msg')) {
-                child.remove();
-            }
-        });
-
-        if (this.outputsData.length === 0) {
-            if (noOutputsMsg) noOutputsMsg.style.display = 'block';
+        const container = document.getElementById('outputsList');
+        if (!container) {
+            console.warn("Outputs container not found");
             return;
         }
 
-        if (noOutputsMsg) noOutputsMsg.style.display = 'none';
+        container.innerHTML = '';
 
-        this.outputsData.forEach((output, index) => {
-            const outputDiv = this.createOutputElement(output, index);
-            container.appendChild(outputDiv);
+        if (!outputs || outputs.length === 0) {
+            container.innerHTML = '<p class="text-muted">Aucune sortie enregistrée.</p>';
+            return;
+        }
+
+        outputs.forEach((output, index) => {
+            const outputElement = this.createOutputElement(output, index);
+            container.appendChild(outputElement);
         });
-
-        console.log(">>> populateOutputsSection: END");
     }
 
     createOutputElement(output, index) {
         const div = document.createElement('div');
-        div.className = 'output-item mb-3 p-3 border rounded';
+        div.className = 'output-item mb-2 p-2 border rounded';
         
         div.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="mb-0">${output.type || 'Output'} ${output.subType ? `(${output.subType})` : ''}</h6>
-                <button type="button" class="btn btn-danger btn-sm" onclick="hostManager.modules.outputs.removeOutput(${index})">Supprimer</button>
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${output.title || `Sortie ${index + 1}`}</h6>
+                    <pre class="small mb-1" style="max-height: 100px; overflow-y: auto;">${output.content || 'Aucun contenu'}</pre>
+                    ${output.type ? `<span class="badge badge-info">${output.type}</span>` : ''}
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="hostManager.modules.outputs.editOutput(${index})" title="Éditer">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="hostManager.modules.outputs.removeOutput(${index})" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
-            <pre class="bg-light p-2 small" style="max-height: 200px; overflow-y: auto;">${output.content || ''}</pre>
         `;
 
         return div;
@@ -171,11 +171,12 @@ export class OutputManager {
         this.hideNewOutputArea();
     }
 
+    editOutput(index) {
+        console.log(`Editing output ${index}`);
+    }
+
     removeOutput(index) {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cet output ?')) {
-            this.outputsData.splice(index, 1);
-            this.populateOutputsSection(this.outputsData);
-        }
+        console.log(`Removing output ${index}`);
     }
 
     getOutputsData() {

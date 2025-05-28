@@ -278,7 +278,16 @@ export class NetworkManager {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
                 console.log(`Single click on node: ${nodeId} - Opening sidebar`);
-                this.hostManager.modules.hostUI.editHost(nodeId);
+                
+                // Vérifier que le module hostUI existe
+                if (this.hostManager.modules.hostUI) {
+                    console.log("HostUI module found, calling editHost");
+                    this.hostManager.modules.hostUI.editHost(nodeId);
+                } else {
+                    console.error("HostUI module not found!");
+                }
+            } else {
+                console.log("No node clicked");
             }
         });
 

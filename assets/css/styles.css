@@ -1665,66 +1665,68 @@ body.dark-theme #network-map {
 .edit-panel {
     position: fixed;
     top: 0;
-    right: 0;
-    width: 450px; /* Largeur par défaut */
-    max-width: 90%; /* Max sur petits écrans */
+    right: -600px; /* Caché par défaut */
+    width: 600px;
     height: 100vh;
-    background-color: #ffffff;
-    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.15);
-    padding: 20px;
-    padding-top: 50px; /* Espace pour les boutons fermer/agrandir */
+    background: var(--card-bg);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    z-index: 1050;
     overflow-y: auto;
-    z-index: 1050; /* Au-dessus de la plupart des éléments */
-    transform: translateX(100%); /* Caché par défaut (hors écran à droite) */
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; /* Ajout transition width */
-    visibility: hidden; /* Caché et non interactif par défaut */
+    transition: right 0.3s ease-in-out;
+    padding: 20px;
 }
 
-/* Style quand le panneau est ouvert */
-.edit-panel.open {
-    transform: translateX(0); /* Revient à sa position normale */
-    visibility: visible; /* Rendre visible et interactif */
+.edit-panel.active {
+    right: 0; /* Visible quand actif */
 }
 
-/* Style pour le panneau élargi */
-.edit-panel.wide-panel {
-    width: 75%; /* Largeur augmentée, ajustable */
-    max-width: 1000px; /* Limite maximale */
+.edit-panel.wide {
+    width: 800px;
+    right: -800px;
 }
 
-.edit-panel .close-panel-btn {
+.edit-panel.wide.active {
+    right: 0;
+}
+
+/* Bouton de fermeture */
+.close-panel-btn {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 15px;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #6c757d;
     background: none;
     border: none;
+    font-size: 24px;
+    color: var(--text-color);
     cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    z-index: 10; /* Au-dessus du bouton agrandir si superposé */
-}
-.edit-panel .close-panel-btn:hover {
-    color: #343a40;
+    z-index: 1051;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
 }
 
-/* Style pour le bouton Agrandir/Réduire */
-.edit-panel .toggle-wide-btn {
-    position: absolute;
-    top: 15px; /* Légèrement plus bas que le X */
-    right: 50px; /* À gauche du bouton fermer */
-    font-size: 1.2rem; /* Taille de l'icône */
-    color: #6c757d;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0 5px;
-    line-height: 1;
+.close-panel-btn:hover {
+    background-color: var(--hover-bg);
 }
-.edit-panel .toggle-wide-btn:hover {
-    color: #343a40;
+
+/* Mode sombre pour le panneau */
+body.dark-theme .edit-panel {
+    background: var(--card-bg);
+    border-left-color: var(--border-color);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+}
+
+body.dark-theme .close-panel-btn {
+    color: var(--text-color);
+}
+
+body.dark-theme .close-panel-btn:hover {
+    background-color: var(--hover-bg);
 }
 
 .edit-panel h3 {

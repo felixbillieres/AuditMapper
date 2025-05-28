@@ -22,47 +22,45 @@ export class CredentialManager {
     }
 
     populateCredentialsSection(credentials) {
-        console.log(">>> populateCredentialsSection: START");
-        this.credentialsData = credentials || [];
+        console.log(">>> populateCredentialsSection called with:", credentials);
         
-        const container = document.getElementById('editCredentialsContainer');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        if (this.credentialsData.length === 0) {
-            container.innerHTML = '<p class="text-muted small">Aucun credential enregistré.</p>';
+        const container = document.getElementById('credentialsList');
+        if (!container) {
+            console.warn("Credentials container not found");
             return;
         }
 
-        this.credentialsData.forEach((cred, index) => {
-            const credDiv = this.createCredentialElement(cred, index);
-            container.appendChild(credDiv);
-        });
+        container.innerHTML = '';
 
-        console.log(">>> populateCredentialsSection: END");
+        if (!credentials || credentials.length === 0) {
+            container.innerHTML = '<p class="text-muted">Aucun identifiant enregistré.</p>';
+            return;
+        }
+
+        credentials.forEach((credential, index) => {
+            const credElement = this.createCredentialElement(credential, index);
+            container.appendChild(credElement);
+        });
     }
 
     createCredentialElement(credential, index) {
         const div = document.createElement('div');
-        div.className = 'credential-group mb-3 p-3 border rounded';
+        div.className = 'credential-item mb-2 p-2 border rounded';
         
         div.innerHTML = `
-            <div class="row">
-                <div class="col-md-4">
-                    <label>Username:</label>
-                    <input type="text" class="form-control form-control-sm credential-username" value="${credential.username || ''}" data-index="${index}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <strong>${credential.username || 'N/A'}</strong>
+                    <span class="text-muted">: ${credential.password ? '••••••••' : 'Pas de mot de passe'}</span>
+                    ${credential.type ? `<span class="badge badge-secondary ml-2">${credential.type}</span>` : ''}
                 </div>
-                <div class="col-md-4">
-                    <label>Password:</label>
-                    <input type="text" class="form-control form-control-sm credential-password" value="${credential.password || ''}" data-index="${index}">
-                </div>
-                <div class="col-md-3">
-                    <label>Hash:</label>
-                    <input type="text" class="form-control form-control-sm credential-hash" value="${credential.hash || ''}" data-index="${index}">
-                </div>
-                <div class="col-md-1 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="hostManager.modules.credentials.removeCredential(${index})">×</button>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="hostManager.modules.credentials.editCredential(${index})" title="Éditer">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="hostManager.modules.credentials.removeCredential(${index})" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -71,13 +69,15 @@ export class CredentialManager {
     }
 
     addCredential() {
-        this.credentialsData.push({ username: '', password: '', hash: '' });
-        this.populateCredentialsSection(this.credentialsData);
+        console.log("Adding new credential");
+    }
+
+    editCredential(index) {
+        console.log(`Editing credential ${index}`);
     }
 
     removeCredential(index) {
-        this.credentialsData.splice(index, 1);
-        this.populateCredentialsSection(this.credentialsData);
+        console.log(`Removing credential ${index}`);
     }
 
     getCredentialsData() {
