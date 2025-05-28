@@ -166,15 +166,22 @@
         <!-- == FIN SECTION EXPORTATION ARBORESCENCE == -->
         <!-- ========================================== -->
 
-        <!-- Onglets des Catégories -->
-        <div id="categoryTabs" class="category-tabs mb-3">
-            <!-- Les onglets seront générés ici par JS -->
-            <button id="addCategoryBtn" class="btn btn-success btn-sm" title="Ajouter une nouvelle catégorie">+</button>
-        </div>
-
-        <!-- Contenu des Catégories -->
-        <div id="categoryContentContainer">
-            <!-- Le contenu de la catégorie active (host-list, add-host-btn) sera affiché ici par JS -->
+        <!-- Gestion des Catégories et Hôtes -->
+        <div class="category-section">
+            <div class="category-header">
+                <h4>Gestion des Hôtes par Catégorie</h4>
+                <button id="addCategoryBtn" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nouvelle Catégorie
+                </button>
+            </div>
+            
+            <div class="category-tabs-container">
+                <ul id="categoryTabs"></ul>
+            </div>
+            
+            <div id="categoryContentContainer">
+                <p class="text-muted text-center">Sélectionnez une catégorie ou créez-en une nouvelle pour commencer.</p>
+            </div>
         </div>
 
         <!-- Filtres & Actions Globales (DÉPLACÉ ICI) -->
@@ -208,31 +215,10 @@
         <div class="card">
             <div class="card-header">
                 Carte Réseau Interactive
+                <small class="text-muted ml-2">👑 Root | 🔓 Partiel | 🦶 Foothold | 🎯 Non compromis</small>
             </div>
             <div class="card-body">
-                <!-- Assurez-vous que #network-map a un style défini dans styles.css -->
                 <div id="network-map"></div>
-            </div>
-        </div>
-
-        <!-- Dans la section du réseau, après le div network-map -->
-        <div class="network-legend">
-            <h6>Légende</h6>
-            <div class="legend-item">
-                <span class="legend-emoji">👑</span>
-                <span class="legend-text">Accès root/admin</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-emoji">🔓</span>
-                <span class="legend-text">Accès partiel</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-emoji">🦶</span>
-                <span class="legend-text">Foothold initial</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-emoji">🎯</span>
-                <span class="legend-text">Non compromis</span>
             </div>
         </div>
 

@@ -170,7 +170,8 @@ export class NetworkManager {
                 <strong>Rôle:</strong> ${host.role || 'N/A'}<br>
                 <strong>Zone:</strong> ${host.zone || 'N/A'}<br>
                 <strong>Compromission:</strong> <span style="color: ${this.getBorderColor(host.compromiseLevel)};">${this.getCompromiseEmoji(host.compromiseLevel)} ${host.compromiseLevel || 'None'}</span><br>
-                <strong>Tags:</strong> ${host.tags?.join(', ') || 'Aucun'}
+                <strong>Tags:</strong> ${host.tags?.join(', ') || 'Aucun'}<br>
+                <em style="color: #7f8c8d; font-size: 12px;">Double-clic pour éditer</em>
             </div>
         `;
     }
@@ -263,20 +264,25 @@ export class NetworkManager {
     }
 
     setupNetworkEvents() {
+        // Double-clic pour éditer
         this.network.on('doubleClick', (params) => {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
+                console.log(`Double-click on node: ${nodeId}`);
                 this.hostManager.modules.hostUI.editHost(nodeId);
             }
         });
 
+        // Clic simple pour sélectionner et ouvrir la sidebar
         this.network.on('click', (params) => {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
-                console.log(`Node clicked: ${nodeId}`);
+                console.log(`Single click on node: ${nodeId} - Opening sidebar`);
+                this.hostManager.modules.hostUI.editHost(nodeId);
             }
         });
 
+        // Curseur pointer sur hover
         this.network.on('hoverNode', (params) => {
             this.container.style.cursor = 'pointer';
         });

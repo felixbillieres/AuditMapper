@@ -2881,67 +2881,82 @@ body.dark-theme #stepDetailModalScreenshotPreview .text-muted {
     color: var(--text-color);
 }
 
-/* Styles pour les onglets de catégories */
+/* Intégration des onglets de catégories avec le style existant */
+.category-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.category-header {
+    background: var(--tab-container-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-header h4 {
+    margin: 0;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
 #categoryTabs {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 0;
-    border-bottom: 2px solid var(--border-color);
-    background: var(--tab-container-bg);
-    padding: 5px;
-    border-radius: 8px 8px 0 0;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .category-tab {
-    position: relative;
     background: var(--tab-bg);
     border: 1px solid var(--border-color);
     color: var(--text-color);
-    padding: 12px 20px;
-    margin-right: 5px;
-    margin-bottom: 5px;
+    padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: 500;
     display: flex;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+    position: relative;
 }
 
 .category-tab:hover {
     background: var(--tab-hover-bg);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-color: var(--primary-color);
 }
 
 .category-tab.active {
     background: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 .delete-category-btn {
-    margin-left: 10px;
+    margin-left: 8px;
     color: var(--danger-color);
     font-weight: bold;
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 50%;
+    padding: 2px 4px;
+    border-radius: 3px;
     transition: all 0.2s;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    opacity: 0.7;
 }
 
 .delete-category-btn:hover {
     background-color: var(--danger-bg);
     color: var(--danger-color-hover);
+    opacity: 1;
 }
 
 .category-tab.active .delete-category-btn {
@@ -2956,9 +2971,7 @@ body.dark-theme #stepDetailModalScreenshotPreview .text-muted {
 /* Container pour le contenu des catégories */
 #categoryContentContainer {
     background: var(--content-bg);
-    border: 1px solid var(--border-color);
-    border-top: none;
-    border-radius: 0 0 8px 8px;
+    padding: 20px;
     min-height: 200px;
 }
 
