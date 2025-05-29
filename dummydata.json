@@ -4,7 +4,7 @@
       "hosts": {
         "www.vulncorp.com": {
           "services": "80/tcp (HTTP), 443/tcp (HTTPS - Apache)",
-          "notes": "Serveur web principal exposé sur Internet. Semble vulnérable à Shellshock sur un endpoint CGI caché.",
+          "notes": "Serveur web principal exposé sur Internet. Vulnérable à Shellshock sur un endpoint CGI. Point d'entrée initial.",
           "tags": ["web", "public", "apache", "linux", "initial-access"],
           "credentials": [],
           "system": "Linux",
@@ -17,18 +17,18 @@
       },
       "templateType": "Web"
     },
-    "DMZ": {
+    "DMZ-Internal-Apps": {
       "hosts": {
         "dmz-relay.vulncorp.local": {
-          "services": "22/tcp (SSH), 8080/tcp (Tomcat App)",
-          "notes": "Serveur de rebond et application interne en DMZ. Accès obtenu via SSH depuis www.vulncorp.com avec clé trouvée. Application Tomcat vulnérable (Default Creds).",
+          "services": "22/tcp (SSH), 8080/tcp (Tomcat App), 3389/tcp (RDP - filtered)",
+          "notes": "Serveur de rebond et application interne en DMZ. Accès SSH obtenu depuis www.vulncorp.com. Application Tomcat vulnérable (Default Creds) et offre un point de pivot vers le réseau interne.",
           "tags": ["jumpbox", "appserver", "tomcat", "linux", "dmz"],
           "credentials": [
             {
               "username": "webapp",
               "password": "",
               "hash": "/home/webapp/.ssh/id_rsa (compromised)",
-              "source": "www.vulncorp.com"
+              "source": "www.vulncorp.com (SSH key exfiltration)"
             },
             {
               "username": "tomcat",
@@ -40,19 +40,44 @@
           "system": "Linux",
           "role": "Relay / Application Server",
           "zone": "DMZ",
-          "compromiseLevel": "User",
-          "exploitationTechniques": ["SSH Pivot", "Default Credentials"],
-          "vulnerabilities": ["Weak SSH Key Permissions", "Default Tomcat Credentials"]
+          "compromiseLevel": "User / Privilege Escalation",
+          "exploitationTechniques": ["SSH Pivot", "Default Credentials", "Local Root Exploit (Kernel)"],
+          "vulnerabilities": ["Weak SSH Key Permissions", "Default Tomcat Credentials", "Kernel Vulnerability (CVE-2022-XXXX)"]
+        },
+        "jira.vulncorp.local": {
+          "services": "80/tcp (HTTP), 443/tcp (HTTPS - Jira), 27017/tcp (MongoDB)",
+          "notes": "Serveur Jira avec base de données MongoDB. Accessible depuis dmz-relay. Possible injection SQL ou RCE via Jira si non patché.",
+          "tags": ["jira", "mongodb", "appserver", "linux", "dmz"],
+          "credentials": [
+            {
+              "username": "jira_admin",
+              "password": "Password123!",
+              "hash": "",
+              "source": "Jira config file (extracted after compromise)"
+            },
+            {
+              "username": "mongodb_user",
+              "password": "db_pass",
+              "hash": "",
+              "source": "MongoDB access"
+            }
+          ],
+          "system": "Linux",
+          "role": "Jira / MongoDB Server",
+          "zone": "DMZ",
+          "compromiseLevel": "User / Admin",
+          "exploitationTechniques": ["Jira RCE (CVE-2023-XXXX)", "MongoDB NoSQL Injection"],
+          "vulnerabilities": ["CVE-2023-XXXX (Jira)", "MongoDB Weak Authentication"]
         }
       },
-      "templateType": null
+      "templateType": "Application"
     },
     "Internal-Servers": {
       "hosts": {
         "FILESRV01.vulncorp.local": {
-          "services": "139/tcp (NetBIOS), 445/tcp (SMB)",
-          "notes": "Serveur de fichiers Windows interne. SMB Signing non requis. Compromis via PsExec depuis dmz-relay avec creds Tomcat (réutilisés).",
-          "tags": ["fileserver", "windows", "smb", "internal"],
+          "services": "139/tcp (NetBIOS), 445/tcp (SMB), 3389/tcp (RDP)",
+          "notes": "Serveur de fichiers Windows interne. SMB Signing non requis. Compromis via PsExec depuis dmz-relay avec creds Tomcat réutilisés. Point de pivot vers AD.",
+          "tags": ["fileserver", "windows", "smb", "internal", "lateral-movement"],
           "credentials": [
             {
               "username": "VULNCORP\\tomcat",
@@ -64,80 +89,245 @@
               "username": "VULNCORP\\Administrator",
               "password": "",
               "hash": "aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0",
-              "source": "Mimikatz (lsass dump)"
+              "source": "Mimikatz (lsass dump from FILESRV01)"
             }
           ],
-          "system": "Windows",
+          "system": "Windows Server 2016",
           "role": "File Server",
           "zone": "Internal",
           "compromiseLevel": "Admin/Root",
-          "exploitationTechniques": ["PsExec (Password Reuse)", "Mimikatz"],
-          "vulnerabilities": ["SMB Signing Disabled", "Password Reuse"]
+          "exploitationTechniques": ["PsExec (Password Reuse)", "Mimikatz", "Pass-the-Hash (internal)"],
+          "vulnerabilities": ["SMB Signing Disabled", "Password Reuse", "Local Admin Rights Misconfiguration"]
         },
         "DBSERV01.vulncorp.local": {
-          "services": "1433/tcp (MSSQL)",
-          "notes": "Serveur SQL. Potentiellement accessible avec les droits Admin du domaine.",
-          "tags": ["database", "sql", "windows", "internal", "critical"],
-          "credentials": [],
-          "system": "Windows",
+          "services": "1433/tcp (MSSQL), 5985/tcp (WinRM)",
+          "notes": "Serveur SQL critique. Accès obtenu via Pass-the-Hash avec compte Administrator trouvé sur FILESRV01. Contient des bases de données sensibles.",
+          "tags": ["database", "sql", "windows", "internal", "critical", "data-exfiltration"],
+          "credentials": [
+            {
+              "username": "sa",
+              "password": "StrongPassword!1",
+              "hash": "",
+              "source": "SQL Server (extracted after compromise)"
+            },
+            {
+              "username": "VULNCORP\\SQLService",
+              "password": "ServicePass",
+              "hash": "",
+              "source": "Mimikatz (DBSERV01 - SQL Service Account)"
+            }
+          ],
+          "system": "Windows Server 2019",
           "role": "Database Server",
           "zone": "Internal",
-          "compromiseLevel": "None",
-          "exploitationTechniques": [],
-          "vulnerabilities": []
+          "compromiseLevel": "System",
+          "exploitationTechniques": ["SQL Server Stored Procedures (xp_cmdshell)", "PowerShell Remoting", "Mimikatz"],
+          "vulnerabilities": ["Weak SA Password", "SQL Server xp_cmdshell Enabled"]
+        },
+        "DEVJENKINS01.vulncorp.local": {
+          "services": "8080/tcp (Jenkins), 22/tcp (SSH)",
+          "notes": "Serveur de développement Jenkins. Accès par brute-force de credentials faibles. Jenkins permet l'exécution de code sur le système hôte.",
+          "tags": ["devops", "jenkins", "linux", "internal", "persistence"],
+          "credentials": [
+            {
+              "username": "jenkins_user",
+              "password": "weakpass",
+              "hash": "",
+              "source": "Brute-force"
+            },
+            {
+              "username": "root",
+              "password": "",
+              "hash": "/etc/shadow (cracked)",
+              "source": "Local root (Jenkins exploit)"
+            }
+          ],
+          "system": "Ubuntu Server",
+          "role": "Development Server / CI/CD",
+          "zone": "Internal",
+          "compromiseLevel": "Root",
+          "exploitationTechniques": ["Jenkins Unauthenticated RCE (CVE-202X-XXXX)", "SSH Credential Brute-force"],
+          "vulnerabilities": ["Weak Jenkins Credentials", "Outdated Jenkins Version"]
         }
       },
       "templateType": "Windows"
     },
+    "User-Workstations": {
+      "hosts": {
+        "USERPC01.vulncorp.local": {
+          "services": "3389/tcp (RDP), 445/tcp (SMB)",
+          "notes": "Station de travail utilisateur. Compromise via phishing ou mouvement latéral depuis FILESRV01. Contient des sessions d'utilisateurs à haut privilèges.",
+          "tags": ["workstation", "windows", "user", "internal", "lateral-movement"],
+          "credentials": [
+            {
+              "username": "VULNCORP\\CEO",
+              "password": "",
+              "hash": "...",
+              "source": "Mimikatz (lsass dump from USERPC01)"
+            }
+          ],
+          "system": "Windows 10",
+          "role": "User Workstation",
+          "zone": "Internal",
+          "compromiseLevel": "User / Admin",
+          "exploitationTechniques": ["RDP Session Hijacking", "Mimikatz (Credential Dumping)"],
+          "vulnerabilities": ["Weak RDP Security", "Unpatched OS"]
+        }
+      },
+      "templateType": "Workstation"
+    },
     "Domain Controllers": {
       "hosts": {
         "DC01.vulncorp.local": {
-          "services": "53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269",
-          "notes": "Contrôleur de domaine principal. Compromis via Pass-the-Hash depuis FILESRV01.",
-          "tags": ["dc", "ad", "windows", "critical", "kerberos", "internal"],
+          "services": "53/udp (DNS), 88/tcp (Kerberos), 135/tcp (RPC), 139/tcp (NetBIOS), 389/tcp (LDAP), 445/tcp (SMB), 464/tcp (Kerberos passwd), 593/tcp (RPC), 636/tcp (LDAPS), 3268/tcp (GC), 3269/tcp (GC-LDAPS)",
+          "notes": "Contrôleur de domaine principal. Compromis via Pass-the-Hash depuis FILESRV01 puis DCSync.",
+          "tags": ["dc", "ad", "windows", "critical", "kerberos", "internal", "domain-admin"],
           "credentials": [
             {
               "username": "VULNCORP\\krbtgt",
               "password": "",
               "hash": "...",
               "source": "DCSync (secretsdump)"
+            },
+            {
+              "username": "VULNCORP\\Administrator",
+              "password": "DomainAdminPass!",
+              "hash": "...",
+              "source": "DCSync (secretsdump)"
             }
           ],
-          "system": "AD",
+          "system": "Windows Server 2022 (Domain Controller)",
           "role": "Domain Controller",
           "zone": "Internal",
           "compromiseLevel": "Domain Admin",
-          "exploitationTechniques": ["Pass-the-Hash (wmiexec)", "DCSync"],
+          "exploitationTechniques": ["Pass-the-Hash (wmiexec)", "DCSync", "Golden Ticket (post-compromise)"],
+          "vulnerabilities": []
+        },
+        "DC02.vulncorp.local": {
+          "services": "53/udp (DNS), 88/tcp (Kerberos), 389/tcp (LDAP), 445/tcp (SMB)",
+          "notes": "Contrôleur de domaine secondaire, réplication de DC01.",
+          "tags": ["dc", "ad", "windows", "internal"],
+          "credentials": [],
+          "system": "Windows Server 2019 (Domain Controller)",
+          "role": "Secondary Domain Controller",
+          "zone": "Internal",
+          "compromiseLevel": "Domain Admin",
+          "exploitationTechniques": [],
           "vulnerabilities": []
         }
       },
       "templateType": "AD"
+    },
+    "Critical-Assets": {
+      "hosts": {
+        "HRPORTAL.vulncorp.local": {
+          "services": "443/tcp (HTTPS - SharePoint), 80/tcp (HTTP)",
+          "notes": "Portail RH, contient des données sensibles des employés. Accès via Kerberoasting du compte de service SharePoint (depuis DC01).",
+          "tags": ["sharepoint", "hr", "critical", "internal", "data-exfiltration"],
+          "credentials": [
+            {
+              "username": "VULNCORP\\svc_sharepoint",
+              "password": "ServiceAccountPass",
+              "hash": "...",
+              "source": "Kerberoasting (extracted from DC01)"
+            }
+          ],
+          "system": "Windows Server 2019",
+          "role": "HR Portal / SharePoint",
+          "zone": "Internal",
+          "compromiseLevel": "Admin",
+          "exploitationTechniques": ["Kerberoasting", "SharePoint Exploit (CVE-2021-XXXX)"],
+          "vulnerabilities": ["Weak Service Principal Name (SPN) configuration", "Outdated SharePoint"]
+        },
+        "CFO-PC.vulncorp.local": {
+          "services": "3389/tcp (RDP)",
+          "notes": "Ordinateur du CFO. Cible finale pour l'accès aux informations financières et sensibles. Compromis via Pass-the-Hash après obtention des creds de domaine.",
+          "tags": ["workstation", "windows", "cfo", "critical", "internal", "data-exfiltration"],
+          "credentials": [
+            {
+              "username": "VULNCORP\\CFO",
+              "password": "CFOsPassword!$",
+              "hash": "...",
+              "source": "Mimikatz (lsass dump after RDP access)"
+            }
+          ],
+          "system": "Windows 11",
+          "role": "CFO Workstation",
+          "zone": "Internal",
+          "compromiseLevel": "Admin",
+          "exploitationTechniques": ["Pass-the-Hash (RDP)", "Credential Dumping"],
+          "vulnerabilities": []
+        }
+      },
+      "templateType": "Critical"
     }
   },
   "edges": [
     {
       "from": "www.vulncorp.com",
       "to": "dmz-relay.vulncorp.local",
-      "label": "Shellshock -> SSH Key",
+      "label": "Shellshock RCE -> SSH Key Exfil",
       "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
     },
     {
       "from": "dmz-relay.vulncorp.local",
-      "to": "FILESRV01.vulncorp.local",
-      "label": "PsExec (Tomcat Creds)",
+      "to": "jira.vulncorp.local",
+      "label": "Pivot SSH / Tomcat to Jira RCE",
       "id": "b2c3d4e5-f6a7-8901-2345-67890abcdef0"
+    },
+    {
+      "from": "jira.vulncorp.local",
+      "to": "FILESRV01.vulncorp.local",
+      "label": "Jira Creds -> SMB (Password Reuse)",
+      "id": "c3d4e5f6-a7b8-9012-3456-7890abcdef01"
+    },
+    {
+      "from": "FILESRV01.vulncorp.local",
+      "to": "DBSERV01.vulncorp.local",
+      "label": "PsExec / Pass-the-Hash (Admin)",
+      "id": "d4e5f6a7-b8c9-0123-4567-890abcdef012"
     },
     {
       "from": "FILESRV01.vulncorp.local",
       "to": "DC01.vulncorp.local",
-      "label": "Pass-the-Hash (Admin)",
-      "id": "c3d4e5f6-a7b8-9012-3456-7890abcdef01"
+      "label": "Pass-the-Hash (Administrator) -> DCSync",
+      "id": "e5f6a7b8-c9d0-1234-5678-90abcdef0123"
     },
     {
       "from": "DC01.vulncorp.local",
-      "to": "DBSERV01.vulncorp.local",
-      "label": "Accès DA (potentiel)",
-      "id": "d4e5f6a7-b8c9-0123-4567-890abcdef012"
+      "to": "DC02.vulncorp.local",
+      "label": "AD Replication / Credential Access",
+      "id": "f6a7b8c9-d0e1-2345-6789-0abcdef01234"
+    },
+    {
+      "from": "DC01.vulncorp.local",
+      "to": "HRPORTAL.vulncorp.local",
+      "label": "Kerberoasting (SharePoint Svc Acct)",
+      "id": "g7b8c9d0-e1f2-3456-7890-abcdef012345"
+    },
+    {
+      "from": "DC01.vulncorp.local",
+      "to": "USERPC01.vulncorp.local",
+      "label": "Domain Admin Access -> RDP / Mimikatz",
+      "id": "h8c9d0e1-f2a3-4567-8901-2abcdef0123456"
+    },
+    {
+      "from": "USERPC01.vulncorp.local",
+      "to": "CFO-PC.vulncorp.local",
+      "label": "Pass-the-Hash (CFO Creds)",
+      "id": "i9d0e1f2-a3b4-5678-9012-3abcdef01234567"
+    },
+    {
+      "from": "FILESRV01.vulncorp.local",
+      "to": "DEVJENKINS01.vulncorp.local",
+      "label": "SMB Access -> Jenkins Brute-force",
+      "id": "j0e1f2a3-b4c5-6789-0123-4abcdef012345678"
+    },
+    {
+      "from": "DEVJENKINS01.vulncorp.local",
+      "to": "DC01.vulncorp.local",
+      "label": "Root on Jenkins -> Possible AD Pivot",
+      "id": "k1f2a3b4-c5d6-7890-1234-5abcdef0123456789"
     }
   ]
-} 
+}

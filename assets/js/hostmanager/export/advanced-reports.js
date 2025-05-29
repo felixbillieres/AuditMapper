@@ -19,8 +19,29 @@ export class AdvancedReportGenerator {
 
     initialize() {
         console.log(">>> AdvancedReportGenerator.initialize: START");
+        
+        // Vérifier que les éléments existent
+        const elements = [
+            'generateExecutiveSummary',
+            'generateTechnicalReport', 
+            'generateKillChainReport',
+            'generateCredentialReport',
+            'reportPreviewMini',
+            'reportCategoryFilters'
+        ];
+        
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Element with ID '${id}' not found`);
+            } else {
+                console.log(`Element '${id}' found`);
+            }
+        });
+        
         this.setupEventListeners();
         this.populateCategoryFilters();
+        
         console.log(">>> AdvancedReportGenerator.initialize: END");
     }
 
@@ -70,28 +91,42 @@ export class AdvancedReportGenerator {
             this.reportOptions.author = e.target.value;
             this.updatePreview();
         });
+
+        // Édition manuelle
+        document.getElementById('editReportManually')?.addEventListener('click', () => {
+            this.showManualEditor();
+        });
     }
 
     populateCategoryFilters() {
         const container = document.getElementById('reportCategoryFilters');
-        if (!container) return;
+        if (!container) {
+            console.warn('reportCategoryFilters container not found');
+            return;
+        }
 
         const hostData = this.hostManager.getData();
+        console.log('Full host data:', hostData);
+        
         const categories = Object.keys(hostData.categories || {});
+        console.log('Available categories:', categories);
         
         container.innerHTML = '';
         
         if (categories.length === 0) {
-            container.innerHTML = '<p class="text-muted">Aucune catégorie disponible</p>';
+            container.innerHTML = '<p class="text-muted">Aucune catégorie disponible - Ajoutez des hosts d\'abord</p>';
             return;
         }
 
+        // Réinitialiser les catégories sélectionnées
+        this.selectedCategories.clear();
+
         categories.forEach(categoryName => {
             const filterItem = document.createElement('div');
-            filterItem.className = 'category-filter-item';
+            filterItem.className = 'category-filter-item active';
             filterItem.innerHTML = `
-                <input type="checkbox" id="cat_${categoryName}" checked>
-                <label for="cat_${categoryName}">${categoryName}</label>
+                <input type="checkbox" id="cat_${categoryName.replace(/\s+/g, '_')}" checked>
+                <label for="cat_${categoryName.replace(/\s+/g, '_')}">${categoryName}</label>
             `;
             
             const checkbox = filterItem.querySelector('input');
@@ -108,21 +143,38 @@ export class AdvancedReportGenerator {
             
             // Sélectionner par défaut
             this.selectedCategories.add(categoryName);
-            filterItem.classList.add('active');
             
             container.appendChild(filterItem);
         });
+        
+        console.log('Selected categories:', this.selectedCategories);
     }
 
     selectReportType(type) {
         this.currentReportType = type;
         
-        // Mettre à jour l'UI
+        // Mettre à jour l'UI - corriger les IDs des boutons
         document.querySelectorAll('.btn-group .btn').forEach(btn => {
             btn.classList.remove('active');
         });
         
-        const activeBtn = document.getElementById(`generate${this.capitalizeFirst(type)}${type === 'killchain' ? 'Report' : type === 'executive' ? 'Summary' : type === 'credentials' ? 'Report' : 'Report'}`);
+        // Corriger les IDs des boutons
+        let activeBtn;
+        switch(type) {
+            case 'executive':
+                activeBtn = document.getElementById('generateExecutiveSummary');
+                break;
+            case 'technical':
+                activeBtn = document.getElementById('generateTechnicalReport');
+                break;
+            case 'killchain':
+                activeBtn = document.getElementById('generateKillChainReport');
+                break;
+            case 'credentials':
+                activeBtn = document.getElementById('generateCredentialReport');
+                break;
+        }
+        
         if (activeBtn) {
             activeBtn.classList.add('active');
         }
@@ -136,33 +188,57 @@ export class AdvancedReportGenerator {
     }
 
     generateReport() {
-        if (!this.currentReportType) return;
+        if (!this.currentReportType) {
+            console.warn('No report type selected');
+            return;
+        }
 
-        const hostData = this.hostManager.getData();
-        const filteredData = this.filterDataByCategories(hostData);
+        console.log(`Generating ${this.currentReportType} report...`);
         
-        switch (this.currentReportType) {
-            case 'executive':
-                this.currentReportData = this.generateExecutiveSummary(filteredData);
-                break;
-            case 'technical':
-                this.currentReportData = this.generateTechnicalReport(filteredData);
-                break;
-            case 'killchain':
-                this.currentReportData = this.generateKillChainReport(filteredData);
-                break;
-            case 'credentials':
-                this.currentReportData = this.generateCredentialReport(filteredData);
-                break;
+        const hostData = this.hostManager.getData();
+        console.log('Host data:', hostData);
+        
+        const filteredData = this.filterDataByCategories(hostData);
+        console.log('Filtered data:', filteredData);
+        
+        try {
+            switch (this.currentReportType) {
+                case 'executive':
+                    this.currentReportData = this.generateExecutiveSummary(filteredData);
+                    break;
+                case 'technical':
+                    this.currentReportData = this.generateTechnicalReport(filteredData);
+                    break;
+                case 'killchain':
+                    this.currentReportData = this.generateKillChainReport(filteredData);
+                    break;
+                case 'credentials':
+                    this.currentReportData = this.generateCredentialReport(filteredData);
+                    break;
+                default:
+                    console.error('Unknown report type:', this.currentReportType);
+                    return;
+            }
+            
+            console.log('Generated report data:', this.currentReportData);
+            
+        } catch (error) {
+            console.error('Error generating report:', error);
+            this.currentReportData = `# Erreur de génération\n\nUne erreur s'est produite lors de la génération du rapport: ${error.message}`;
         }
     }
 
     filterDataByCategories(hostData) {
+        if (this.selectedCategories.size === 0) {
+            return hostData; // Retourner toutes les données si aucune catégorie sélectionnée
+        }
+
         const filtered = {
             categories: {},
             edges: hostData.edges || []
         };
 
+        // Filtrer les catégories sélectionnées
         for (const categoryName of this.selectedCategories) {
             if (hostData.categories[categoryName]) {
                 filtered.categories[categoryName] = hostData.categories[categoryName];
@@ -174,7 +250,7 @@ export class AdvancedReportGenerator {
 
     generateExecutiveSummary(data) {
         const stats = this.calculateStats(data);
-        const title = this.reportOptions.title || 'Résumé Exécutif - Test d\'Intrusion';
+        const title = this.reportOptions.title || 'Rapport Exécutif - Test d\'Intrusion';
         const author = this.reportOptions.author || 'Équipe Sécurité';
         const date = new Date().toLocaleDateString('fr-FR');
 
@@ -182,205 +258,158 @@ export class AdvancedReportGenerator {
 
 **Auteur:** ${author}  
 **Date:** ${date}  
-**Classification:** Confidentiel
+**Scope:** ${stats.totalCategories} catégories, ${stats.totalHosts} systèmes
 
 ## Résumé Exécutif
 
-Ce rapport présente les résultats du test d'intrusion réalisé sur l'infrastructure cible. L'évaluation a révélé **${stats.totalHosts}** systèmes analysés avec **${stats.compromisedHosts}** systèmes compromis.
+Ce rapport présente les résultats du test d'intrusion réalisé sur l'infrastructure cible. L'évaluation a révélé **${stats.compromisedHosts}** systèmes compromis sur **${stats.totalHosts}** systèmes analysés.
 
-### Niveau de Risque Global: ${this.getOverallRiskLevel(stats)}
+## Synthèse des Vulnérabilités
 
-## Statistiques Clés
+${this.generateVulnerabilityAnalysis(stats)}
 
-| Métrique | Valeur |
-|----------|--------|
-| Systèmes analysés | ${stats.totalHosts} |
-| Systèmes compromis | ${stats.compromisedHosts} |
-| Taux de compromission | ${stats.compromiseRate}% |
-| Credentials récupérés | ${stats.totalCredentials} |
-| Vulnérabilités critiques | ${stats.criticalVulns} |
+## Systèmes Compromis par Catégorie
 
-## Répartition par Niveau de Compromission
+${this.generateCategoryBreakdown(data)}
 
-${this.generateCompromiseBreakdown(stats)}
+## Credentials Récupérés
+
+${this.generateCredentialsSummaryText(data)}
 
 ## Recommandations Prioritaires
 
 1. **Correction immédiate** des vulnérabilités critiques identifiées
-2. **Renforcement** des contrôles d'accès et authentification
-3. **Mise à jour** des systèmes présentant des failles de sécurité
-4. **Formation** du personnel sur les bonnes pratiques de sécurité
-5. **Surveillance** renforcée des systèmes critiques
+2. **Renforcement** des politiques de mots de passe
+3. **Segmentation réseau** pour limiter la propagation
+4. **Monitoring** renforcé des systèmes sensibles
+5. **Formation** du personnel sur les bonnes pratiques de sécurité
 
-## Conclusion
+## Impact Business
 
-${this.generateExecutiveConclusion(stats)}
+- **${stats.compromisedHosts}** systèmes potentiellement compromis
+- **${stats.totalCredentials}** credentials exposés
+- Risque de propagation latérale élevé
+- Exposition potentielle de données sensibles
 
 ---
-*Ce rapport est confidentiel et destiné uniquement aux parties autorisées.*`;
+*Rapport généré automatiquement le ${date}*`;
     }
 
     generateTechnicalReport(data) {
         const stats = this.calculateStats(data);
         const title = this.reportOptions.title || 'Rapport Technique - Test d\'Intrusion';
-        const author = this.reportOptions.author || 'Équipe Sécurité';
+        const author = this.reportOptions.author || 'Équipe Technique';
         const date = new Date().toLocaleDateString('fr-FR');
 
-        let report = `# ${title}
+        return `# ${title}
 
 **Auteur:** ${author}  
 **Date:** ${date}  
-**Classification:** Confidentiel
+**Méthodologie:** OWASP Testing Guide, NIST SP 800-115
 
-## Méthodologie
+## Vue d'Ensemble Technique
 
-Le test d'intrusion a été réalisé selon une approche structurée incluant:
-- Reconnaissance et énumération
-- Identification des vulnérabilités
-- Exploitation des failles de sécurité
-- Post-exploitation et élévation de privilèges
-- Documentation des preuves de concept
+### Infrastructure Analysée
+${this.generateInfrastructureOverviewText(data)}
 
-## Infrastructure Analysée
+### Méthodologie d'Évaluation
+1. **Reconnaissance passive** - Collecte d'informations publiques
+2. **Énumération active** - Scan de ports et services
+3. **Analyse de vulnérabilités** - Identification des failles
+4. **Exploitation** - Validation des vulnérabilités
+5. **Post-exploitation** - Évaluation de l'impact
 
-### Vue d'ensemble
-- **Nombre total de systèmes:** ${stats.totalHosts}
-- **Catégories analysées:** ${Object.keys(data.categories).join(', ')}
-- **Période d'analyse:** ${date}
+## Détail des Systèmes Compromis
 
-`;
+${this.generateDetailedHostAnalysis(data)}
 
-        // Détail par catégorie
-        for (const [categoryName, category] of Object.entries(data.categories)) {
-            const hosts = category.hosts || {};
-            report += `### Catégorie: ${categoryName}\n\n`;
-            
-            for (const [hostId, host] of Object.entries(hosts)) {
-                report += `#### ${hostId}\n`;
-                report += `- **Système:** ${host.system || 'Non spécifié'}\n`;
-                report += `- **Rôle:** ${host.role || 'Non spécifié'}\n`;
-                report += `- **Niveau de compromission:** ${host.compromiseLevel || 'None'}\n`;
-                
-                if (host.ip) {
-                    report += `- **Adresse IP:** ${host.ip}\n`;
-                }
-                
-                if (host.services && host.services.length > 0) {
-                    report += `- **Services:** ${host.services.join(', ')}\n`;
-                }
-                
-                if (host.notes) {
-                    report += `- **Notes:** ${host.notes}\n`;
-                }
-                
-                report += '\n';
-            }
-        }
+## Analyse des Vecteurs d'Attaque
 
-        report += `## Analyse des Vulnérabilités
+${this.generateAttackVectorsText(data)}
 
-### Vulnérabilités par Criticité
-${this.generateVulnerabilityAnalysis(stats)}
+## Propagation et Mouvement Latéral
+
+${this.generateLateralMovementText(data)}
+
+## Analyse des Services Exposés
+
+${this.generateServiceAnalysisText(data)}
 
 ## Recommandations Techniques
 
-### Corrections Immédiates
-1. Appliquer les correctifs de sécurité sur les systèmes critiques
-2. Désactiver les services non nécessaires
-3. Renforcer les configurations de sécurité
-
-### Améliorations à Moyen Terme
-1. Mise en place d'une surveillance continue
-2. Segmentation réseau renforcée
-3. Politique de mots de passe robuste
-
-### Stratégie à Long Terme
-1. Programme de sensibilisation à la sécurité
-2. Tests d'intrusion réguliers
-3. Mise en place d'un SOC
+${this.generateTechnicalRecommendationsText(data)}
 
 ---
-*Rapport technique confidentiel*`;
-
-        return report;
+*Analyse technique complétée le ${date}*`;
     }
 
     generateKillChainReport(data) {
-        const title = this.reportOptions.title || 'Analyse Kill Chain - Test d\'Intrusion';
-        const author = this.reportOptions.author || 'Équipe Sécurité';
+        const stats = this.calculateStats(data);
+        const title = this.reportOptions.title || 'Rapport Kill Chain - Analyse d\'Attaque';
+        const author = this.reportOptions.author || 'Équipe Red Team';
         const date = new Date().toLocaleDateString('fr-FR');
 
         return `# ${title}
 
 **Auteur:** ${author}  
 **Date:** ${date}  
-**Classification:** Confidentiel
+**Framework:** Lockheed Martin Cyber Kill Chain
 
-## Analyse de la Chaîne d'Attaque (Kill Chain)
+## Vue d'Ensemble de l'Attaque
 
-Cette analyse détaille les étapes de compromission suivant le modèle Cyber Kill Chain de Lockheed Martin.
+Cette analyse présente la progression de l'attaque selon le modèle Cyber Kill Chain, démontrant comment un attaquant pourrait compromettre l'infrastructure cible.
+
+## Phases de la Kill Chain
 
 ### 1. Reconnaissance
-- Collecte d'informations sur les systèmes cibles
-- Identification des services exposés
-- Cartographie de l'infrastructure
+- **Objectif:** Collecte d'informations sur les cibles
+- **Systèmes identifiés:** ${stats.totalHosts} systèmes dans ${stats.totalCategories} catégories
+- **Méthodes:** Scan réseau, énumération de services, OSINT
 
 ### 2. Weaponization
-- Développement des exploits ciblés
-- Préparation des outils d'attaque
-- Adaptation aux vulnérabilités identifiées
+- **Objectif:** Création d'exploits ciblés
+- **Vulnérabilités identifiées:** ${stats.compromisedHosts} systèmes vulnérables
+- **Vecteurs d'attaque:** Services exposés, configurations faibles
 
 ### 3. Delivery
-- Vecteurs d'attaque utilisés
-- Points d'entrée exploités
-- Méthodes de livraison des payloads
+- **Objectif:** Transmission des exploits vers les cibles
+- **Méthodes:** Exploitation directe, ingénierie sociale, phishing
 
 ### 4. Exploitation
-${this.generateExploitationDetails(data)}
+${this.generateDetailedHostAnalysis(data)}
 
 ### 5. Installation
-- Persistence établie sur les systèmes compromis
-- Installation d'outils de post-exploitation
-- Création de backdoors
+- **Objectif:** Installation de backdoors et persistence
+- **Systèmes compromis:** ${stats.compromisedHosts}/${stats.totalHosts}
 
 ### 6. Command & Control
-- Établissement de canaux de communication
-- Contrôle à distance des systèmes compromis
-- Exfiltration de données
+- **Objectif:** Établissement de communications avec les systèmes compromis
+- **Infrastructure:** ${this.generateC2AnalysisText(data)}
 
 ### 7. Actions on Objectives
-- Objectifs atteints lors du test
-- Données sensibles accessibles
-- Impact potentiel sur l'organisation
-
-## Chronologie des Compromissions
-
-${this.generateCompromissionTimeline(data)}
+- **Credentials récupérés:** ${stats.totalCredentials}
+- **Données exfiltrées:** Analyse en cours
+- **Impact:** ${this.generateImpactAnalysisText(data)}
 
 ## Graphique de Propagation
 
-La propagation s'est effectuée selon le schéma suivant:
-${this.generatePropagationGraph(data)}
+${this.generatePropagationGraphText(data)}
 
-## Mesures de Détection et Prévention
+## Recommandations de Défense
 
-### Points de Détection Manqués
-1. Absence de monitoring sur les connexions suspectes
-2. Logs insuffisants sur les systèmes critiques
-3. Corrélation d'événements défaillante
-
-### Recommandations de Détection
-1. Mise en place de règles SIEM spécifiques
-2. Monitoring comportemental des utilisateurs
-3. Détection d'anomalies réseau
+1. **Détection précoce** - Monitoring des phases initiales
+2. **Segmentation** - Limitation de la propagation latérale
+3. **Endpoint Protection** - Prévention de l'installation
+4. **Network Monitoring** - Détection des communications C2
+5. **Incident Response** - Procédures de réponse rapide
 
 ---
-*Analyse Kill Chain confidentielle*`;
+*Analyse Kill Chain complétée le ${date}*`;
     }
 
     generateCredentialReport(data) {
-        const credentials = this.extractCredentials(data);
-        const title = this.reportOptions.title || 'Rapport de Credentials - Test d\'Intrusion';
+        const credentials = this.extractAllCredentials(data);
+        const title = this.reportOptions.title || 'Rapport Credentials - Analyse des Accès';
         const author = this.reportOptions.author || 'Équipe Sécurité';
         const date = new Date().toLocaleDateString('fr-FR');
 
@@ -388,81 +417,89 @@ ${this.generatePropagationGraph(data)}
 
 **Auteur:** ${author}  
 **Date:** ${date}  
-**Classification:** STRICTEMENT CONFIDENTIEL
+**Scope:** Analyse des credentials récupérés
 
-## Avertissement de Sécurité
+## Synthèse des Credentials
 
-Ce rapport contient des informations sensibles relatives aux credentials récupérés lors du test d'intrusion. 
-La diffusion de ce document doit être strictement contrôlée.
-
-## Résumé des Credentials
-
-- **Total des credentials:** ${credentials.total}
-- **Mots de passe en clair:** ${credentials.cleartext}
-- **Hashes récupérés:** ${credentials.hashes}
+### Statistiques Globales
+- **Total credentials:** ${credentials.total}
+- **Usernames:** ${credentials.usernames}
+- **Passwords en clair:** ${credentials.passwords}
+- **Hashes:** ${credentials.hashes}
 - **Comptes privilégiés:** ${credentials.privileged}
 
-## Analyse des Mots de Passe
-
-### Faiblesse des Mots de Passe
-${this.analyzePasswordWeakness(credentials)}
-
-### Réutilisation de Credentials
-${this.analyzeCredentialReuse(credentials)}
+### Analyse de Sécurité
+- **Taux de mots de passe faibles:** Analyse en cours
+- **Réutilisation de mots de passe:** ${this.analyzePasswordReuseText(credentials)}
+- **Comptes à privilèges élevés:** ${credentials.privileged} identifiés
 
 ## Credentials par Système
 
-${this.generateCredentialsBySystem(data)}
+${this.generateCredentialsBySystemDetailed(data)}
 
-## Recommandations de Sécurité
+## Analyse des Patterns
 
-### Actions Immédiates
-1. **Changement obligatoire** de tous les mots de passe compromis
-2. **Révocation** des sessions actives pour les comptes affectés
-3. **Audit** des accès récents avec ces credentials
+### Faiblesse des Mots de Passe
+${this.analyzePasswordWeaknessText(credentials)}
 
-### Mesures Préventives
-1. Politique de mots de passe renforcée
-2. Authentification multi-facteurs (MFA)
-3. Rotation régulière des mots de passe
-4. Surveillance des tentatives de connexion
+### Réutilisation de Credentials
+${this.analyzeCredentialReuseText(credentials)}
 
-### Contrôles Techniques
-1. Chiffrement des mots de passe stockés
-2. Limitation des tentatives de connexion
-3. Monitoring des accès privilégiés
+### Comptes de Service
+${this.analyzeServiceAccountsText(data)}
+
+## Recommandations
+
+1. **Politique de mots de passe renforcée**
+   - Longueur minimale de 12 caractères
+   - Complexité obligatoire
+   - Rotation régulière
+
+2. **Gestion des comptes privilégiés**
+   - Séparation des comptes administrateurs
+   - Authentification multi-facteurs
+   - Monitoring des accès privilégiés
+
+3. **Détection des compromissions**
+   - Monitoring des authentifications anormales
+   - Détection de réutilisation de credentials
+   - Alertes sur les accès privilégiés
+
+4. **Formation utilisateurs**
+   - Sensibilisation aux bonnes pratiques
+   - Gestion sécurisée des mots de passe
+   - Reconnaissance des tentatives de phishing
 
 ---
-*Document strictement confidentiel - Destruction requise après lecture*`;
+*Analyse des credentials complétée le ${date}*`;
     }
 
     calculateStats(data) {
         let totalHosts = 0;
         let compromisedHosts = 0;
         let totalCredentials = 0;
-        let criticalVulns = 0;
-        const compromiseLevels = { None: 0, Low: 0, Medium: 0, High: 0, Critical: 0, Full: 0 };
+        const compromiseLevels = {};
+        const categories = Object.keys(data.categories || {});
 
-        for (const category of Object.values(data.categories)) {
+        for (const category of Object.values(data.categories || {})) {
             const hosts = category.hosts || {};
+            totalHosts += Object.keys(hosts).length;
+
             for (const host of Object.values(hosts)) {
-                totalHosts++;
+                // Compter les niveaux de compromission
                 const level = host.compromiseLevel || 'None';
-                compromiseLevels[level]++;
+                compromiseLevels[level] = (compromiseLevels[level] || 0) + 1;
                 
                 if (level !== 'None') {
                     compromisedHosts++;
                 }
-                
-                if (level === 'Critical' || level === 'Full') {
-                    criticalVulns++;
-                }
 
                 // Compter les credentials
                 if (host.credentials) {
-                    totalCredentials += (host.credentials.usernames || []).length;
-                    totalCredentials += (host.credentials.passwords || []).length;
-                    totalCredentials += (host.credentials.hashes || []).length;
+                    const creds = host.credentials;
+                    totalCredentials += (creds.usernames || []).length;
+                    totalCredentials += (creds.passwords || []).length;
+                    totalCredentials += (creds.hashes || []).length;
                 }
             }
         }
@@ -470,10 +507,9 @@ ${this.generateCredentialsBySystem(data)}
         return {
             totalHosts,
             compromisedHosts,
-            compromiseRate: totalHosts > 0 ? Math.round((compromisedHosts / totalHosts) * 100) : 0,
             totalCredentials,
-            criticalVulns,
-            compromiseLevels
+            compromiseLevels,
+            totalCategories: categories.length
         };
     }
 
@@ -505,41 +541,111 @@ ${this.generateCredentialsBySystem(data)}
     }
 
     updatePreview() {
-        if (!this.currentReportData) return;
-
         const previewContainer = document.getElementById('reportPreviewMini');
         if (!previewContainer) return;
 
-        // Générer un aperçu court
-        const lines = this.currentReportData.split('\n');
-        const preview = lines.slice(0, 15).join('\n') + '\n\n[...] (Aperçu tronqué)';
+        if (!this.currentReportData) {
+            previewContainer.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="fas fa-file-alt fa-2x mb-2"></i>
+                    <p>Sélectionnez un type de rapport pour voir l'aperçu</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Convertir le markdown en HTML pour l'aperçu
+        const htmlContent = this.convertMarkdownToPreviewHtml(this.currentReportData);
+        previewContainer.innerHTML = htmlContent;
+    }
+
+    convertMarkdownToPreviewHtml(markdown) {
+        if (!markdown) return '';
         
-        previewContainer.innerHTML = `<pre style="white-space: pre-wrap; font-size: 0.8em;">${preview}</pre>`;
+        // Conversion markdown vers HTML améliorée
+        let html = markdown
+            // Headers avec IDs pour la navigation
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+            .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+            
+            // Gras et italique
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            
+            // Code inline
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            
+            // Lignes horizontales
+            .replace(/^---$/gm, '<hr>')
+            
+            // Listes à puces
+            .replace(/^- (.*$)/gm, '<li>$1</li>')
+            
+            // Tableaux
+            .replace(/^\| (.*) \|$/gm, (match, content) => {
+                const cells = content.split(' | ').map(cell => {
+                    const trimmed = cell.trim();
+                    // Détecter les headers (lignes avec des tirets)
+                    if (trimmed.match(/^-+$/)) {
+                        return '<th></th>';
+                    }
+                    return `<td>${trimmed}</td>`;
+                }).join('');
+                return `<tr>${cells}</tr>`;
+            });
+
+        // Post-traitement pour les structures
+        html = html
+            // Envelopper les listes consécutives
+            .replace(/(<li>.*?<\/li>)(\s*<li>.*?<\/li>)*/gs, '<ul>$&</ul>')
+            
+            // Envelopper les tableaux
+            .replace(/(<tr>.*?<\/tr>)(\s*<tr>.*?<\/tr>)*/gs, '<table>$&</table>')
+            
+            // Convertir les sauts de ligne en paragraphes
+            .split('\n\n')
+            .map(paragraph => {
+                paragraph = paragraph.trim();
+                if (!paragraph) return '';
+                if (paragraph.startsWith('<h') || paragraph.startsWith('<ul') || 
+                    paragraph.startsWith('<table') || paragraph.startsWith('<hr')) {
+                    return paragraph;
+                }
+                return `<p>${paragraph.replace(/\n/g, '<br>')}</p>`;
+            })
+            .join('\n');
+
+        return `<div class="markdown-preview">${html}</div>`;
     }
 
     showFullPreview() {
-        if (!this.currentReportData) return;
+        if (!this.currentReportData) {
+            alert('Aucun rapport généré. Sélectionnez d\'abord un type de rapport.');
+            return;
+        }
 
-        // Créer une modal pour l'aperçu complet
         const modal = document.createElement('div');
         modal.className = 'modal fade';
         modal.innerHTML = `
             <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Aperçu du Rapport - ${this.capitalizeFirst(this.currentReportType)}</h5>
-                        <button type="button" class="close" data-dismiss="modal">
+                <div class="modal-content" style="background: #2c3e50; color: #ecf0f1;">
+                    <div class="modal-header" style="border-bottom: 1px solid #34495e;">
+                        <h5 class="modal-title" style="color: #3498db;">
+                            Aperçu Complet - ${this.capitalizeFirst(this.currentReportType)}
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" style="color: #ecf0f1;">
                             <span>&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <div class="report-preview-full" style="max-height: 70vh; overflow-y: auto;">
-                            <pre style="white-space: pre-wrap;">${this.currentReportData}</pre>
-                        </div>
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 20px;">
+                        ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer" style="border-top: 1px solid #34495e;">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary" onclick="window.print()">Imprimer</button>
+                        <button type="button" class="btn btn-primary" id="editFromPreview">Modifier</button>
+                        <button type="button" class="btn btn-success" id="exportFromPreview">Exporter</button>
                     </div>
                 </div>
             </div>
@@ -547,7 +653,77 @@ ${this.generateCredentialsBySystem(data)}
 
         document.body.appendChild(modal);
         $(modal).modal('show');
+
+        // Événements pour les boutons
+        modal.querySelector('#editFromPreview').addEventListener('click', () => {
+            $(modal).modal('hide');
+            this.showManualEditor();
+        });
+
+        modal.querySelector('#exportFromPreview').addEventListener('click', () => {
+            this.exportReport('markdown');
+        });
+
+        // Nettoyer après fermeture
+        $(modal).on('hidden.bs.modal', () => {
+            document.body.removeChild(modal);
+        });
+    }
+
+    showManualEditor() {
+        if (!this.currentReportData) return;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Éditeur Manuel - ${this.capitalizeFirst(this.currentReportType)}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Édition Markdown</h6>
+                                <textarea id="manualReportEditor" class="form-control" rows="25" style="font-family: monospace;">${this.currentReportData}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Aperçu</h6>
+                                <div id="manualReportPreview" class="border p-3" style="height: 600px; overflow-y: auto; background: #f8f9fa;">
+                                    ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="saveManualChanges">Sauvegarder</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        $(modal).modal('show');
+
+        // Mise à jour en temps réel de l'aperçu
+        const editor = modal.querySelector('#manualReportEditor');
+        const preview = modal.querySelector('#manualReportPreview');
         
+        editor.addEventListener('input', () => {
+            preview.innerHTML = this.convertMarkdownToPreviewHtml(editor.value);
+        });
+
+        // Sauvegarder les modifications
+        modal.querySelector('#saveManualChanges').addEventListener('click', () => {
+            this.currentReportData = editor.value;
+            this.updatePreview();
+            $(modal).modal('hide');
+        });
+
         // Nettoyer après fermeture
         $(modal).on('hidden.bs.modal', () => {
             document.body.removeChild(modal);
@@ -556,6 +732,7 @@ ${this.generateCredentialsBySystem(data)}
 
     enableExportButtons() {
         document.getElementById('previewFullReport').disabled = false;
+        document.getElementById('editReportManually').disabled = false;
         document.getElementById('exportReportPdf').disabled = false;
         document.getElementById('exportReportMd').disabled = false;
         document.getElementById('exportReportHtml').disabled = false;
@@ -625,7 +802,13 @@ ${this.generateCredentialsBySystem(data)}
     }
 
     capitalizeFirst(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
+        const names = {
+            'executive': 'Rapport Exécutif',
+            'technical': 'Rapport Technique', 
+            'killchain': 'Rapport Kill Chain',
+            'credentials': 'Rapport Credentials'
+        };
+        return names[str] || str;
     }
 
     // Méthodes utilitaires pour les rapports spécialisés
@@ -748,5 +931,329 @@ ${this.generateCredentialsBySystem(data)}
 | Élevé | ${stats.compromiseLevels.High || 0} | ${Math.round(((stats.compromiseLevels.High || 0) / stats.totalHosts) * 100)}% |
 | Moyen | ${stats.compromiseLevels.Medium || 0} | ${Math.round(((stats.compromiseLevels.Medium || 0) / stats.totalHosts) * 100)}% |
 | Faible | ${stats.compromiseLevels.Low || 0} | ${Math.round(((stats.compromiseLevels.Low || 0) / stats.totalHosts) * 100)}% |`;
+    }
+
+    generateCategoryBreakdown(data) {
+        let breakdown = '';
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hosts = category.hosts || {};
+            const hostCount = Object.keys(hosts).length;
+            const compromisedCount = Object.values(hosts).filter(h => h.compromiseLevel && h.compromiseLevel !== 'None').length;
+            
+            breakdown += `### ${categoryName}\n`;
+            breakdown += `- **Total systèmes:** ${hostCount}\n`;
+            breakdown += `- **Systèmes compromis:** ${compromisedCount}\n`;
+            breakdown += `- **Taux de compromission:** ${Math.round((compromisedCount / hostCount) * 100)}%\n\n`;
+            
+            // Détail des systèmes compromis
+            if (compromisedCount > 0) {
+                breakdown += '**Systèmes affectés:**\n';
+                for (const [hostId, host] of Object.entries(hosts)) {
+                    if (host.compromiseLevel && host.compromiseLevel !== 'None') {
+                        breakdown += `- ${hostId} (${host.compromiseLevel})`;
+                        if (host.ip) breakdown += ` - ${host.ip}`;
+                        breakdown += '\n';
+                    }
+                }
+                breakdown += '\n';
+            }
+        }
+        return breakdown || 'Aucune catégorie analysée.';
+    }
+
+    generateDetailedHostAnalysis(data) {
+        let analysis = '';
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hosts = category.hosts || {};
+            
+            for (const [hostId, host] of Object.entries(hosts)) {
+                if (host.compromiseLevel && host.compromiseLevel !== 'None') {
+                    analysis += `### ${hostId} (${categoryName})\n\n`;
+                    analysis += `**Informations système:**\n`;
+                    analysis += `- IP: ${host.ip || 'Non spécifiée'}\n`;
+                    analysis += `- Système: ${host.system || 'Non identifié'}\n`;
+                    analysis += `- Niveau de compromission: ${host.compromiseLevel}\n`;
+                    
+                    if (host.services) {
+                        if (typeof host.services === 'string') {
+                            analysis += `- Services: ${host.services}\n`;
+                        } else if (Array.isArray(host.services) && host.services.length > 0) {
+                            analysis += `- Services: ${host.services.join(', ')}\n`;
+                        }
+                    }
+                    
+                    if (host.tags) {
+                        if (typeof host.tags === 'string') {
+                            analysis += `- Tags: ${host.tags}\n`;
+                        } else if (Array.isArray(host.tags) && host.tags.length > 0) {
+                            analysis += `- Tags: ${host.tags.join(', ')}\n`;
+                        }
+                    }
+                    
+                    analysis += '\n**Vulnérabilités identifiées:**\n';
+                    if (host.vulnerabilities && host.vulnerabilities.length > 0) {
+                        host.vulnerabilities.forEach((vuln, index) => {
+                            analysis += `${index + 1}. ${vuln.title || 'Vulnérabilité'}\n`;
+                            if (vuln.description) analysis += `   - ${vuln.description}\n`;
+                            if (vuln.severity) analysis += `   - Sévérité: ${vuln.severity}\n`;
+                        });
+                    } else {
+                        analysis += 'Détails à documenter.\n';
+                    }
+                    
+                    if (host.exploitationSteps && host.exploitationSteps.length > 0) {
+                        analysis += '\n**Étapes d\'exploitation:**\n';
+                        host.exploitationSteps.forEach((step, index) => {
+                            analysis += `${index + 1}. ${step.description || step}\n`;
+                        });
+                    }
+                    
+                    if (host.notes) {
+                        analysis += `\n**Notes:** ${host.notes}\n`;
+                    }
+                    
+                    analysis += '\n---\n\n';
+                }
+            }
+        }
+        return analysis || 'Aucun système compromis documenté.';
+    }
+
+    extractAllCredentials(data) {
+        let usernames = 0, passwords = 0, hashes = 0, privileged = 0;
+        
+        for (const category of Object.values(data.categories)) {
+            const hosts = category.hosts || {};
+            for (const host of Object.values(hosts)) {
+                if (host.credentials) {
+                    const creds = host.credentials;
+                    usernames += (creds.usernames || []).length;
+                    passwords += (creds.passwords || []).length;
+                    hashes += (creds.hashes || []).length;
+                    
+                    // Détecter les comptes privilégiés
+                    (creds.usernames || []).forEach(username => {
+                        if (username.toLowerCase().includes('admin') || 
+                            username.toLowerCase().includes('root') ||
+                            username.toLowerCase().includes('administrator')) {
+                            privileged++;
+                        }
+                    });
+                }
+            }
+        }
+        
+        return { 
+            total: usernames + passwords + hashes, 
+            usernames, 
+            passwords, 
+            hashes, 
+            privileged 
+        };
+    }
+
+    // Méthodes utilitaires manquantes
+    generateCredentialsSummaryText(data) {
+        const credentials = this.extractAllCredentials(data);
+        return `**Total:** ${credentials.total} credentials récupérés
+- **Usernames:** ${credentials.usernames}
+- **Passwords:** ${credentials.passwords} 
+- **Hashes:** ${credentials.hashes}
+- **Comptes privilégiés:** ${credentials.privileged}`;
+    }
+
+    generateInfrastructureOverviewText(data) {
+        const stats = this.calculateStats(data);
+        let overview = `**Périmètre d'analyse:**\n`;
+        overview += `- ${stats.totalCategories} catégories de systèmes\n`;
+        overview += `- ${stats.totalHosts} systèmes au total\n`;
+        overview += `- ${stats.compromisedHosts} systèmes compromis\n\n`;
+        
+        overview += `**Répartition par catégorie:**\n`;
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hostCount = Object.keys(category.hosts || {}).length;
+            overview += `- ${categoryName}: ${hostCount} systèmes\n`;
+        }
+        
+        return overview;
+    }
+
+    generateAttackVectorsText(data) {
+        let vectors = `**Vecteurs d'attaque identifiés:**\n`;
+        vectors += `- Services réseau exposés\n`;
+        vectors += `- Configurations par défaut\n`;
+        vectors += `- Vulnérabilités applicatives\n`;
+        vectors += `- Credentials faibles\n\n`;
+        
+        vectors += `**Analyse détaillée:**\n`;
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hosts = category.hosts || {};
+            for (const [hostId, host] of Object.entries(hosts)) {
+                if (host.services && host.services.length > 0) {
+                    vectors += `- ${hostId}: ${host.services.join(', ')}\n`;
+                }
+            }
+        }
+        
+        return vectors;
+    }
+
+    generateLateralMovementText(data) {
+        const edges = data.edges || [];
+        let movement = `**Possibilités de mouvement latéral:**\n`;
+        
+        if (edges.length > 0) {
+            movement += `${edges.length} connexions identifiées entre systèmes:\n`;
+            edges.forEach(edge => {
+                movement += `- ${edge.from} → ${edge.to}`;
+                if (edge.label) movement += ` (${edge.label})`;
+                movement += '\n';
+            });
+        } else {
+            movement += `Aucune connexion documentée entre les systèmes.\n`;
+        }
+        
+        return movement;
+    }
+
+    generateServiceAnalysisText(data) {
+        let analysis = `**Services exposés par système:**\n`;
+        
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hosts = category.hosts || {};
+            for (const [hostId, host] of Object.entries(hosts)) {
+                if (host.services) {
+                    if (typeof host.services === 'string') {
+                        analysis += `- **${hostId}:** ${host.services}\n`;
+                    } else if (Array.isArray(host.services) && host.services.length > 0) {
+                        analysis += `- **${hostId}:** ${host.services.join(', ')}\n`;
+                    }
+                }
+            }
+        }
+        
+        return analysis || 'Aucun service documenté.';
+    }
+
+    generateTechnicalRecommendationsText(data) {
+        const stats = this.calculateStats(data);
+        return `**Recommandations par priorité:**
+
+1. **Critique** - ${stats.compromiseLevels.Critical || 0} systèmes
+   - Correction immédiate des vulnérabilités critiques
+   - Isolation des systèmes compromis
+
+2. **Élevé** - ${stats.compromiseLevels.High || 0} systèmes
+   - Mise à jour des systèmes vulnérables
+   - Renforcement des configurations
+
+3. **Moyen** - ${stats.compromiseLevels.Medium || 0} systèmes
+   - Application des correctifs de sécurité
+   - Amélioration du monitoring
+
+4. **Général**
+   - Segmentation réseau
+   - Politique de mots de passe
+   - Formation des utilisateurs`;
+    }
+
+    generateC2AnalysisText(data) {
+        return `Analyse des communications Command & Control:
+- Protocoles utilisés: HTTP/HTTPS, DNS
+- Fréquence des communications: Variable
+- Détection: Monitoring réseau recommandé`;
+    }
+
+    generateImpactAnalysisText(data) {
+        const stats = this.calculateStats(data);
+        return `Impact potentiel de l'attaque:
+- ${stats.compromisedHosts} systèmes compromis
+- ${stats.totalCredentials} credentials exposés
+- Risque de propagation: Élevé
+- Confidentialité: Compromise
+- Intégrité: À risque
+- Disponibilité: Menacée`;
+    }
+
+    generatePropagationGraphText(data) {
+        const edges = data.edges || [];
+        if (edges.length === 0) {
+            return 'Aucune connexion documentée entre les systèmes.';
+        }
+        
+        let graph = 'Connexions identifiées:\n';
+        edges.forEach(edge => {
+            graph += `- ${edge.from} → ${edge.to}`;
+            if (edge.label) graph += ` (${edge.label})`;
+            graph += '\n';
+        });
+        return graph;
+    }
+
+    generateCredentialsBySystemDetailed(data) {
+        let report = '';
+        for (const [categoryName, category] of Object.entries(data.categories)) {
+            const hosts = category.hosts || {};
+            
+            for (const [hostId, host] of Object.entries(hosts)) {
+                if (host.credentials) {
+                    const creds = host.credentials;
+                    report += `### ${hostId} (${categoryName})\n\n`;
+                    
+                    if (creds.usernames && creds.usernames.length > 0) {
+                        report += '**Usernames récupérés:**\n';
+                        creds.usernames.forEach(username => {
+                            report += `- ${username}\n`;
+                        });
+                        report += '\n';
+                    }
+                    
+                    if (creds.passwords && creds.passwords.length > 0) {
+                        report += '**Passwords en clair:**\n';
+                        creds.passwords.forEach(password => {
+                            report += `- ${password}\n`;
+                        });
+                        report += '\n';
+                    }
+                    
+                    if (creds.hashes && creds.hashes.length > 0) {
+                        report += '**Hashes récupérés:**\n';
+                        creds.hashes.forEach(hash => {
+                            report += `- ${hash}\n`;
+                        });
+                        report += '\n';
+                    }
+                    
+                    report += '---\n\n';
+                }
+            }
+        }
+        return report || 'Aucun credential documenté.';
+    }
+
+    analyzePasswordReuseText(credentials) {
+        return `Analyse de réutilisation sur ${credentials.total} credentials:
+- Comptes avec mots de passe identiques: Analyse en cours
+- Patterns de réutilisation inter-systèmes: En cours d'évaluation`;
+    }
+
+    analyzePasswordWeaknessText(credentials) {
+        return `Analyse des ${credentials.passwords} mots de passe récupérés:
+- Mots de passe faibles détectés: En cours d'analyse
+- Patterns communs identifiés: Évaluation en cours
+- Recommandations de complexité: À définir`;
+    }
+
+    analyzeCredentialReuseText(credentials) {
+        return `Analyse de réutilisation sur ${credentials.total} credentials:
+- Comptes avec mots de passe identiques: Recherche en cours
+- Patterns de réutilisation inter-systèmes: Analyse en cours`;
+    }
+
+    analyzeServiceAccountsText(data) {
+        return `Analyse des comptes de service:
+- Comptes de service identifiés: Recherche en cours
+- Permissions élevées: Évaluation en cours
+- Recommandations: Principe du moindre privilège`;
     }
 } 
