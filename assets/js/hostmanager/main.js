@@ -16,6 +16,8 @@ import { CredentialManager } from './features/credentials.js';
 import { FileSystemExporter } from './export/filesystem.js';
 import { ZipExporter } from './export/zip.js';
 import { ReportGenerator } from './export/reports.js';
+import { NetworkMap } from './network/map.js';
+import { AdvancedReportGenerator } from './export/advanced-reports.js';
 
 class HostManager {
     constructor() {
@@ -49,6 +51,12 @@ class HostManager {
         this.modules.fileSystemExporter = new FileSystemExporter(this);
         this.modules.zipExporter = new ZipExporter(this);
         this.modules.reportGenerator = new ReportGenerator(this);
+        
+        // Initialisation du module NetworkMap
+        this.modules.networkMap = new NetworkMap(this);
+        
+        // Initialisation du nouveau générateur de rapports
+        this.modules.advancedReports = new AdvancedReportGenerator(this);
     }
 
     setupEventListeners() {
@@ -74,9 +82,14 @@ class HostManager {
             this.modules.zipExporter.initialize();
             this.modules.reportGenerator.initialize();
             
-            // Initialiser le réseau et les filtres
-            this.modules.network.initialize();
+            // Initialiser seulement les filtres (pas l'ancien network)
             this.modules.filters.initialize();
+            
+            // Initialiser le nouveau NetworkMap
+            this.modules.networkMap.initialize();
+            
+            // Initialiser le nouveau générateur de rapports
+            this.modules.advancedReports.initialize();
             
             console.log("Host Manager V2 Ready.");
         });
@@ -86,7 +99,7 @@ class HostManager {
     updateData(newData) {
         this.hostData = newData;
         this.modules.storage.saveData();
-        this.modules.network.updateNetwork();
+        this.modules.networkMap.updateNetwork();
         this.modules.categoryUI.renderCategories();
         this.modules.filters.populateFilterOptions();
     }

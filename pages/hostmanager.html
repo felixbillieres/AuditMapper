@@ -213,14 +213,170 @@
             </div>
         </div>
 
-        <!-- Carte Réseau -->
-        <div class="card">
+        <!-- Section Carte Réseau -->
+        <div class="card network-section">
             <div class="card-header">
-                Carte Réseau Interactive
-                <small class="text-muted ml-2">👑 Root | 🔓 Partiel | 🦶 Foothold | 🎯 Non compromis</small>
+                <h5 class="mb-0">🗺️ Carte Réseau Interactive</h5>
+                <small class="text-muted">Visualisation des systèmes et de leurs connexions</small>
             </div>
-            <div class="card-body">
-                <div id="network-map"></div>
+            
+            <div class="network-controls">
+                <div class="network-toolbar">
+                    <div class="btn-group btn-group-sm">
+                        <button id="networkZoomIn" class="btn btn-outline-primary" title="Zoom avant (Ctrl++)">
+                            🔍+
+                        </button>
+                        <button id="networkZoomOut" class="btn btn-outline-primary" title="Zoom arrière (Ctrl+-)">
+                            🔍-
+                        </button>
+                        <button id="networkFit" class="btn btn-outline-primary" title="Ajuster à la vue (F)">
+                            📐 Ajuster
+                        </button>
+                        <button id="networkCenter" class="btn btn-outline-primary" title="Centrer (C)">
+                            🎯 Centrer
+                        </button>
+                    </div>
+                    
+                    <div class="btn-group btn-group-sm ml-2">
+                        <button id="networkPhysics" class="btn btn-outline-success active" title="Simulation physique réaliste des mouvements">
+                            ⚡ Physique
+                        </button>
+                        <button id="networkHierarchy" class="btn btn-outline-info" title="Organisation en arbre hiérarchique">
+                            🌳 Hiérarchie
+                        </button>
+                        <button id="networkClustering" class="btn btn-outline-warning" title="Regroupement automatique des nodes similaires">
+                            🔗 Cluster
+                        </button>
+                    </div>
+                    
+                    <div class="input-group input-group-sm ml-2" style="width: 200px;">
+                        <input type="text" id="networkSearch" class="form-control" placeholder="Rechercher un node...">
+                        <div class="input-group-append">
+                            <button id="networkClearSearch" class="btn btn-outline-secondary" type="button" title="Effacer la recherche">
+                                ❌
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button id="networkFullscreenBtn" class="btn btn-primary btn-sm ml-2" title="Mode plein écran (Échap pour quitter)">
+                        🔳 Plein écran
+                    </button>
+                </div>
+                
+                <!-- Explications des modes -->
+                <div class="network-help-section">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="help-item">
+                                <strong>⚡ Physique :</strong> 
+                                <small class="text-muted">Simulation réaliste avec forces d'attraction/répulsion. Les nodes bougent naturellement.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="help-item">
+                                <strong>🌳 Hiérarchie :</strong> 
+                                <small class="text-muted">Organisation en arbre par catégories. Structure fixe et ordonnée.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="help-item">
+                                <strong>🔗 Cluster :</strong> 
+                                <small class="text-muted">Regroupement automatique des systèmes similaires pour simplifier la vue.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Légende collapsible -->
+                <div class="network-legend-integrated">
+                    <div class="legend-header" onclick="toggleNetworkLegend()">
+                        <h6 class="legend-title mb-0">
+                            📊 Légende 
+                            <span id="legendToggleIcon" class="legend-toggle-icon">▼</span>
+                        </h6>
+                        <small class="text-muted">Cliquer pour étendre/réduire</small>
+                    </div>
+                    
+                    <div id="legendContent" class="legend-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="legend-section">
+                                    <h6 class="legend-subtitle">🎯 Niveau de compromission (bordure)</h6>
+                                    <div class="legend-items-grid">
+                                        <div class="legend-item">
+                                            <span class="legend-border-demo" style="border: 3px solid #95a5a6;"></span>
+                                            <span>Non compromis</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-border-demo" style="border: 4px solid #f1c40f;"></span>
+                                            <span>Faible</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-border-demo" style="border: 5px solid #e67e22;"></span>
+                                            <span>Moyen</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-border-demo" style="border: 6px solid #e74c3c;"></span>
+                                            <span>Élevé</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="legend-border-demo" style="border: 7px solid #8e44ad;"></span>
+                                            <span>Critique</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="legend-section">
+                                    <h6 class="legend-subtitle">️ Types de systèmes (icône)</h6>
+                                    <div class="legend-items-grid">
+                                        <div class="legend-item">
+                                            <span>🖥 Windows</span>
+                                            <span>🐧 Linux</span>
+                                            <span>🏛 DC</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span>🌐 Web</span>
+                                            <span>🗄 Database</span>
+                                            <span>📡 Router</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span>🛡 Firewall</span>
+                                            <span>💻 Workstation</span>
+                                            <span>❓ Autre</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            💡 <strong>Couleur de fond :</strong> Catégorie | 
+                                            <strong>Bordure :</strong> Niveau de compromission
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="network-controls-help">
+                            <small class="text-muted">
+                                💡 <strong>Raccourcis :</strong> F (ajuster), C (centrer), P (physique), H (hiérarchie), Ctrl+/- (zoom) | 
+                                <strong>Interactions :</strong> Clic droit sur un node pour le menu contextuel, glisser pour déplacer
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="networkContainer"></div>
+            
+            <!-- Panneau d'informations du node sélectionné -->
+            <div id="nodeInfoPanel" class="node-info-panel" style="display: none;">
+                <div class="node-info-header">
+                    <h6 id="nodeInfoTitle">Informations du Node</h6>
+                    <button id="closeNodeInfo" class="btn btn-sm btn-outline-secondary">✕</button>
+                </div>
+                <div id="nodeInfoContent" class="node-info-content">
+                    <!-- Contenu dynamique -->
+                </div>
             </div>
         </div>
 
@@ -247,34 +403,90 @@
             </div>
         </div>
 
-        <!-- Zone du Rapport Killchain -->
-        <div id="killchainReportContainer" class="mt-4">
-            <h4>Rapport Killchain</h4>
-            <ul class="nav nav-tabs mb-2">
-                <li class="nav-item">
-                    <a class="nav-link active" id="showPreviewTab" href="#">Aperçu Rendu</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="showEditorTab" href="#">Éditeur Markdown</a>
-                </li>
-            </ul>
-
-            <!-- Conteneurs pour l'éditeur et l'aperçu -->
-            <div id="killchainEditorContainer">
-                 <textarea id="killchainReportPreview" class="form-control" rows="15" placeholder="Le rapport Markdown généré apparaîtra ici... Vous pouvez l'éditer manuellement."></textarea>
+        <!-- Section Rapports -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Génération de Rapports</h5>
+                <small class="text-muted">Créez des rapports détaillés de vos activités</small>
             </div>
-            <div id="killchainRenderedPreviewContainer" class="markdown-body" style="display: none; border: 1px solid #ccc; padding: 15px; min-height: 300px; background-color: #f8f9fa;">
-                <div id="killchainReportRenderedPreview">
-                    <!-- L'aperçu HTML sera injecté ici -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="report-controls">
+                            <h6>🎯 Types de rapports disponibles</h6>
+                            <div class="btn-group mb-3" role="group">
+                                <button type="button" id="generateExecutiveSummary" class="btn btn-primary">
+                                    📋 Résumé Exécutif
+                                </button>
+                                <button type="button" id="generateTechnicalReport" class="btn btn-info">
+                                    🔧 Rapport Technique
+                                </button>
+                                <button type="button" id="generateKillChainReport" class="btn btn-warning">
+                                    ⚔️ Kill Chain
+                                </button>
+                                <button type="button" id="generateCredentialReport" class="btn btn-success">
+                                    🔑 Credentials
+                                </button>
+                            </div>
+                            
+                            <div class="report-options">
+                                <h6>⚙️ Options de génération</h6>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="reportTitle">Titre du rapport</label>
+                                            <input type="text" id="reportTitle" class="form-control" 
+                                                   placeholder="Pentest - [Client] - [Date]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="reportAuthor">Auteur</label>
+                                            <input type="text" id="reportAuthor" class="form-control" 
+                                                   placeholder="Nom du pentester">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>📁 Catégories à inclure</label>
+                                    <div id="reportCategoryFilters" class="category-filters">
+                                        <!-- Généré dynamiquement -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="report-preview-card">
+                            <h6>👁️ Aperçu en temps réel</h6>
+                            <div id="reportPreviewMini" class="report-preview-mini">
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                    <p>Sélectionnez un type de rapport pour voir l'aperçu</p>
+                                </div>
+                            </div>
+                            
+                            <div class="report-actions mt-3">
+                                <button type="button" id="previewFullReport" class="btn btn-outline-primary btn-sm btn-block" disabled>
+                                    👁️ Aperçu complet
+                                </button>
+                                <div class="btn-group btn-group-sm w-100 mt-2">
+                                    <button type="button" id="exportReportPdf" class="btn btn-success" disabled>
+                                        📄 PDF
+                                    </button>
+                                    <button type="button" id="exportReportMd" class="btn btn-info" disabled>
+                                        📝 Markdown
+                                    </button>
+                                    <button type="button" id="exportReportHtml" class="btn btn-warning" disabled>
+                                        🌐 HTML
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Boutons d'action pour le rapport -->
-            <div class="mt-2">
-                <button id="generateKillchainBtn" class="btn btn-primary">Générer Nouveau Rapport</button>
-                <!-- AJOUT/VÉRIFICATION BOUTON ACTUALISER -->
-                <button id="updateCurrentReportBtn" class="btn btn-secondary" title="Actualiser le rapport à partir des données actuelles (écrase les modifications manuelles)">Actualiser depuis Données</button>
-                <button id="exportKillchainBtn" class.bind="btn btn-success" disabled>Exporter Rapport (.md)</button>
             </div>
         </div>
 
@@ -584,6 +796,13 @@
             </div>
         </div>
     </div>
+
+    <!-- Vis.js pour la carte réseau -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 </body>
 </html>
