@@ -18,6 +18,8 @@
 
     <!-- PAS DE STYLE INTERNE ICI -->
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </head>
 <body class=""> <!-- La classe dark-theme sera gérée par theme.js -->
 
@@ -528,6 +530,60 @@
     <!-- Assurez-vous que JSZip et FileSaver sont inclus -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <!-- Modal de rapport Kill Chain -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🎯 Rapport Kill Chain</h5>
+                    <div class="btn-group ml-auto mr-3">
+                        <button type="button" id="exportPdfBtn" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-pdf"></i> 📄 Export PDF
+                        </button>
+                        <button type="button" id="exportMdBtn" class="btn btn-info btn-sm">
+                            <i class="fas fa-file-alt"></i> 📝 Export MD
+                        </button>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Onglets -->
+                    <ul class="nav nav-tabs" style="margin: 0;">
+                        <li class="nav-item">
+                            <a class="nav-link" id="editorTab" href="#" style="border-radius: 0;">
+                                ✏️ Éditeur
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" id="previewTab" href="#" style="border-radius: 0;">
+                                👁️ Aperçu
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <!-- Contenu des onglets -->
+                    <div class="tab-content">
+                        <!-- Éditeur Markdown -->
+                        <textarea id="reportEditor" class="form-control" 
+                                  style="display: none; height: 70vh; border: none; border-radius: 0; resize: none; font-family: 'Courier New', monospace;"
+                                  placeholder="Le rapport sera généré ici..."></textarea>
+                        
+                        <!-- Aperçu rendu -->
+                        <div id="renderedPreview" 
+                             style="height: 70vh; overflow-y: auto; border: none; background: white; padding: 0;">
+                            <div class="text-center text-muted p-5">
+                                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                <p>Générez un rapport pour voir l'aperçu</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

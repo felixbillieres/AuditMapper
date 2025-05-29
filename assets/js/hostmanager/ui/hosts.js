@@ -1479,7 +1479,7 @@ export class HostUI {
 
     removeVulnerability(index) {
         if (!this.currentEditingHost || !this.currentEditingHost.data.vulnerabilities) return;
-
+        
         if (confirm('Supprimer cette vulnérabilité ?')) {
             this.currentEditingHost.data.vulnerabilities.splice(index, 1);
             this.populateVulnerabilitiesSection(this.currentEditingHost.data.vulnerabilities);
@@ -1493,34 +1493,46 @@ export class HostUI {
         container.innerHTML = '';
 
         if (!vulnerabilities || vulnerabilities.length === 0) {
-            container.innerHTML = '<p class="text-muted small">Aucune vulnérabilité enregistrée.</p>';
+            container.innerHTML = '<p class="text-muted">🛡️ Aucune vulnérabilité documentée.</p>';
             return;
         }
 
         vulnerabilities.forEach((vuln, index) => {
-            const severityClass = {
-                'Low': 'success',
-                'Medium': 'warning', 
-                'High': 'danger',
-                'Critical': 'dark'
-            }[vuln.severity] || 'secondary';
+            const severityIcon = {
+                'Low': '🟢',
+                'Medium': '🟡', 
+                'High': '🟠',
+                'Critical': '🔴'
+            }[vuln.severity] || '⚪';
 
             const vulnElement = document.createElement('div');
             vulnElement.className = 'vulnerability-item mb-2 p-2 border rounded';
             vulnElement.innerHTML = `
-                <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex justify-content-between align-items-center">
                     <div class="flex-grow-1">
-                        <h6 class="mb-1">${vuln.name}</h6>
-                        <span class="badge badge-${severityClass}">${vuln.severity}</span>
-                        ${vuln.description ? `<p class="mb-0 mt-1 text-muted small">${vuln.description}</p>` : ''}
+                        <span class="text-muted small">🛡️ Vulnérabilité:</span><br>
+                        <strong>${vuln.title || `Vulnérabilité ${index + 1}`}</strong>
+                        ${vuln.cve ? `<span class="badge badge-warning ml-2">${vuln.cve}</span>` : ''}
+                        <span class="badge badge-${this.getSeverityBadgeClass(vuln.severity)} ml-2">${severityIcon} ${vuln.severity || 'Unknown'}</span>
+                        ${vuln.description ? `<br><small class="text-muted">${vuln.description}</small>` : ''}
                     </div>
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="hostManager.modules.hostUI.removeVulnerability(${index})">
-                        <i class="fas fa-trash"></i>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="hostManager.modules.hostUI.removeVulnerability(${index})" title="Supprimer">
+                        🗑️
                     </button>
                 </div>
             `;
             container.appendChild(vulnElement);
         });
+    }
+
+    getSeverityBadgeClass(severity) {
+        const classes = {
+            'Low': 'success',
+            'Medium': 'warning', 
+            'High': 'danger',
+            'Critical': 'dark'
+        };
+        return classes[severity] || 'secondary';
     }
 
     generateHostReport() {
@@ -1620,5 +1632,52 @@ export class HostUI {
         console.log(`Editing credential ${index}`);
         // TODO: Implémenter l'édition des credentials
         alert('Fonctionnalité d\'édition des credentials à implémenter');
+    }
+
+    populateOutputsSection(outputs) {
+        const container = document.getElementById('outputsList');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (!outputs || outputs.length === 0) {
+            container.innerHTML = '<p class="text-muted">📄 Aucune sortie/dump enregistré.</p>';
+            return;
+        }
+
+        outputs.forEach((output, index) => {
+            const outputElement = document.createElement('div');
+            outputElement.className = 'output-item mb-3 p-3 border rounded';
+            outputElement.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">📄 ${output.title || `Sortie ${index + 1}`}</h6>
+                        ${output.description ? `<small class="text-muted">${output.description}</small>` : ''}
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-info btn-sm" onclick="hostManager.modules.hostUI.copyOutput(${index})" title="Copier le contenu">
+                            📋
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="hostManager.modules.hostUI.removeOutput(${index})" title="Supprimer">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div class="output-content">
+                    <pre class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto; font-size: 0.85em;">${output.content || ''}</pre>
+                </div>
+            `;
+            container.appendChild(outputElement);
+        });
+    }
+
+    removeOutput(index) {
+        if (!this.currentEditingHost || !this.currentEditingHost.data.outputs) return;
+        
+        if (confirm('Supprimer cette sortie ?')) {
+            this.currentEditingHost.data.outputs.splice(index, 1);
+            this.saveCurrentHostData();
+            this.populateOutputsSection(this.currentEditingHost.data.outputs);
+        }
     }
 }
