@@ -1627,7 +1627,7 @@ body.dark-theme .main-footer {
 /* Boutons dans les onglets */
 .category-tab .category-settings-btn,
 .category-tab .remove-category-btn {
-    background: none; border: none; padding: 0 0 0 0.5rem; margin-left: 0.25rem;
+    background: none border: none; padding: 0 0 0 0.5rem; margin-left: 0.25rem;
     cursor: pointer; font-size: 0.9em; color: var(--text-color-muted, #6c757d);
     opacity: 0.7; line-height: 1;
 }
@@ -3276,4 +3276,107 @@ body.dark-theme .screenshot-upload-area {
 body.dark-theme .screenshot-upload-area.drag-over {
     border-color: var(--primary-color);
     background: var(--dark-background-color-hover);
+}
+
+/* Styles pour les screenshots multiples */
+.screenshots-container {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    background: var(--hover-bg);
+}
+
+.screenshots-preview {
+    margin-top: 15px;
+}
+
+.screenshot-item {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    background: var(--card-bg);
+}
+
+.screenshot-preview-container {
+    text-align: center;
+}
+
+.screenshot-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.screenshots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.screenshots-grid img {
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.screenshots-grid img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Mode sombre */
+body.dark-theme .screenshots-container {
+    background: var(--dark-panel-section-bg);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .screenshot-item {
+    background: var(--dark-card-bg);
+    border-color: var(--dark-border-color);
+}
+
+/* Styles pour les miniatures avec overlay */
+.screenshot-thumbnail-container {
+    transition: transform 0.2s ease;
+}
+
+.screenshot-thumbnail-container:hover {
+    transform: scale(1.02);
+}
+
+.screenshot-overlay {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.screenshot-thumbnail-container:hover .screenshot-overlay {
+    opacity: 1;
+}
+
+.screenshot-overlay button {
+    background: none !important;
+    border: none !important;
+    margin: 0;
+    padding: 2px !important;
+}
+
+.screenshot-overlay button:hover {
+    background: rgba(255,255,255,0.2) !important;
+    border-radius: 2px;
+}
+
+/* Amélioration des boutons avec emojis */
+.btn-outline-secondary, .btn-outline-info, .btn-outline-danger {
+    font-size: 14px;
+    min-width: 40px;
+    padding: 4px 8px;
+}
+
+/* Mode sombre pour les overlays */
+body.dark-theme .screenshot-overlay {
+    background: rgba(255,255,255,0.8) !important;
+}
+
+body.dark-theme .screenshot-overlay button {
+    color: #000 !important;
 }
