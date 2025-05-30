@@ -13,6 +13,7 @@ import { PanelUI } from './ui/panels.js';
 import { OutputManager } from './features/outputs.js';
 import { ExploitationManager } from './features/exploitation.js';
 import { CredentialManager } from './features/credentials.js';
+import { AggregatedDataManager } from './features/aggregated-data.js';
 import { FileSystemExporter } from './export/filesystem.js';
 import { ZipExporter } from './export/zip.js';
 import { ImportManager } from './export/import.js';
@@ -47,6 +48,7 @@ class HostManager {
         this.modules.outputs = new OutputManager(this);
         this.modules.exploitation = new ExploitationManager(this);
         this.modules.credentials = new CredentialManager(this);
+        this.modules.aggregatedData = new AggregatedDataManager(this);
         
         // Initialisation des modules export/import
         this.modules.fileSystemExporter = new FileSystemExporter(this);
@@ -78,6 +80,7 @@ class HostManager {
             this.modules.outputs.initialize();
             this.modules.exploitation.initialize();
             this.modules.credentials.initialize();
+            this.modules.aggregatedData.initialize();
             
             // Initialiser les modules export/import
             this.modules.fileSystemExporter.initialize();
@@ -105,6 +108,7 @@ class HostManager {
         this.modules.networkMap.updateNetwork();
         this.modules.categoryUI.renderCategories();
         this.modules.filters.populateFilterOptions();
+        this.modules.aggregatedData.updateAggregatedData();
     }
 
     setActiveCategory(categoryName) {

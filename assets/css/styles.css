@@ -995,14 +995,18 @@ body.dark-theme .markdown-body { /* Styles spécifiques pour l'aperçu si néces
     color: var(--dark-text-color);
 }
 /* Surcharger les styles markdown si besoin DANS le contexte .markdown-body */
-body.dark-theme .markdown-body h1, body.dark-theme .markdown-body h2, /* etc. */ {
+body.dark-theme .markdown-body h1, 
+body.dark-theme .markdown-body h2,
+body.dark-theme .markdown-body h3,
+body.dark-theme .markdown-body h4,
+body.dark-theme .markdown-body h5,
+body.dark-theme .markdown-body h6 {
     color: var(--dark-heading-color);
     border-bottom-color: var(--dark-border-color);
 }
 body.dark-theme .markdown-body pre {
     background-color: var(--dark-code-bg);
     color: var(--dark-code-text);
-    border-color: var(--dark-border-color-light);
 }
 body.dark-theme .markdown-body blockquote {
     border-left-color: var(--dark-blockquote-border);
@@ -1627,9 +1631,15 @@ body.dark-theme .main-footer {
 /* Boutons dans les onglets */
 .category-tab .category-settings-btn,
 .category-tab .remove-category-btn {
-    background: none border: none; padding: 0 0 0 0.5rem; margin-left: 0.25rem;
-    cursor: pointer; font-size: 0.9em; color: var(--text-color-muted, #6c757d);
-    opacity: 0.7; line-height: 1;
+    background: none; 
+    border: none; 
+    padding: 0 0 0 0.5rem; 
+    margin-left: 0.25rem;
+    cursor: pointer; 
+    font-size: 0.9em; 
+    color: var(--text-color-muted, #6c757d);
+    opacity: 0.7; 
+    line-height: 1;
 }
 
 .category-tab .category-settings-btn:hover,
@@ -4599,5 +4609,325 @@ body.dark-theme .modal-footer {
     
     .modal-lg {
         max-width: 90%;
+    }
+}
+
+/* Amélioration lisibilité textes small et col-md-6 */
+.list-unstyled.small,
+.list-unstyled .small,
+.col-md-6 .small,
+.small.text-muted {
+    color: #fff !important;
+}
+
+body.dark-theme .list-unstyled.small,
+body.dark-theme .list-unstyled .small,
+body.dark-theme .col-md-6 .small,
+body.dark-theme .small.text-muted {
+    color: #fff !important;
+}
+
+/* Styles pour section collapsible Export/Import */
+.collapsible-section {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.collapsible-header {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+}
+
+.collapsible-header:hover {
+    background-color: #e9ecef;
+}
+
+.collapsible-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.collapsible-toggle {
+    font-size: 1.2em;
+    transition: transform 0.2s ease;
+}
+
+.collapsible-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    padding: 1rem;
+    display: block;
+}
+
+.collapsible-content.collapsed {
+    display: none;
+}
+
+body.dark-theme .collapsible-section {
+    border-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .collapsible-header {
+    background-color: var(--dark-card-header-bg, #36393f);
+    border-bottom-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .collapsible-header:hover {
+    background-color: var(--dark-hover-bg, #40444b);
+}
+
+body.dark-theme .collapsible-header h5 {
+    color: var(--dark-heading-color, #f8f9fa);
+}
+
+/* Styles pour la nouvelle interface de rapports avancée */
+
+.report-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.report-type-card {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.report-type-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.report-type-card.selected {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+}
+
+.report-type-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.report-icon {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+.report-type-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+}
+
+.report-type-card p {
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.report-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.report-type-options label {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.report-type-options input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+.report-customization {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.report-customization h6 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.advanced-options .btn-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.advanced-options .btn-link:hover {
+    color: #495057;
+    text-decoration: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.export-options {
+    margin-top: 1rem;
+}
+
+.export-options small {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.report-preview-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.report-preview-mini {
+    min-height: 150px;
+    border: 1px dashed #dee2e6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+}
+
+/* Styles pour le thème sombre */
+body.dark-theme .report-type-card {
+    background: var(--dark-card-bg, #2c2f33);
+    border-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .report-type-card:hover {
+    border-color: #4dabf7;
+    background: var(--dark-card-hover-bg, #36393f);
+}
+
+body.dark-theme .report-type-card.selected {
+    border-color: #4dabf7;
+    background: var(--dark-primary-bg, #1e3a5f);
+}
+
+body.dark-theme .report-type-header h6 {
+    color: var(--dark-heading-color, #f8f9fa);
+}
+
+body.dark-theme .report-type-card p {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+
+body.dark-theme .report-customization {
+    background: var(--dark-card-bg, #2c2f33);
+    border: 1px solid var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .report-customization h6 {
+    color: var(--dark-heading-color, #f8f9fa);
+}
+
+body.dark-theme .stat-item {
+    background: var(--dark-card-bg, #2c2f33);
+    border-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .stat-value {
+    color: #4dabf7;
+}
+
+body.dark-theme .stat-label {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+
+body.dark-theme .report-preview-card {
+    background: var(--dark-card-bg, #2c2f33);
+    border-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .report-preview-mini {
+    background: var(--dark-hover-bg, #36393f);
+    border-color: var(--dark-border-color, #40444b);
+}
+
+body.dark-theme .advanced-options .btn-link {
+    color: var(--dark-text-color-muted, #adb5bd);
+}
+
+body.dark-theme .advanced-options .btn-link:hover {
+    color: var(--dark-text-color, #e0e0e0);
+}
+
+body.dark-theme .advanced-options .border {
+    border-color: var(--dark-border-color, #40444b) !important;
+    background: var(--dark-hover-bg, #36393f) !important;
+}
+
+/* Responsive design pour les cartes de rapports */
+@media (max-width: 768px) {
+    .report-types-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        font-size: 0.8rem;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+    }
+    
+    .report-customization {
+        padding: 1rem;
     }
 }

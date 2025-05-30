@@ -124,12 +124,15 @@
         <!-- ========================================== -->
         <!-- == SECTION EXPORTATION/IMPORTATION COMPLÈTE == -->
         <!-- ========================================== -->
-        <div id="nodeExportSection" class="card mb-3 shadow-sm">
-            <div class="card-header">
-                <h5 class="card-title mb-0">📦 Export & Import Complet</h5>
-                <small class="text-muted">Sauvegardez et partagez tout votre travail en un clic</small>
+        <div id="nodeExportSection" class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleExportImportSection()">
+                <h5 class="mb-0">📦 Export & Import Complet</h5>
+                <div class="d-flex align-items-center">
+                    <small class="text-muted mr-2">Sauvegardez et partagez tout votre travail</small>
+                    <span class="collapsible-toggle">▼</span>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="collapsible-content" id="exportImportContent">
                 
                 <!-- Section Export -->
                 <div class="export-import-section mb-4">
@@ -474,44 +477,185 @@
         <!-- Section Rapports -->
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">📊 Génération de Rapports</h5>
-                <small class="text-muted">Créez des rapports détaillés de vos activités</small>
+                <h5 class="mb-0">📊 Génération de Rapports Avancée</h5>
+                <small class="text-muted">Créez des rapports professionnels personnalisables</small>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
                         <div class="report-controls">
+                            <!-- Types de rapports avec plus d'options -->
                             <h6>🎯 Types de rapports disponibles</h6>
-                            <div class="btn-group mb-3" role="group">
-                                <button type="button" id="generateExecutiveSummary" class="btn btn-primary">
-                                    📋 Résumé Exécutif
-                                </button>
-                                <button type="button" id="generateTechnicalReport" class="btn btn-info">
-                                    🔧 Rapport Technique
-                                </button>
-                                <button type="button" id="generateKillChainReport" class="btn btn-warning">
-                                    ⚔️ Kill Chain
-                                </button>
-                                <button type="button" id="generateCredentialReport" class="btn btn-success">
-                                    🔑 Credentials
-                                </button>
+                            <div class="report-types-grid mb-4">
+                                <div class="report-type-card" data-type="executive">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">📋</span>
+                                        <h6>Résumé Exécutif</h6>
+                                    </div>
+                                    <p class="small text-muted">Vue d'ensemble pour les dirigeants, focus sur les risques business</p>
+                                    <div class="report-type-options">
+                                        <label class="small">
+                                            <input type="checkbox" class="risk-matrix-option" data-type="executive"> 
+                                            Inclure matrice de risques
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-type-card" data-type="technical">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">🔧</span>
+                                        <h6>Rapport Technique</h6>
+                                    </div>
+                                    <p class="small text-muted">Détails techniques complets, preuves de concept et remédiation</p>
+                                    <div class="report-type-options">
+                                        <label class="small">
+                                            <input type="checkbox" class="include-outputs-option" data-type="technical" checked> 
+                                            Inclure outputs bruts
+                                        </label>
+                                        <label class="small">
+                                            <input type="checkbox" class="include-screenshots-option" data-type="technical" checked> 
+                                            Inclure screenshots
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-type-card" data-type="killchain">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">⚔️</span>
+                                        <h6>Kill Chain</h6>
+                                    </div>
+                                    <p class="small text-muted">Chronologie d'attaque selon le modèle MITRE ATT&CK</p>
+                                    <div class="report-type-options">
+                                        <label class="small">
+                                            <input type="checkbox" class="mitre-mapping-option" data-type="killchain" checked> 
+                                            Mapping MITRE ATT&CK
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-type-card" data-type="credentials">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">🔑</span>
+                                        <h6>Analyse Credentials</h6>
+                                    </div>
+                                    <p class="small text-muted">Focus sur les credentials découverts et leur réutilisation</p>
+                                    <div class="report-type-options">
+                                        <label class="small">
+                                            <input type="checkbox" class="password-analysis-option" data-type="credentials" checked> 
+                                            Analyse motifs passwords
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-type-card" data-type="infrastructure">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">🏗️</span>
+                                        <h6>Infrastructure</h6>
+                                    </div>
+                                    <p class="small text-muted">Cartographie détaillée de l'infrastructure et des services</p>
+                                    <div class="report-type-options">
+                                        <label class="small">
+                                            <input type="checkbox" class="network-diagram-option" data-type="infrastructure" checked> 
+                                            Diagramme réseau
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="report-type-card" data-type="compliance">
+                                    <div class="report-type-header">
+                                        <span class="report-icon">📜</span>
+                                        <h6>Conformité</h6>
+                                    </div>
+                                    <p class="small text-muted">Évaluation selon les standards (ISO 27001, NIST, etc.)</p>
+                                    <div class="report-type-options">
+                                        <select class="form-control form-control-sm compliance-standard-select" data-type="compliance">
+                                            <option value="iso27001">ISO 27001</option>
+                                            <option value="nist">NIST Cybersecurity Framework</option>
+                                            <option value="pci">PCI DSS</option>
+                                            <option value="gdpr">RGPD/GDPR</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="report-options">
-                                <h6>⚙️ Options de génération</h6>
+                            <!-- Options de personnalisation avancées -->
+                            <div class="report-customization">
+                                <h6>🎨 Personnalisation du rapport</h6>
+                                
+                                <div class="form-row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reportTitle">Titre du rapport</label>
+                                            <input type="text" id="reportTitle" class="form-control form-control-sm" 
+                                                   placeholder="Pentest - [Client] - [Date]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reportAuthor">Auteur(s)</label>
+                                            <input type="text" id="reportAuthor" class="form-control form-control-sm" 
+                                                   placeholder="Équipe pentest">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reportClient">Client</label>
+                                            <input type="text" id="reportClient" class="form-control form-control-sm" 
+                                                   placeholder="Nom du client">
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="form-row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="reportTitle">Titre du rapport</label>
-                                            <input type="text" id="reportTitle" class="form-control" 
-                                                   placeholder="Pentest - [Client] - [Date]">
+                                            <label for="reportStyle">Style visuel</label>
+                                            <select id="reportStyle" class="form-control form-control-sm">
+                                                <option value="professional">Professionnel (bleu/gris)</option>
+                                                <option value="security">Sécurité (rouge/noir)</option>
+                                                <option value="minimal">Minimaliste (noir/blanc)</option>
+                                                <option value="corporate">Corporate (vert/bleu)</option>
+                                                <option value="cyberpunk">Cyber (violet/néon)</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="reportAuthor">Auteur</label>
-                                            <input type="text" id="reportAuthor" class="form-control" 
-                                                   placeholder="Nom du pentester">
+                                            <label for="reportLanguage">Langue</label>
+                                            <select id="reportLanguage" class="form-control form-control-sm">
+                                                <option value="fr">Français</option>
+                                                <option value="en">English</option>
+                                                <option value="es">Español</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="reportFormat">Format de sortie</label>
+                                            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                                <label class="btn btn-outline-secondary btn-sm active">
+                                                    <input type="radio" name="reportFormat" id="formatMarkdown" value="markdown" checked> 📝 Markdown
+                                                </label>
+                                                <label class="btn btn-outline-secondary btn-sm">
+                                                    <input type="radio" name="reportFormat" id="formatHtml" value="html"> 🌐 HTML
+                                                </label>
+                                                <label class="btn btn-outline-secondary btn-sm">
+                                                    <input type="radio" name="reportFormat" id="formatPdf" value="pdf"> 📄 PDF
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="reportDetailLevel">Niveau de détail</label>
+                                            <select id="reportDetailLevel" class="form-control form-control-sm">
+                                                <option value="summary">Résumé</option>
+                                                <option value="detailed" selected>Détaillé</option>
+                                                <option value="comprehensive">Complet</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -520,6 +664,47 @@
                                     <label>📁 Catégories à inclure</label>
                                     <div id="reportCategoryFilters" class="category-filters">
                                         <!-- Généré dynamiquement -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Options avancées collapsible -->
+                                <div class="advanced-options mt-3">
+                                    <button type="button" class="btn btn-link btn-sm p-0" data-toggle="collapse" data-target="#advancedReportOptions">
+                                        ⚙️ Options avancées <span class="caret">▼</span>
+                                    </button>
+                                    <div id="advancedReportOptions" class="collapse mt-2">
+                                        <div class="border p-3 bg-light rounded">
+                                            <div class="form-row">
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeTableOfContents" class="form-check-input" checked>
+                                                        <label for="includeTableOfContents" class="form-check-label">Table des matières</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeExecutiveSummary" class="form-check-input" checked>
+                                                        <label for="includeExecutiveSummary" class="form-check-label">Résumé exécutif en en-tête</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeRecommendations" class="form-check-input" checked>
+                                                        <label for="includeRecommendations" class="form-check-label">Recommandations prioritaires</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeTimeline" class="form-check-input">
+                                                        <label for="includeTimeline" class="form-check-label">Timeline des activités</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeMetrics" class="form-check-input" checked>
+                                                        <label for="includeMetrics" class="form-check-label">Métriques et statistiques</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input type="checkbox" id="includeAppendices" class="form-check-input">
+                                                        <label for="includeAppendices" class="form-check-label">Annexes techniques</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -536,7 +721,33 @@
                                 </div>
                             </div>
                             
-                            <div class="report-actions mt-3">
+                            <div class="report-stats mt-3 mb-3">
+                                <h6 class="small">📊 Statistiques du rapport :</h6>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-value" id="reportStatsHosts">-</span>
+                                        <span class="stat-label">Systèmes</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value" id="reportStatsVulns">-</span>
+                                        <span class="stat-label">Vulnérabilités</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value" id="reportStatsCreds">-</span>
+                                        <span class="stat-label">Credentials</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value" id="reportStatsPages">-</span>
+                                        <span class="stat-label">Pages est.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-actions">
+                                <button type="button" id="generateSelectedReport" class="btn btn-primary btn-block mb-2" disabled>
+                                    🚀 Générer le Rapport
+                                </button>
+                                
                                 <div class="btn-group w-100 mb-2">
                                     <button type="button" id="previewFullReport" class="btn btn-outline-primary btn-sm" disabled>
                                         👁️ Aperçu complet
@@ -545,16 +756,23 @@
                                         ✏️ Modifier
                                     </button>
                                 </div>
-                                <div class="btn-group btn-group-sm w-100">
-                                    <button type="button" id="exportReportPdf" class="btn btn-success" disabled>
-                                        📄 PDF
-                                    </button>
-                                    <button type="button" id="exportReportMd" class="btn btn-info" disabled>
-                                        📝 Markdown
-                                    </button>
-                                    <button type="button" id="exportReportHtml" class="btn btn-warning" disabled>
-                                        🌐 HTML
-                                    </button>
+                                
+                                <div class="export-options">
+                                    <small class="text-muted">Export rapide :</small>
+                                    <div class="btn-group btn-group-sm w-100">
+                                        <button type="button" id="exportReportPdf" class="btn btn-success" disabled>
+                                            📄 PDF
+                                        </button>
+                                        <button type="button" id="exportReportMd" class="btn btn-info" disabled>
+                                            📝 Markdown
+                                        </button>
+                                        <button type="button" id="exportReportHtml" class="btn btn-warning" disabled>
+                                            🌐 HTML
+                                        </button>
+                                        <button type="button" id="exportReportDocx" class="btn btn-secondary" disabled>
+                                            📄 Word
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -876,6 +1094,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <!-- Script pour le toggle de la section Export/Import -->
+    <script>
+        function toggleExportImportSection() {
+            const content = document.getElementById('exportImportContent');
+            const toggle = document.querySelector('.collapsible-toggle');
+            
+            if (content && toggle) {
+                content.classList.toggle('collapsed');
+                toggle.classList.toggle('collapsed');
+            }
+        }
+
+        // Fermer la section par défaut pour économiser l'espace
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.getElementById('exportImportContent');
+            const toggle = document.querySelector('.collapsible-toggle');
+            
+            if (content && toggle) {
+                content.classList.add('collapsed');
+                toggle.classList.add('collapsed');
+            }
+        });
+    </script>
 
 </body>
 </html>

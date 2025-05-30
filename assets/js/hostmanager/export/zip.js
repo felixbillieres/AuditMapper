@@ -352,10 +352,22 @@ Credentials agrégés et analysés :
 - **credentials_by_host.csv** - Credentials par système
 
 ### 🖼️ screenshots/
-Captures d'écran des étapes d'exploitation organisées par système
+Captures d'écran des étapes d'exploitation organisées par système (vue globale)
 
 ### 📁 outputs/
-Outputs bruts des outils organisés par catégorie et système
+Outputs bruts des outils organisés par catégorie et système.
+Chaque dossier host contient également un sous-dossier **screenshots/** 
+pour une organisation locale des captures d'écran avec les notes.
+
+**Structure détaillée :**
+\`\`\`
+outputs/
+├── [Catégorie]/
+│   └── [Host]/
+│       ├── screenshots/          # Screenshots spécifiques à ce host
+│       │   └── step_N_screenshot.txt
+│       └── [tool]_N.txt         # Outputs des outils
+\`\`\`
 
 ### 🔗 network/
 Analyse du réseau et des connexions :
@@ -473,24 +485,35 @@ Cet export est compatible avec :
             const categoryOutputFolder = outputsFolder.folder(categoryName);
             
             for (const [hostId, host] of Object.entries(category.hosts || {})) {
+                const hostOutputFolder = categoryOutputFolder.folder(hostId);
+                
                 // Screenshots des étapes d'exploitation
                 if (host.exploitationSteps && host.exploitationSteps.length > 0) {
+                    // Dossier global pour tous les screenshots
                     const hostScreenshotFolder = screenshotsFolder.folder(`${categoryName}_${hostId}`);
+                    
+                    // Dossier dans l'host spécifique pour organisation par notes
+                    const hostSpecificScreenshotFolder = hostOutputFolder.folder('screenshots');
                     
                     host.exploitationSteps.forEach((step, index) => {
                         if (step.screenshotUrl) {
+                            const screenshotInfo = `Screenshot URL: ${step.screenshotUrl}\nStep: ${step.title || step.description}`;
+                            const fileName = `step_${index + 1}_screenshot.txt`;
+                            
                             // Note: Pour les vraies images, il faudrait les télécharger
-                            // Ici on documente juste l'URL
-                            hostScreenshotFolder.file(`step_${index + 1}_screenshot.txt`, 
-                                `Screenshot URL: ${step.screenshotUrl}\nStep: ${step.title || step.description}`);
+                            // Ici on documente l'URL dans les deux endroits
+                            
+                            // Dossier global screenshots
+                            hostScreenshotFolder.file(fileName, screenshotInfo);
+                            
+                            // Dossier spécifique à l'host pour organisation par notes
+                            hostSpecificScreenshotFolder.file(fileName, screenshotInfo);
                         }
                     });
                 }
 
                 // Outputs bruts
                 if (host.outputs && host.outputs.length > 0) {
-                    const hostOutputFolder = categoryOutputFolder.folder(hostId);
-                    
                     host.outputs.forEach((output, index) => {
                         const fileName = `${output.type || 'output'}_${index + 1}.txt`;
                         let content = `Type: ${output.type || 'N/A'}\n`;
