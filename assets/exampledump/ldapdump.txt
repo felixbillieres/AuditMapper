@@ -1,0 +1,12 @@
+# Output from Impacket's secretsdump.py parsing ntds.dit + SYSTEM from a Domain Controller
+
+# Domain: MONDOMAINE
+# RID: 500
+# Hashes:
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:c0ffeecafe0b1c2d3e4f5a6b7c8d9e0f:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:d34db33fd34db33fd34db33fd34db33f:::
+user_devops:1100:aad3b435b51404eeaad3b435b51404ee:ab12cd34ef56gh78ij90kl12mn34op56:::
+user_compta:1101:aad3b435b51404eeaad3b435b51404ee:bc23de45fg67hi89jk01lm23no45pq67:::
+svc_iis_app:1102:aad3b435b51404eeaad3b435b51404ee:cd34ef56gh78ij90kl12mn34op56qr78:::
+dom_admin_bob:1200:aad3b435b51404eeaad3b435b51404ee:de45fg67hi89jk01lm23no45pq67rs89:::

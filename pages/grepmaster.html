@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grep Master Parser - AuditMapper</title>
+    <title>Grep Master - AuditMapper</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/grepmaster.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Bouton pour afficher/masquer la sidebar -->
@@ -66,7 +70,7 @@
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
+                        <i>📊</i> Vuln Report
                     </a>
                 </li>
             </ul>
@@ -74,15 +78,16 @@
     </div>
 
     <!-- Header -->
-    <header id="main-header" class="main-header">
+    <header class="main-header">
         <div class="header-container">
-            <h1>Grep Master Parser</h1>
+            <div class="header-content">
+                <h1>🔍 Grep Master</h1>
+                <p class="header-subtitle">Analyseur et extracteur de données avancé pour outputs de pentest</p>
+            </div>
             <div class="header-controls">
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
-                        <i class="icon-language">🌍</i>
-                        <span id="currentLanguage">Français</span>
-                        <i class="dropdown-arrow">▼</i>
+                        <span class="language-flag">🇫🇷</span> <span id="currentLanguageText">FR</span>
                     </button>
                     <div id="languageMenu" class="language-menu">
                         <div class="language-option" data-lang="fr">
@@ -101,106 +106,260 @@
     </header>
 
     <!-- Contenu principal -->
-    <div id="main-content" class="main-content">
-        <div class="form-section">
-            <h2>Analyseur intelligent d'outputs</h2>
-            <p>Collez votre output brut ci-dessous et sélectionnez le type pour extraire les informations utiles:</p>
-            
-            <div class="form-group">
-                <label for="outputType">Type d'output:</label>
-                <select id="outputType" class="select-input">
-                    <option value="secretsdump">Secretsdump</option>
-                    <option value="sam">SAM dump</option>
-                    <option value="lsass">LSASS dump</option>
-                    <option value="rpcclient">RPC Enum (enumdomusers)</option>
-                    <option value="hashcat">Hashcat potfile</option>
-                    <option value="ldap">LDAP query</option>
-                    <option value="passwd">Linux /etc/passwd</option>
-                    <option value="shadow">Linux /etc/shadow</option>
-                    <option value="generic">Output générique</option>
-                </select>
+    <div class="main-content" id="mainContent">
+        <!-- Section d'input -->
+        <div class="input-section">
+            <div class="input-card">
+                <div class="input-header">
+                    <h2>📥 Données à Analyser</h2>
+                    <div class="input-controls">
+                        <button id="refreshAnalysis" class="btn btn-primary">🔄 Analyser</button>
+                        <button id="clearInput" class="btn btn-secondary">🗑️ Vider</button>
+                        <button id="loadSample" class="btn btn-secondary">📋 Exemple</button>
+                    </div>
+                </div>
+                
+                <div class="input-body">
+                    <div class="input-main">
+                        <div class="input-config">
+                            <div class="config-row">
+                                <div class="config-item">
+                                    <label for="outputType">Type d'output:</label>
+                                    <select id="outputType">
+                                        <option value="auto">🔍 Détection automatique</option>
+                                        <option value="secretsdump">🔐 Secretsdump</option>
+                                        <option value="mimikatz">🎯 Mimikatz</option>
+                                        <option value="sam">💾 SAM Dump</option>
+                                        <option value="lsass">🧠 LSASS Dump</option>
+                                        <option value="rpcclient">🔗 RPC Client</option>
+                                        <option value="ldap">📁 LDAP</option>
+                                        <option value="passwd">👥 /etc/passwd</option>
+                                        <option value="shadow">🔒 /etc/shadow</option>
+                                        <option value="nmap">🌐 Nmap</option>
+                                        <option value="generic">📄 Générique</option>
+                                    </select>
+                                </div>
+                                <div class="config-item">
+                                    <label>Détecté:</label>
+                                    <span id="detectedType" class="detected-type">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <textarea 
+                            id="rawOutput" 
+                            placeholder="Collez ici vos outputs de pentest (secretsdump, mimikatz, etc.)..."
+                            rows="15"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="input-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Lignes:</span>
+                            <span id="lineCount" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Caractères:</span>
+                            <span id="charCount" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <textarea id="rawOutput" class="grep-output" rows="12" placeholder="Collez ici l'output brut de votre commande..."></textarea>
-            </div>
-            
-            <div class="extraction-buttons">
-                <h3>Extractions disponibles:</h3>
-                <div class="button-group">
-                    <button id="extractUsers" class="action-button">
-                        <i class="fas fa-user"></i> Extraire les utilisateurs
+        </div>
+
+        <!-- Section d'extraction rapide -->
+        <div class="quick-extract-section">
+            <div class="quick-extract-card">
+                <h3>⚡ Extraction Rapide</h3>
+                <div class="quick-buttons">
+                    <button id="extractUsers" class="extract-btn" data-type="users">
+                        <div class="btn-icon">👤</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Utilisateurs</span>
+                            <span class="btn-count" id="usersCount">0</span>
+                        </div>
                     </button>
-                    <button id="extractHashes" class="action-button">
-                        <i class="fas fa-key"></i> Extraire les hashes
+                    
+                    <button id="extractHashes" class="extract-btn" data-type="hashes">
+                        <div class="btn-icon">🔐</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Hashes</span>
+                            <span class="btn-count" id="hashesCount">0</span>
+                        </div>
                     </button>
-                    <button id="extractPasswords" class="action-button">
-                        <i class="fas fa-unlock"></i> Extraire les mots de passe
+                    
+                    <button id="extractPasswords" class="extract-btn" data-type="passwords">
+                        <div class="btn-icon">🔑</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Mots de passe</span>
+                            <span class="btn-count" id="passwordsCount">0</span>
+                        </div>
                     </button>
-                    <button id="extractIps" class="action-button">
-                        <i class="fas fa-network-wired"></i> Extraire les IPs
+                    
+                    <button id="extractDomains" class="extract-btn" data-type="domains">
+                        <div class="btn-icon">🌐</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Domaines</span>
+                            <span class="btn-count" id="domainsCount">0</span>
+                        </div>
                     </button>
-                    <button id="extractEmails" class="action-button">
-                        <i class="fas fa-envelope"></i> Extraire les emails
+                    
+                    <button id="extractIps" class="extract-btn" data-type="ips">
+                        <div class="btn-icon">🌍</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Adresses IP</span>
+                            <span class="btn-count" id="ipsCount">0</span>
+                        </div>
+                    </button>
+                    
+                    <button id="extractEmails" class="extract-btn" data-type="emails">
+                        <div class="btn-icon">📧</div>
+                        <div class="btn-text">
+                            <span class="btn-title">Emails</span>
+                            <span class="btn-count" id="emailsCount">0</span>
+                        </div>
                     </button>
                 </div>
             </div>
         </div>
-        
-        <div id="extractionOutput" class="form-section" style="display: none;">
-            <h2 id="extractionTitle">Résultat de l'extraction</h2>
-            <div class="extraction-info">
-                <p id="extractionCount">0 élément(s) trouvé(s)</p>
-                <div class="copy-container">
-                    <button id="copyExtraction" class="action-button">Copier</button>
-                    <button id="saveExtraction" class="action-button">Télécharger</button>
+
+        <!-- Section d'extraction avancée -->
+        <div class="advanced-extract-section">
+            <div class="advanced-extract-card">
+                <h3>🔬 Extraction Avancée</h3>
+                <div class="advanced-grid">
+                    <button id="extractCredentials" class="advanced-btn">
+                        <div class="advanced-icon">🎯</div>
+                        <div class="advanced-content">
+                            <h4>Credentials Complets</h4>
+                            <p>User:Domain:Hash format</p>
+                        </div>
+                    </button>
+                    
+                    <button id="extractKerberos" class="advanced-btn">
+                        <div class="advanced-icon">🎫</div>
+                        <div class="advanced-content">
+                            <h4>Tickets Kerberos</h4>
+                            <p>TGT/TGS et hashes</p>
+                        </div>
+                    </button>
+                    
+                    <button id="extractSecrets" class="advanced-btn">
+                        <div class="advanced-icon">🔒</div>
+                        <div class="advanced-content">
+                            <h4>Secrets LSA</h4>
+                            <p>DPAPI, LSA secrets</p>
+                        </div>
+                    </button>
+                    
+                    <button id="extractMachineAccounts" class="advanced-btn">
+                        <div class="advanced-icon">🖥️</div>
+                        <div class="advanced-content">
+                            <h4>Comptes Machine</h4>
+                            <p>Computer accounts</p>
+                        </div>
+                    </button>
+                    
+                    <button id="extractServices" class="advanced-btn">
+                        <div class="advanced-icon">⚙️</div>
+                        <div class="advanced-content">
+                            <h4>Comptes Service</h4>
+                            <p>Service accounts</p>
+                        </div>
+                    </button>
+                    
+                    <button id="extractPorts" class="advanced-btn">
+                        <div class="advanced-icon">🚪</div>
+                        <div class="advanced-content">
+                            <h4>Ports & Services</h4>
+                            <p>Nmap, scan results</p>
+                        </div>
+                    </button>
                 </div>
             </div>
-            <pre id="extractionContent" class="extraction-content"></pre>
         </div>
-        
-        <div class="form-section">
-            <h2>Référence des formats reconnus</h2>
-            <div class="accordion">
-                <div class="accordion-item">
-                    <button class="accordion-header">Secretsdump - Format des hashes NT/NTLM</button>
-                    <div class="accordion-content">
-                        <p>Exemple: <code>Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</code></p>
-                        <p>Format: <code>username:rid:lm-hash:nt-hash:::</code></p>
+
+        <!-- Section de résultats -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <div class="results-card">
+                <div class="results-header">
+                    <div class="results-title">
+                        <h3 id="resultsTitle">📊 Résultats</h3>
+                        <div class="results-meta">
+                            <span id="resultsCount" class="results-count">0 éléments</span>
+                            <span id="resultsType" class="results-type"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="results-controls">
+                        <div class="format-selector">
+                            <label>Format:</label>
+                            <select id="outputFormat">
+                                <option value="list">📝 Liste</option>
+                                <option value="hashcat">⚡ Hashcat</option>
+                                <option value="john">🔨 John</option>
+                                <option value="csv">📊 CSV</option>
+                                <option value="json">🔧 JSON</option>
+                            </select>
+                        </div>
+                        
+                        <button id="copyResults" class="btn btn-primary">📋 Copier</button>
+                        <button id="saveResults" class="btn btn-secondary">💾 Sauvegarder</button>
+                        <button id="clearResults" class="btn btn-secondary">🗑️ Vider</button>
                     </div>
                 </div>
                 
-                <div class="accordion-item">
-                    <button class="accordion-header">RPC Enum - Format des utilisateurs</button>
-                    <div class="accordion-content">
-                        <p>Exemple: <code>user:[0x3e8] rid:0x3e9 User: Alice</code></p>
+                <div class="results-body">
+                    <div class="results-tabs">
+                        <button class="tab-btn active" data-tab="formatted">📋 Formaté</button>
+                        <button class="tab-btn" data-tab="raw">📄 Brut</button>
+                        <button class="tab-btn" data-tab="stats">📊 Statistiques</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <div id="formattedTab" class="tab-pane active">
+                            <div id="formattedResults" class="formatted-results"></div>
+                        </div>
+                        
+                        <div id="rawTab" class="tab-pane">
+                            <textarea id="rawResults" readonly></textarea>
+                        </div>
+                        
+                        <div id="statsTab" class="tab-pane">
+                            <div id="statsResults" class="stats-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section d'historique -->
+        <div class="history-section">
+            <div class="history-card">
+                <div class="history-header">
+                    <h3>📚 Historique des Extractions</h3>
+                    <div class="history-controls">
+                        <button id="clearHistory" class="btn btn-secondary">🗑️ Vider</button>
+                        <button id="exportHistory" class="btn btn-secondary">📤 Exporter</button>
                     </div>
                 </div>
                 
-                <div class="accordion-item">
-                    <button class="accordion-header">Linux /etc/passwd</button>
-                    <div class="accordion-content">
-                        <p>Exemple: <code>user:x:1000:1000:User Name,,,:/home/user:/bin/bash</code></p>
-                    </div>
-                </div>
-                
-                <div class="accordion-item">
-                    <button class="accordion-header">Hashcat potfile</button>
-                    <div class="accordion-content">
-                        <p>Exemple: <code>31d6cfe0d16ae931b73c59d7e0c089c0:password123</code></p>
-                        <p>Format: <code>hash:plaintext</code></p>
+                <div id="historyList" class="history-list">
+                    <div class="history-empty">
+                        <span class="empty-icon">📝</span>
+                        <p>Aucune extraction pour le moment</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <footer class="main-footer">
         <div class="footer-content">
             <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
-    
+
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>

