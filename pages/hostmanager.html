@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Host Manager Avancé</title>
+    <title>Host Manager - AuditMapper</title>
     <!-- Bootstrap CSS (Optionnel) -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- VOTRE CSS EXTERNE -->
@@ -11,41 +11,49 @@
     <!-- CSS EXPORT/IMPORT -->
     <link rel="stylesheet" href="/assets/css/export-import.css">
 
+    <!-- jQuery FIRST -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Inclure Vis.js -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <!-- Inclure Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Inclure DOMPurify -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.10/purify.min.js"></script>
-
-    <!-- PAS DE STYLE INTERNE ICI -->
-
+    <!-- JSZip et FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- HTML2PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 </head>
-<body class=""> <!-- La classe dark-theme sera gérée par theme.js -->
+<body class="">
 
-    <!-- Bouton Sidebar Toggle (comme grepmaster.html) -->
+    <!-- Bouton Sidebar Toggle -->
     <button id="sidebar-toggle" class="sidebar-toggle">
         <i>☰</i>
     </button>
 
-    <!-- Sidebar (Structure identique à grepmaster.html) -->
+    <!-- Sidebar Unifiée -->
     <div id="sidebar" class="sidebar">
         <a href="/index.html" class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
+            <img src="/assets/photos/logo.png" alt="AuditMapper" class="sidebar-logo">
+            <div class="sidebar-header-text">
+                <h2>AuditMapper</h2>
+                <p>Security Assessment Suite</p>
+            </div>
         </a>
+        
         <div class="sidebar-content">
             <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
-            
+                <div class="sidebar-category">Management</div>
                 <li class="sidebar-nav-item">
-                    <!-- Lien Actif -->
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link active">
                         <i>🖥️</i> Host Manager
                     </a>
                 </li>
+                
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/tools.html" class="sidebar-nav-link">
@@ -53,13 +61,13 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
-                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link">
+                        <i>🔄</i> Transfert Fichiers
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link active">
-                        <i>🔀</i> Pivoting Guide <!-- Emoji mis à jour -->
+                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link">
+                        <i>🔀</i> Pivoting Guide
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -67,10 +75,11 @@
                         <i>🔑</i> Guide Privesc
                     </a>
                 </li>
-                <div class="sidebar-category">Parsers</div>
+                
+                <div class="sidebar-category">Parsers & Générateurs</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
+                        <i>🌐</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -87,13 +96,11 @@
         </div>
     </div>
 
-    <!-- Header (Structure identique à grepmaster.html) -->
+    <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <!-- Titre spécifique à la page -->
-            <h1>Host Manager Avancé</h1>
+            <h1>Host Manager</h1>
             <div class="header-controls">
-                <!-- Sélecteur de langue (si vous l'utilisez ici) -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
                         <i class="icon-language">🌍</i>
@@ -107,10 +114,8 @@
                         <div class="language-option" data-lang="en">
                             <span class="language-flag">🇬🇧</span>English
                         </div>
-                        <!-- Autres langues -->
                     </div>
                 </div>
-                <!-- Bouton Thème -->
                 <button id="toggleTheme" class="theme-toggle">
                     <i class="icon-theme">🌓</i>
                 </button>
@@ -118,9 +123,8 @@
         </div>
     </header>
 
-    <!-- Contenu Principal (Wrapper comme grepmaster.html) -->
+    <!-- Contenu principal -->
     <div id="main-content" class="main-content">
-
         <!-- ========================================== -->
         <!-- == SECTION EXPORTATION/IMPORTATION COMPLÈTE == -->
         <!-- ========================================== -->
@@ -1009,91 +1013,20 @@
         </form>
     </div>
 
-    <!-- Footer (Structure identique à grepmaster.html) -->
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
+            <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
 
-    <!-- Scripts JS -->
-    <!-- jQuery (Doit être chargé AVANT Bootstrap JS) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- Popper.js (Requis par Bootstrap JS pour les tooltips, popovers, etc.) -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <!-- Bootstrap JS (Dépend de jQuery et Popper.js) -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Scripts de base -->
+    <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/language.js"></script>
 
-    <!-- Vos autres scripts -->
-    <script src="/assets/js/sidebar.js"></script> <!-- Pour la sidebar -->
-    <script src="/assets/js/theme.js"></script>   <!-- Pour le thème -->
-    <script src="/assets/js/language.js"></script> <!-- Pour la langue (si utilisé) -->
+    <!-- Scripts HostManager - DANS L'ORDRE CORRECT -->
     <script type="module" src="/assets/js/hostmanager/main.js"></script>
-
-    <!-- Assurez-vous que JSZip et FileSaver sont inclus -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
-    <!-- Modal de rapport Kill Chain -->
-    <div class="modal fade" id="reportModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">🎯 Rapport Kill Chain</h5>
-                    <div class="btn-group ml-auto mr-3">
-                        <button type="button" id="exportPdfBtn" class="btn btn-success btn-sm">
-                            <i class="fas fa-file-pdf"></i> 📄 Export PDF
-                        </button>
-                        <button type="button" id="exportMdBtn" class="btn btn-info btn-sm">
-                            <i class="fas fa-file-alt"></i> 📝 Export MD
-                        </button>
-                    </div>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body p-0">
-                    <!-- Onglets -->
-                    <ul class="nav nav-tabs" style="margin: 0;">
-                        <li class="nav-item">
-                            <a class="nav-link" id="editorTab" href="#" style="border-radius: 0;">
-                                ✏️ Éditeur
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" id="previewTab" href="#" style="border-radius: 0;">
-                                👁️ Aperçu
-                            </a>
-                        </li>
-                    </ul>
-                    
-                    <!-- Contenu des onglets -->
-                    <div class="tab-content">
-                        <!-- Éditeur Markdown -->
-                        <textarea id="reportEditor" class="form-control" 
-                                  style="display: none; height: 70vh; border: none; border-radius: 0; resize: none; font-family: 'Courier New', monospace;"
-                                  placeholder="Le rapport sera généré ici..."></textarea>
-                        
-                        <!-- Aperçu rendu -->
-                        <div id="renderedPreview" 
-                             style="height: 70vh; overflow-y: auto; border: none; background: white; padding: 0;">
-                            <div class="text-center text-muted p-5">
-                                <i class="fas fa-file-alt fa-3x mb-3"></i>
-                                <p>Générez un rapport pour voir l'aperçu</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Vis.js pour la carte réseau -->
-    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <!-- Script pour le toggle de la section Export/Import -->
     <script>
@@ -1118,6 +1051,5 @@
             }
         });
     </script>
-
 </body>
 </html>

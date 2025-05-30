@@ -3,72 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pentest Tools - Accueil</title>
-    <script>
-        // Informations spécifiques à cette page
-        window.pageInfo = {
-            title: 'Pentest Tools - Accueil',
-            headerTitle: 'Pentest Tools',
-            activePage: 'home'
-        };
-    </script>
-    <script src="/assets/js/template-loader.js"></script>
+    <title>AuditMapper - Security Assessment Suite</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/homepage.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="page-content" style="display: none;">
-        <h1>PwnB4lunch - Pentest Tools & Time Saving Stuff</h1>
-        <p>Cette application contient une collection d'outils pour faciliter vos tests d'intrusion. Made with ❤️ by Elliot Belt</p>
-        
-        <div class="card-container">
-            <a href="/pages/hostmanager.html" class="feature-card">
-                <div class="card-icon">🖥️</div>
-                <h2>Host Manager</h2>
-                <p>Gérez vos credentials sur tous vos hosts en même temps et exportez tout de manière claire</p>
-            </a>
-            <div class="card-container">
-                <a href="/pages/pivoting_guide.html" class="feature-card">
-                    <div class="card-icon">🔀</div>
-                    <h2>Pivoting Guide</h2>
-                    <p>Pivoter en toute serenité</p>
-                </a>
-                <div class="card-container">
-                    <a href="/pages/file_transfer.html" class="feature-card">
-                        <div class="card-icon">🔄</div>
-                        <h2>Transfert Fichiers</h2>
-                        <p>Transferez des fichiers entre deux machines</p>
+    <!-- Particles Background -->
+    <div id="particles-background"></div>
+    
+    <!-- Header Principal -->
+    <header class="hero-header">
+        <div class="hero-container">
+            <!-- Navigation Top -->
+            <nav class="top-nav">
+                <div class="nav-brand">
+                    <img src="/assets/photos/logo.png" alt="AuditMapper Logo" class="brand-logo">
+                    <div class="brand-text-container">
+                        <span class="brand-text">AuditMapper</span>
+                        <span class="brand-subtitle">Security Assessment Suite</span>
+                    </div>
+                </div>
+                
+                <div class="nav-controls">
+                    <div class="language-selector">
+                        <button id="languageDropdown" class="language-dropdown">
+                            <span class="language-flag">🇫🇷</span> FR
+                        </button>
+                        <div id="languageMenu" class="language-menu">
+                            <div class="language-option" data-lang="fr">
+                                <span class="language-flag">🇫🇷</span>Français
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <span class="language-flag">🇬🇧</span>English
+                            </div>
+                        </div>
+                    </div>
+                    <button id="toggleTheme" class="theme-toggle">
+                        <i class="icon-theme">🌓</i>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Hero Content -->
+            <div class="hero-content">
+                <div class="hero-logo">
+                    <div class="logo-glow"></div>
+                    <img src="/assets/photos/logo.png" alt="AuditMapper" class="main-logo">
+                </div>
+                
+                <div class="hero-title">
+                    <span class="title-main">AuditMapper</span>
+                    <span class="title-subtitle">Security Assessment Suite</span>
+                </div>
+                
+                <p class="hero-description">
+                    Suite d'outils professionnels pour audits de sécurité et tests d'intrusion. 
+                    Gérez vos hosts, générez des rapports et optimisez vos pentests avec une interface moderne et intuitive.
+                </p>
+                
+                <div class="hero-actions">
+                    <a href="/pages/hostmanager.html" class="btn btn-primary">
+                        🚀 Commencer maintenant
                     </a>
-            
-            <a href="/pages/tools.html" class="feature-card">
-                <div class="card-icon">🛠️</div>
-                <h2>Bibliothèque d'Outils</h2>
-                <p>Accédez à une collection de commandes et outils essentiels</p>
-            </a>
-            
-            <a href="/pages/privesc.html" class="feature-card">
-                <div class="card-icon">🔑</div>
-                <h2>Guide Privesc</h2>
-                <p>Checklists pour l'escalade de privilèges sur Windows et Linux</p>
-            </a>
-            
-            <a href="/pages/hostsmaker.html" class="feature-card">
-                <div class="card-icon">🌐</div>
-                <h2>/etc/hosts Maker</h2>
-                <p>Générez facilement des entrées pour votre fichier hosts</p>
-            </a>
-            
-            <a href="/pages/grepmaster.html" class="feature-card">
-                <div class="card-icon">🔍</div>
-                <h2>Grep Master</h2>
-                <p>Extrayez facilement des informations à partir d'outputs divers</p>
-            </a>
-            
-            <a href="/pages/vulnreport.html" class="feature-card">
-                <div class="card-icon">🔒</div>
-                <h2>Rapport de Vulnérabilités</h2>
-                <p>Générez rapidement des descriptions de vulnérabilités et tableaux récapitulatifs</p>
-            </a>
-            
+                    <a href="#features" class="btn btn-secondary">
+                        📖 Découvrir les outils
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
+    </header>
+
+    <!-- Section Fonctionnalités -->
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="section-title">Fonctionnalités Principales</h2>
+            <p class="section-subtitle">
+                Des outils puissants conçus pour les professionnels de la cybersécurité
+            </p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🖥️</span>
+                    <h3 class="feature-title">Host Manager</h3>
+                    <p class="feature-description">
+                        Gérez vos hosts de manière centralisée avec une interface graphique interactive. 
+                        Organisez par catégories, ajoutez des notes et générez des rapports automatiquement.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🌐</span>
+                    <h3 class="feature-title">Config Generator</h3>
+                    <p class="feature-description">
+                        Générez automatiquement vos fichiers de configuration (hosts, Kerberos, ProxyChains) 
+                        à partir de vos données d'audit.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔍</span>
+                    <h3 class="feature-title">Grep Master</h3>
+                    <p class="feature-description">
+                        Parser intelligent pour extraire les informations utiles de vos outputs 
+                        (secretsdump, SAM, LSASS, etc.).
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔀</span>
+                    <h3 class="feature-title">Pivot Master</h3>
+                    <p class="feature-description">
+                        Générateur de commandes de pivoting avec visualisation réseau interactive 
+                        pour vos mouvements latéraux.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔑</span>
+                    <h3 class="feature-title">Guide Privesc</h3>
+                    <p class="feature-description">
+                        Checklist interactive pour l'escalade de privilèges avec suivi de progression 
+                        et génération de rapports.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3 class="feature-title">Rapport Generator</h3>
+                    <p class="feature-description">
+                        Créez des rapports de vulnérabilités professionnels avec templates personnalisables 
+                        et export multi-format.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Outils -->
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Outils Disponibles</h2>
+            <p class="section-subtitle">
+                Accédez rapidement à tous vos outils de pentest favoris
+            </p>
+            
+            <div class="tools-grid">
+                <a href="/pages/hostmanager.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🖥️</span>
+                        <h3 class="tool-title">Host Manager</h3>
+                    </div>
+                    <p class="tool-description">
+                        Gestionnaire centralisé pour tous vos hosts avec interface graphique
+                    </p>
+                    <ul class="tool-features">
+                        <li>Visualisation réseau interactive</li>
+                        <li>Catégorisation automatique</li>
+                        <li>Export multi-format</li>
+                        <li>Génération de rapports</li>
+                    </ul>
+                </a>
+                
+                <a href="/pages/hostsmaker.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🌐</span>
+                        <h3 class="tool-title">Config Generator</h3>
+                    </div>
+                    <p class="tool-description">
+                        Générateur automatique de fichiers de configuration
+                    </p>
+                    <ul class="tool-features">
+                        <li>Fichiers /etc/hosts</li>
+                        <li>Configuration Kerberos</li>
+                        <li>ProxyChains setup</li>
+                        <li>Templates personnalisés</li>
+                    </ul>
+                </a>
+                
+                <a href="/pages/grepmaster.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🔍</span>
+                        <h3 class="tool-title">Grep Master</h3>
+                    </div>
+                    <p class="tool-description">
+                        Parser intelligent pour outputs de pentest
+                    </p>
+                    <ul class="tool-features">
+                        <li>Extraction automatique</li>
+                        <li>Support multi-format</li>
+                        <li>Filtrage avancé</li>
+                        <li>Export structuré</li>
+                    </ul>
+                </a>
+                
+                <a href="/pages/pivoting_guide.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🔀</span>
+                        <h3 class="tool-title">Pivot Master</h3>
+                    </div>
+                    <p class="tool-description">
+                        Générateur de commandes de pivoting
+                    </p>
+                    <ul class="tool-features">
+                        <li>Visualisation réseau</li>
+                        <li>Commandes automatiques</li>
+                        <li>Multi-protocoles</li>
+                        <li>Historique des pivots</li>
+                    </ul>
+                </a>
+                
+                <a href="/pages/privesc.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🔑</span>
+                        <h3 class="tool-title">Guide Privesc</h3>
+                    </div>
+                    <p class="tool-description">
+                        Checklist interactive pour escalade de privilèges
+                    </p>
+                    <ul class="tool-features">
+                        <li>Checklist contextuelle</li>
+                        <li>Suivi de progression</li>
+                        <li>Multi-plateformes</li>
+                        <li>Rapports détaillés</li>
+                    </ul>
+                </a>
+                
+                <a href="/pages/tools.html" class="tool-card">
+                    <div class="tool-header">
+                        <span class="tool-icon">🛠️</span>
+                        <h3 class="tool-title">Bibliothèque d'Outils</h3>
+                    </div>
+                    <p class="tool-description">
+                        Collection complète d'outils de pentest
+                    </p>
+                    <ul class="tool-features">
+                        <li>Outils classés par catégorie</li>
+                        <li>Commandes d'installation</li>
+                        <li>Documentation intégrée</li>
+                        <li>Mise à jour régulière</li>
+                    </ul>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Statistiques -->
+    <section class="section stats-section">
+        <div class="container">
+            <h2 class="section-title">AuditMapper en Chiffres</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">15+</span>
+                    <span class="stat-label">Outils Intégrés</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Open Source</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">24/7</span>
+                    <span class="stat-label">Disponibilité</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">∞</span>
+                    <span class="stat-label">Possibilités</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Quick Start -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Démarrage Rapide</h2>
+            <p class="section-subtitle">
+                Commencez à utiliser AuditMapper en quelques étapes simples
+            </p>
+            
+            <ol class="quickstart-steps">
+                <li class="quickstart-step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Accédez au Host Manager</h3>
+                    <p class="step-description">
+                        Commencez par ajouter vos hosts cibles dans le gestionnaire centralisé
+                    </p>
+                </li>
+                <li class="quickstart-step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Organisez vos données</h3>
+                    <p class="step-description">
+                        Catégorisez vos hosts, ajoutez des notes et des informations de reconnaissance
+                    </p>
+                </li>
+                <li class="quickstart-step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Utilisez les outils</h3>
+                    <p class="step-description">
+                        Exploitez les différents parsers et générateurs pour optimiser votre workflow
+                    </p>
+                </li>
+                <li class="quickstart-step">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Générez vos rapports</h3>
+                    <p class="step-description">
+                        Exportez vos données sous différents formats pour vos rapports finaux
+                    </p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h3>AuditMapper</h3>
+                    <p>Made with ❤️ by <strong>Elliot Belt</strong></p>
+                    <p class="footer-description">Suite d'outils pour audits de sécurité et tests d'intrusion</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/your-repo" target="_blank" class="footer-link">
+                        <i>📂</i> GitHub
+                    </a>
+                    <a href="/docs" class="footer-link">
+                        <i>📖</i> Documentation
+                    </a>
+                    <a href="/changelog" class="footer-link">
+                        <i>📋</i> Changelog
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/language.js"></script>
+    <script src="/assets/js/homepage.js"></script>
 </body>
 </html> 

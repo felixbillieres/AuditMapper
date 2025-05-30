@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pivot Master - Générateur de Commandes de Pivot</title>
+    <title>Pivot Master - AuditMapper</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="stylesheet" href="/assets/css/pivot-master.css">
     <!-- Vis.js pour la visualisation réseau -->
@@ -15,21 +15,25 @@
         <i>☰</i>
     </button>
 
-    <!-- Sidebar -->
+    <!-- Sidebar Unifiée -->
     <div id="sidebar" class="sidebar">
         <a href="/index.html" class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
+            <img src="/assets/photos/logo.png" alt="AuditMapper" class="sidebar-logo">
+            <div class="sidebar-header-text">
+                <h2>AuditMapper</h2>
+                <p>Security Assessment Suite</p>
+            </div>
         </a>
         
         <div class="sidebar-content">
             <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
+                <div class="sidebar-category">Management</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link">
                         <i>🖥️</i> Host Manager
                     </a>
                 </li>
+                
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/tools.html" class="sidebar-nav-link">
@@ -43,19 +47,19 @@
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pages/pivoting_guide.html" class="sidebar-nav-link active">
-                        <i>🔀</i> Pivot Master
+                        <i>🔀</i> Pivoting Guide
                     </a>
                 </li>
-             <li class="sidebar-nav-item">
-                <a href="/pages/privesc.html" class="sidebar-nav-link">
-                    <i>🔑</i> Guide Privesc
-                </a>
-            </li>
+                <li class="sidebar-nav-item">
+                    <a href="/pages/privesc.html" class="sidebar-nav-link">
+                        <i>🔑</i> Guide Privesc
+                    </a>
+                </li>
                 
-                <div class="sidebar-category">Parsers</div>
+                <div class="sidebar-category">Parsers & Générateurs</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>⚙️</i> Config Generator
+                        <i>🌐</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -75,7 +79,7 @@
     <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>🔀 Pivot Master - Générateur de Commandes</h1>
+            <h1>Pivot Master - Générateur de Commandes de Pivot</h1>
             <div class="header-controls">
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
@@ -466,7 +470,7 @@
 
     <footer class="main-footer">
         <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
+            <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
 

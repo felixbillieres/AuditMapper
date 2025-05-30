@@ -4931,3 +4931,34 @@ body.dark-theme .advanced-options .border {
         padding: 1rem;
     }
 }
+
+/* Ajout des styles pour le logo dans la sidebar */
+.sidebar-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin-right: 12px;
+    border-radius: 6px;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header-text h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.sidebar-header-text p {
+    font-size: 0.8rem;
+    margin: 0;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}

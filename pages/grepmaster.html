@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grep Master Parser</title>
+    <title>Grep Master Parser - AuditMapper</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
@@ -12,22 +12,25 @@
         <i>☰</i>
     </button>
     
-    <!-- Sidebar -->
+    <!-- Sidebar Unifiée -->
     <div id="sidebar" class="sidebar">
         <a href="/index.html" class="sidebar-header">
-            <h2>Pentest Tools</h2>
-            <p>Suite d'outils pour pentest</p>
+            <img src="/assets/photos/logo.png" alt="AuditMapper" class="sidebar-logo">
+            <div class="sidebar-header-text">
+                <h2>AuditMapper</h2>
+                <p>Security Assessment Suite</p>
+            </div>
         </a>
         
         <div class="sidebar-content">
             <ul class="sidebar-nav">
-                <div class="sidebar-category">Générateur</div>
-            
+                <div class="sidebar-category">Management</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link">
                         <i>🖥️</i> Host Manager
                     </a>
                 </li>
+                
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/tools.html" class="sidebar-nav-link">
@@ -35,13 +38,13 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
-                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link">
+                        <i>🔄</i> Transfert Fichiers
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link active">
-                        <i>🔀</i> Pivoting Guide <!-- Emoji mis à jour -->
+                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link">
+                        <i>🔀</i> Pivoting Guide
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -50,14 +53,14 @@
                     </a>
                 </li>
                 
-                <div class="sidebar-category">Parsers</div>
+                <div class="sidebar-category">Parsers & Générateurs</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
+                        <i>🌐</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/grepmaster.html" class="sidebar-nav-link">
+                    <a href="/pages/grepmaster.html" class="sidebar-nav-link active">
                         <i>🔍</i> Grep Master
                     </a>
                 </li>
@@ -69,13 +72,12 @@
             </ul>
         </div>
     </div>
-    
-    <!-- Header simplifié -->
+
+    <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
             <h1>Grep Master Parser</h1>
             <div class="header-controls">
-                <!-- Ajout du sélecteur de langue -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
                         <i class="icon-language">🌍</i>
@@ -89,15 +91,6 @@
                         <div class="language-option" data-lang="en">
                             <span class="language-flag">🇬🇧</span>English
                         </div>
-                        <div class="language-option" data-lang="ru">
-                            <span class="language-flag">🇷🇺</span>Русский
-                        </div>
-                        <div class="language-option" data-lang="zh">
-                            <span class="language-flag">🇨🇳</span>中文
-                        </div>
-                        <div class="language-option" data-lang="ja">
-                            <span class="language-flag">🇯🇵</span>日本語
-                        </div>
                     </div>
                 </div>
                 <button id="toggleTheme" class="theme-toggle">
@@ -106,7 +99,7 @@
             </div>
         </div>
     </header>
-    
+
     <!-- Contenu principal -->
     <div id="main-content" class="main-content">
         <div class="form-section">
@@ -204,7 +197,7 @@
     
     <footer class="main-footer">
         <div class="footer-content">
-            <p>Made with ❤️ by Elliot Belt</p>
+            <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
     
