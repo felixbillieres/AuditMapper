@@ -15,6 +15,7 @@ import { ExploitationManager } from './features/exploitation.js';
 import { CredentialManager } from './features/credentials.js';
 import { FileSystemExporter } from './export/filesystem.js';
 import { ZipExporter } from './export/zip.js';
+import { ImportManager } from './export/import.js';
 import { ReportGenerator } from './export/reports.js';
 import { NetworkMap } from './network/map.js';
 import { AdvancedReportGenerator } from './export/advanced-reports.js';
@@ -47,9 +48,10 @@ class HostManager {
         this.modules.exploitation = new ExploitationManager(this);
         this.modules.credentials = new CredentialManager(this);
         
-        // Initialisation des modules export
+        // Initialisation des modules export/import
         this.modules.fileSystemExporter = new FileSystemExporter(this);
         this.modules.zipExporter = new ZipExporter(this);
+        this.modules.importManager = new ImportManager(this);
         this.modules.reportGenerator = new ReportGenerator(this);
         
         // Initialisation du module NetworkMap
@@ -77,9 +79,10 @@ class HostManager {
             this.modules.exploitation.initialize();
             this.modules.credentials.initialize();
             
-            // Initialiser les modules export
+            // Initialiser les modules export/import
             this.modules.fileSystemExporter.initialize();
             this.modules.zipExporter.initialize();
+            this.modules.importManager.initialize();
             this.modules.reportGenerator.initialize();
             
             // Initialiser seulement les filtres (pas l'ancien network)
