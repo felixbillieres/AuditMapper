@@ -1,4 +1,5 @@
-# Pentest Tools Suite
+# Audit Mapper
+![AuditMapperImg](/assets/photos/logo.png)
 
 Une collection d'outils web conçue pour assister les professionnels de la sécurité lors des tests d'intrusion. Ce projet vise à rationaliser les tâches courantes telles que la génération de rapports, la gestion des données collectées et l'exécution de commandes répétitives.
 
