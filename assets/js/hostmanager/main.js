@@ -20,6 +20,7 @@ import { ImportManager } from './export/import.js';
 import { ReportGenerator } from './export/reports.js';
 import { NetworkMap } from './network/map.js';
 import { AdvancedReportGenerator } from './export/advanced-reports.js';
+import { EnhancedReportGenerator } from './export/enhanced-reports.js';
 
 class HostManager {
     constructor() {
@@ -61,6 +62,7 @@ class HostManager {
         
         // Initialisation du nouveau générateur de rapports
         this.modules.advancedReports = new AdvancedReportGenerator(this);
+        this.modules.enhancedReports = new EnhancedReportGenerator(this);
     }
 
     setupEventListeners() {
@@ -96,6 +98,7 @@ class HostManager {
             
             // Initialiser le nouveau générateur de rapports
             this.modules.advancedReports.initialize();
+            this.modules.enhancedReports.initialize();
             
             console.log("Host Manager V2 Ready.");
         });

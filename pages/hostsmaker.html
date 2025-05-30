@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de /etc/hosts</title>
+    <title>Générateur de Configurations Pentest</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/config-generator.css">
 </head>
 <body>
     <!-- Bouton pour afficher/masquer la sidebar -->
@@ -22,7 +23,6 @@
         <div class="sidebar-content">
             <ul class="sidebar-nav">
                 <div class="sidebar-category">Générateur</div>
-
                 <li class="sidebar-nav-item">
                     <a href="/pages/hostmanager.html" class="sidebar-nav-link">
                         <i>🖥️</i> Host Manager
@@ -35,13 +35,13 @@
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/file_transfer.html" class="sidebar-nav-link active">
-                        <i>🔄</i> Transfert Fichiers <!-- Emoji mis à jour -->
+                    <a href="/pages/file_transfer.html" class="sidebar-nav-link">
+                        <i>🔄</i> Transfert Fichiers
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link active">
-                        <i>🔀</i> Pivoting Guide <!-- Emoji mis à jour -->
+                    <a href="/pages/pivoting_guide.html" class="sidebar-nav-link">
+                        <i>🔀</i> Pivoting Guide
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -52,8 +52,8 @@
                 
                 <div class="sidebar-category">Parsers</div>
                 <li class="sidebar-nav-item">
-                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link">
-                        <i>🌐</i> /etc/hosts Maker
+                    <a href="/pages/hostsmaker.html" class="sidebar-nav-link active">
+                        <i>⚙️</i> Config Generator
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
@@ -70,12 +70,11 @@
         </div>
     </div>
     
-    <!-- Header simplifié -->
+    <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <h1>Générateur de /etc/hosts</h1>
+            <h1>🔧 Générateur de Configurations Pentest</h1>
             <div class="header-controls">
-                <!-- Ajout du sélecteur de langue -->
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
                         <i class="icon-language">🌍</i>
@@ -89,15 +88,6 @@
                         <div class="language-option" data-lang="en">
                             <span class="language-flag">🇬🇧</span>English
                         </div>
-                        <div class="language-option" data-lang="ru">
-                            <span class="language-flag">🇷🇺</span>Русский
-                        </div>
-                        <div class="language-option" data-lang="zh">
-                            <span class="language-flag">🇨🇳</span>中文
-                        </div>
-                        <div class="language-option" data-lang="ja">
-                            <span class="language-flag">🇯🇵</span>日本語
-                        </div>
                     </div>
                 </div>
                 <button id="toggleTheme" class="theme-toggle">
@@ -109,40 +99,464 @@
     
     <!-- Contenu principal -->
     <div id="main-content" class="main-content">
-        <div class="form-section">
-            <h2>Générateur d'entrées pour /etc/hosts</h2>
-            <p>Collez la sortie de votre scan nxc (p.ex. <code>nxc smb 10.10.10.0/24</code>) ci-dessous :</p>
-            
-            <div class="form-group">
-                <textarea id="nxcOutput" class="nxc-output" rows="10" placeholder="SMB         192.168.1.101    445    DC2012A          [*] Windows Server 2012 R2 Standard 9600 x64 (name:DC2012A) (domain:OCEAN) (signing:True) (SMBv1:True)"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>Options :</label>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeComments" checked>
-                    <label for="includeComments">Inclure les commentaires</label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeHeader" checked>
-                    <label for="includeHeader">Inclure l'en-tête</label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="includeDomainOnly">
-                    <label for="includeDomainOnly">Ajouter une entrée pour le domaine uniquement</label>
-                </div>
-            </div>
-            
-            <button id="generateHosts" class="action-button">Générer les entrées /etc/hosts</button>
-        </div>
         
-        <div id="hostsOutput" class="form-section" style="display: none;">
-            <h2>Entrées générées pour /etc/hosts</h2>
-            <div class="copy-container">
-                <button id="copyHosts" class="action-button">Copier</button>
+        <!-- Section d'introduction -->
+        <div class="intro-section">
+            <div class="intro-card">
+                <h2>🎯 Générateur Multi-Config pour Pentest</h2>
+                <p>Générez automatiquement les fichiers de configuration essentiels pour vos tests d'intrusion. 
+                Parsez les outputs d'outils, créez des configs optimisées et exportez tout en un clic.</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalConfigs">8</span>
+                        <span class="stat-label">Types de Config</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalParsers">12</span>
+                        <span class="stat-label">Parsers Automatiques</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalTemplates">25</span>
+                        <span class="stat-label">Templates Prêts</span>
+                    </div>
+                </div>
             </div>
-            <pre id="hostsContent" class="hosts-content"></pre>
         </div>
+
+        <!-- Navigation par onglets -->
+        <div class="config-tabs">
+            <nav class="tabs-nav">
+                <button class="tab-button active" data-tab="hosts">
+                    <i>🌐</i> /etc/hosts
+                </button>
+                <button class="tab-button" data-tab="kerberos">
+                    <i>🎫</i> Kerberos
+                </button>
+                <button class="tab-button" data-tab="proxychains">
+                    <i>🔗</i> ProxyChains
+                </button>
+                <button class="tab-button" data-tab="ssh">
+                    <i>🔐</i> SSH Config
+                </button>
+                <button class="tab-button" data-tab="responder">
+                    <i>🎣</i> Responder
+                </button>
+                <button class="tab-button" data-tab="bloodhound">
+                    <i>🩸</i> BloodHound
+                </button>
+                <button class="tab-button" data-tab="burp">
+                    <i>🔥</i> Burp Suite
+                </button>
+                <button class="tab-button" data-tab="tools">
+                    <i>🛠️</i> Outils Custom
+                </button>
+            </nav>
+
+            <!-- Contenu des onglets -->
+            <div class="tabs-content">
+
+                <!-- Onglet /etc/hosts -->
+                <div id="hosts-tab" class="tab-content active">
+                    <div class="config-header">
+                        <h3>🌐 Générateur /etc/hosts Avancé</h3>
+                        <p>Parsez les outputs de scans réseau et générez automatiquement vos fichiers hosts</p>
+                    </div>
+
+                    <div class="config-grid">
+                        <div class="config-input-section">
+                            <div class="input-methods">
+                                <h4>📥 Sources de données</h4>
+                                
+                                <!-- Onglets pour les méthodes d'input -->
+                                <div class="input-tabs">
+                                    <button class="input-tab active" data-input="scan">Scan Tools</button>
+                                    <button class="input-tab" data-input="manual">Manuel</button>
+                                    <button class="input-tab" data-input="import">Import</button>
+                                </div>
+
+                                <!-- Scan Tools Input -->
+                                <div id="scan-input" class="input-panel active">
+                                    <div class="scan-tools">
+                                        <div class="tool-selector">
+                                            <label>Outil de scan :</label>
+                                            <select id="scanTool">
+                                                <option value="nxc">NetExec (nxc)</option>
+                                                <option value="nmap">Nmap</option>
+                                                <option value="masscan">Masscan</option>
+                                                <option value="rustscan">RustScan</option>
+                                                <option value="crackmapexec">CrackMapExec</option>
+                                                <option value="enum4linux">enum4linux-ng</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="scanOutput">Output du scan :</label>
+                                            <textarea id="scanOutput" class="scan-output" rows="12" 
+                                                placeholder="Collez ici l'output de votre outil de scan...
+
+Exemples supportés :
+• nxc smb 192.168.1.0/24
+• nmap -sn 10.10.10.0/24
+• masscan -p1-65535 192.168.1.0/24
+• etc."></textarea>
+                                        </div>
+
+                                        <div class="auto-detect">
+                                            <button id="autoDetectTool" class="btn btn-secondary">
+                                                🔍 Auto-détecter l'outil
+                                            </button>
+                                            <span id="detectedTool" class="detected-info"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Manual Input -->
+                                <div id="manual-input" class="input-panel">
+                                    <div class="manual-entry">
+                                        <h5>Ajout manuel d'entrées</h5>
+                                        <div class="manual-form">
+                                            <input type="text" id="manualIP" placeholder="IP Address">
+                                            <input type="text" id="manualHostname" placeholder="Hostname">
+                                            <input type="text" id="manualDomain" placeholder="Domain (optionnel)">
+                                            <button id="addManualEntry" class="btn btn-primary">Ajouter</button>
+                                        </div>
+                                        
+                                        <div id="manualEntries" class="manual-entries">
+                                            <!-- Les entrées manuelles apparaîtront ici -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Import Input -->
+                                <div id="import-input" class="input-panel">
+                                    <div class="import-options">
+                                        <h5>Import depuis fichier</h5>
+                                        
+                                        <div class="file-input-area">
+                                            <input type="file" id="importFile" accept=".txt,.csv,.json,.xml" style="display: none;">
+                                            <div class="file-drop-zone" id="fileDropZone">
+                                                <i>📁</i>
+                                                <p>Glissez un fichier ici ou cliquez pour sélectionner</p>
+                                                <small>Formats supportés: TXT, CSV, JSON, XML</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="import-presets">
+                                            <h6>Templates prédéfinis :</h6>
+                                            <div class="preset-buttons">
+                                                <button class="preset-btn" data-preset="ad">Active Directory</button>
+                                                <button class="preset-btn" data-preset="lab">Lab HTB/THM</button>
+                                                <button class="preset-btn" data-preset="corporate">Corporate</button>
+                                                <button class="preset-btn" data-preset="cloud">Cloud AWS/Azure</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Options de génération -->
+                            <div class="generation-options">
+                                <h4>⚙️ Options de génération</h4>
+                                
+                                <div class="options-grid">
+                                    <div class="option-group">
+                                        <h5>Format</h5>
+                                        <label><input type="checkbox" id="includeHeader" checked> En-tête avec timestamp</label>
+                                        <label><input type="checkbox" id="includeComments" checked> Commentaires détaillés</label>
+                                        <label><input type="checkbox" id="sortEntries" checked> Trier par IP</label>
+                                        <label><input type="checkbox" id="removeDuplicates" checked> Supprimer doublons</label>
+                                    </div>
+                                    
+                                    <div class="option-group">
+                                        <h5>Domaines</h5>
+                                        <label><input type="checkbox" id="includeDomainOnly"> Entrée domaine seul</label>
+                                        <label><input type="checkbox" id="includeShortNames" checked> Noms courts</label>
+                                        <label><input type="checkbox" id="includeFQDN" checked> FQDN complets</label>
+                                        <label><input type="checkbox" id="autoDetectDC"> Auto-détecter DC</label>
+                                    </div>
+                                    
+                                    <div class="option-group">
+                                        <h5>Filtres</h5>
+                                        <label>Plage IP : <input type="text" id="ipFilter" placeholder="192.168.1.0/24"></label>
+                                        <label>Exclure IPs : <input type="text" id="excludeIPs" placeholder="192.168.1.1,192.168.1.254"></label>
+                                        <label>Services requis : <input type="text" id="requiredServices" placeholder="SMB,RDP,SSH"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section de prévisualisation -->
+                        <div class="config-preview-section">
+                            <div class="preview-header">
+                                <h4>👁️ Aperçu en temps réel</h4>
+                                <div class="preview-stats">
+                                    <span id="entriesCount">0 entrées</span>
+                                    <span id="domainsCount">0 domaines</span>
+                                </div>
+                            </div>
+
+                            <div class="preview-content">
+                                <pre id="hostsPreview" class="config-preview"># Aperçu du fichier /etc/hosts
+# Les entrées apparaîtront ici...</pre>
+                            </div>
+
+                            <div class="preview-actions">
+                                <button id="generateHosts" class="btn btn-primary">
+                                    <i>⚡</i> Générer /etc/hosts
+                                </button>
+                                <button id="copyHosts" class="btn btn-secondary">
+                                    <i>📋</i> Copier
+                                </button>
+                                <button id="downloadHosts" class="btn btn-success">
+                                    <i>💾</i> Télécharger
+                                </button>
+                                <button id="exportToTools" class="btn btn-info">
+                                    <i>🔗</i> Export vers outils
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onglet Kerberos -->
+                <div id="kerberos-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🎫 Générateur krb5.conf</h3>
+                        <p>Configuration Kerberos pour attaques AD et authentification</p>
+                    </div>
+
+                    <div class="config-grid">
+                        <div class="config-input-section">
+                            <div class="kerberos-config">
+                                <h4>Configuration du domaine</h4>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="krbDomain">Domaine (REALM) :</label>
+                                        <input type="text" id="krbDomain" placeholder="CONTOSO.LOCAL" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="krbDC">Contrôleur de domaine :</label>
+                                        <input type="text" id="krbDC" placeholder="dc01.contoso.local" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="krbKDC">KDC (IP ou hostname) :</label>
+                                        <input type="text" id="krbKDC" placeholder="192.168.1.10" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="krbAdminServer">Admin Server :</label>
+                                        <input type="text" id="krbAdminServer" placeholder="dc01.contoso.local:749" class="form-control">
+                                    </div>
+                                </div>
+
+                                <h4>Options avancées</h4>
+                                <div class="advanced-options">
+                                    <label><input type="checkbox" id="krbEncTypes" checked> Types de chiffrement modernes</label>
+                                    <label><input type="checkbox" id="krbTicketLifetime" checked> Durée de vie des tickets (24h)</label>
+                                    <label><input type="checkbox" id="krbRenewLifetime" checked> Renouvellement automatique (7j)</label>
+                                    <label><input type="checkbox" id="krbForwardable" checked> Tickets transférables</label>
+                                    <label><input type="checkbox" id="krbProxiable"> Tickets proxy</label>
+                                </div>
+
+                                <h4>Modes prédéfinis</h4>
+                                <div class="preset-buttons">
+                                    <button class="preset-btn" data-preset="standard">Standard AD</button>
+                                    <button class="preset-btn" data-preset="attack">Mode Attaque</button>
+                                    <button class="preset-btn" data-preset="stealth">Mode Furtif</button>
+                                    <button class="preset-btn" data-preset="debug">Debug/Verbose</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="config-preview-section">
+                            <div class="preview-header">
+                                <h4>👁️ Configuration Kerberos</h4>
+                            </div>
+                            <div class="preview-content">
+                                <pre id="kerberosPreview" class="config-preview"># Configuration krb5.conf
+# Configurez les paramètres à gauche...</pre>
+                            </div>
+                            <div class="preview-actions">
+                                <button id="generateKerberos" class="btn btn-primary">Générer krb5.conf</button>
+                                <button id="copyKerberos" class="btn btn-secondary">Copier</button>
+                                <button id="downloadKerberos" class="btn btn-success">Télécharger</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onglet ProxyChains -->
+                <div id="proxychains-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🔗 Générateur ProxyChains</h3>
+                        <p>Configuration de chaînes de proxy pour tunneling et anonymisation</p>
+                    </div>
+
+                    <div class="config-grid">
+                        <div class="config-input-section">
+                            <div class="proxychains-config">
+                                <h4>Type de chaîne</h4>
+                                <div class="chain-type">
+                                    <label><input type="radio" name="chainType" value="dynamic_chain" checked> Dynamic Chain</label>
+                                    <label><input type="radio" name="chainType" value="strict_chain"> Strict Chain</label>
+                                    <label><input type="radio" name="chainType" value="random_chain"> Random Chain</label>
+                                </div>
+
+                                <h4>Options globales</h4>
+                                <div class="global-options">
+                                    <label><input type="checkbox" id="proxyDNS" checked> Proxy DNS</label>
+                                    <label><input type="checkbox" id="remoteDNS" checked> Remote DNS</label>
+                                    <label><input type="checkbox" id="tcpReadTimeout"> TCP Read Timeout</label>
+                                    <label><input type="checkbox" id="tcpConnectTimeout"> TCP Connect Timeout</label>
+                                    <label><input type="checkbox" id="quietMode"> Mode silencieux</label>
+                                </div>
+
+                                <h4>Liste des proxies</h4>
+                                <div class="proxy-list">
+                                    <div class="proxy-form">
+                                        <select id="proxyType">
+                                            <option value="socks5">SOCKS5</option>
+                                            <option value="socks4">SOCKS4</option>
+                                            <option value="http">HTTP</option>
+                                            <option value="https">HTTPS</option>
+                                        </select>
+                                        <input type="text" id="proxyHost" placeholder="127.0.0.1">
+                                        <input type="number" id="proxyPort" placeholder="1080">
+                                        <input type="text" id="proxyUser" placeholder="user (opt.)">
+                                        <input type="password" id="proxyPass" placeholder="pass (opt.)">
+                                        <button id="addProxy" class="btn btn-sm">Ajouter</button>
+                                    </div>
+
+                                    <div id="proxyEntries" class="proxy-entries">
+                                        <!-- Les proxies ajoutés apparaîtront ici -->
+                                    </div>
+                                </div>
+
+                                <h4>Presets courants</h4>
+                                <div class="preset-buttons">
+                                    <button class="preset-btn" data-preset="tor">Tor</button>
+                                    <button class="preset-btn" data-preset="ssh-tunnel">SSH Tunnel</button>
+                                    <button class="preset-btn" data-preset="burp">Burp Suite</button>
+                                    <button class="preset-btn" data-preset="multi-hop">Multi-Hop</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="config-preview-section">
+                            <div class="preview-header">
+                                <h4>👁️ Configuration ProxyChains</h4>
+                            </div>
+                            <div class="preview-content">
+                                <pre id="proxychainsPreview" class="config-preview"># Configuration proxychains
+# Ajoutez des proxies à gauche...</pre>
+                            </div>
+                            <div class="preview-actions">
+                                <button id="generateProxychains" class="btn btn-primary">Générer proxychains.conf</button>
+                                <button id="copyProxychains" class="btn btn-secondary">Copier</button>
+                                <button id="downloadProxychains" class="btn btn-success">Télécharger</button>
+                                <button id="testChain" class="btn btn-warning">Tester la chaîne</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Autres onglets à implémenter -->
+                <div id="ssh-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🔐 Générateur SSH Config</h3>
+                        <p>Configuration SSH pour tunnels, jumphosts et accès optimisés</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i>🚧</i>
+                        <h4>En cours de développement</h4>
+                        <p>Générateur de configuration SSH avec tunnels, proxyjump, et optimisations pentest</p>
+                    </div>
+                </div>
+
+                <div id="responder-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🎣 Générateur Responder Config</h3>
+                        <p>Configuration Responder.py pour attaques LLMNR/NBT-NS</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i>🚧</i>
+                        <h4>En cours de développement</h4>
+                        <p>Configuration optimisée pour les attaques de résolution de noms</p>
+                    </div>
+                </div>
+
+                <div id="bloodhound-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🩸 Générateur BloodHound Config</h3>
+                        <p>Configuration et requêtes personnalisées BloodHound</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i>🚧</i>
+                        <h4>En cours de développement</h4>
+                        <p>Générateur de requêtes Cypher et configuration BloodHound optimisée</p>
+                    </div>
+                </div>
+
+                <div id="burp-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🔥 Générateur Burp Suite Config</h3>
+                        <p>Configuration et extensions Burp Suite pour pentest web</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i>🚧</i>
+                        <h4>En cours de développement</h4>
+                        <p>Configuration Burp avec extensions recommandées et settings optimisés</p>
+                    </div>
+                </div>
+
+                <div id="tools-tab" class="tab-content">
+                    <div class="config-header">
+                        <h3>🛠️ Outils Custom & Scripts</h3>
+                        <p>Générateurs de scripts et configurations personnalisées</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i>🚧</i>
+                        <h4>En cours de développement</h4>
+                        <p>Création de scripts bash, PowerShell et configurations personnalisées</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Section d'export global -->
+        <div class="export-section">
+            <div class="export-header">
+                <h3>📦 Export Global</h3>
+                <p>Exportez toutes vos configurations en une seule archive</p>
+            </div>
+            
+            <div class="export-options">
+                <div class="export-formats">
+                    <label><input type="checkbox" id="exportHosts"> /etc/hosts</label>
+                    <label><input type="checkbox" id="exportKerberos"> krb5.conf</label>
+                    <label><input type="checkbox" id="exportProxychains"> proxychains.conf</label>
+                    <label><input type="checkbox" id="exportReadme" checked> README.md</label>
+                </div>
+                
+                <div class="export-actions">
+                    <button id="exportAll" class="btn btn-primary">
+                        <i>📦</i> Créer Archive ZIP
+                    </button>
+                    <button id="exportProject" class="btn btn-secondary">
+                        <i>💾</i> Sauvegarder Projet
+                    </button>
+                    <button id="importProject" class="btn btn-info">
+                        <i>📁</i> Charger Projet
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
     
     <footer class="main-footer">
@@ -154,6 +568,19 @@
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
-    <script src="/assets/js/hostsmaker.js"></script>
+    
+    <!-- Bibliothèques externes nécessaires -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Chargement des modules du Config Generator dans l'ordre -->
+    <script src="/assets/js/config-generator/core.js"></script>
+    <script src="/assets/js/config-generator/parsers.js"></script>
+    <script src="/assets/js/config-generator/hosts.js"></script>
+    <script src="/assets/js/config-generator/kerberos.js"></script>
+    <script src="/assets/js/config-generator/proxychains.js"></script>
+    <script src="/assets/js/config-generator/export.js"></script>
+    
+    <!-- Chargement du fichier principal APRÈS les modules -->
+    <script src="/assets/js/config-generator.js"></script>
 </body>
 </html> 
