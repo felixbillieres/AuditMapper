@@ -4,76 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guide Privesc - AuditMapper</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <!-- Styles spécifiques pour la nouvelle checklist -->
-    <style>
-        /* Définir la hauteur du header comme variable CSS */
-        :root {
-            --header-height: 60px;
-        }
-
-        body {
-            padding-top: var(--header-height);
-        }
-
-        .main-header.fixed-top {
-            height: var(--header-height);
-            z-index: 1030;
-        }
-
-        .node-selector-bar.sticky-top {
-            top: var(--header-height);
-            z-index: 1020;
-            background-color: var(--background-color-light, #f8f9fa);
-        }
-
-        .checklist-item {
-            border: 1px solid var(--border-color, #dee2e6);
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            background-color: var(--background-color-secondary);
-        }
-        .checklist-item:target { /* Style pour l'élément ciblé par l'ancre */
-             border-color: var(--primary-color, #0d6efd);
-             box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); /* Utilise variable Bootstrap si disponible */
-        }
-        .checklist-item.status-checked { border-left: 5px solid var(--bs-success, #198754); } /* Vert */
-        .checklist-item.status-exploitable { border-left: 5px solid var(--bs-warning, #ffc107); } /* Jaune */
-        .checklist-item.status-exploited { border-left: 5px solid var(--bs-danger, #dc3545); } /* Rouge */
-
-        .checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-        .checklist-label { font-weight: bold; }
-        .checklist-status select { font-size: 0.8rem; padding: 0.1rem 0.3rem; }
-        .checklist-description { font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-color-secondary); } /* Couleur secondaire */
-        .checklist-commands, .checklist-links, .checklist-tips, .checklist-notes { margin-top: 0.75rem; }
-        .checklist-commands pre { background-color: var(--code-background-color); padding: 0.75rem; border-radius: 3px; font-size: 0.85rem; position: relative; border: 1px solid var(--border-color); } /* Ajout bordure subtile */
-        .copy-btn-inline { position: absolute; top: 5px; right: 5px; font-size: 0.8em; padding: 2px 5px; cursor: pointer; /* Assurer curseur pointeur */ }
-        .checklist-links a { margin-right: 10px; font-size: 0.85rem; }
-        .checklist-tips { font-style: italic; color: var(--text-color-muted, #6c757d); font-size: 0.85rem; background-color: var(--background-color-light); padding: 0.5rem; border-radius: 3px; } /* Fond léger pour astuces */
-        .checklist-notes textarea { width: 100%; font-size: 0.85rem; min-height: 60px; margin-top: 5px; }
-        .filter-controls { background-color: var(--background-color-light); padding: 1rem; margin-bottom: 1rem; border-radius: 5px; border: 1px solid var(--border-color); }
-        .quick-nav-links a {
-            margin: 0.2rem; /* Espacement entre les boutons */
-            font-size: 0.85rem; /* Taille de police légèrement réduite */
-        }
-        .checklist-category-header {
-             margin-top: 1.5rem;
-             margin-bottom: 0.75rem;
-             padding-bottom: 0.5rem;
-             border-bottom: 2px solid var(--primary-color, #0d6efd); /* Soulignement coloré */
-             /* scroll-margin-top: calc(var(--header-height) + 50px); /* Ajuster pour header + barre sticky */ */
-             /* Simplification: on laisse juste le scroll-margin-top pour le header fixe */
-             scroll-margin-top: calc(var(--header-height) + 10px); /* Espace pour le header fixe */
-        }
-        /* Assurer que le main-content n'a plus de padding-top car body l'a déjà */
-        #main-content {
-            padding-top: 0; /* Supprimé car géré par body */
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/privesc.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
     <!-- Bouton pour afficher/masquer la sidebar -->
@@ -135,7 +71,7 @@
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/pages/vulnreport.html" class="sidebar-nav-link">
-                        <i>🔒</i> Rapport de Vulnérabilités
+                        <i>📊</i> Vuln Report
                     </a>
                 </li>
             </ul>
@@ -143,15 +79,17 @@
     </div>
 
     <!-- Header -->
-    <header id="main-header" class="main-header fixed-top">
+    <header class="main-header">
         <div class="header-container">
-            <h1>Cockpit Privesc v3 - Checklist Dynamique</h1>
+            <div class="header-content">
+                <h1>🔑 Guide Privesc</h1>
+                <p class="header-subtitle">Checklist complète pour l'escalade de privilèges</p>
+            </div>
             <div class="header-controls">
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
-                        <i class="icon-language">🌍</i>
-                        <span id="currentLanguage">Français</span>
-                        <i class="dropdown-arrow">▼</i>
+                        <span class="language-flag">🇫🇷</span>
+                        <span id="currentLanguage">FR</span>
                     </button>
                     <div id="languageMenu" class="language-menu">
                         <div class="language-option" data-lang="fr">
@@ -171,53 +109,87 @@
 
     <!-- Contenu principal -->
     <div id="main-content" class="main-content">
-        <!-- Barre de Sélection du Node -->
-        <div class="node-selector-bar d-flex align-items-center p-2 border-bottom bg-light sticky-top">
-            <label for="node-select" class="form-label mb-0 me-2 fw-bold">Node (depuis HostManager):</label>
-            <select id="node-select" class="form-select form-select-sm me-3" style="max-width: 300px;">
-                <option value="">-- Charger les données HostManager... --</option>
-                <!-- Options chargées par JS -->
-            </select>
-            <div id="active-node-info" class="node-info flex-grow-1 small text-muted">
-                Sélectionnez un node...
+        <!-- Sélection de l'environnement -->
+        <div class="environment-section">
+            <div class="environment-card">
+                <h2>🎯 Configuration de l'Environnement</h2>
+                <p class="environment-description">
+                    Sélectionnez le type d'environnement pour afficher la checklist appropriée.
+                </p>
+                
+                <div class="environment-selector">
+                    <div class="selector-group">
+                        <label for="os-select">Système d'exploitation</label>
+                        <select id="os-select">
+                            <option value="">-- Sélectionnez un OS --</option>
+                            <option value="linux">🐧 Linux</option>
+                            <option value="windows">🪟 Windows</option>
+                            <option value="windows-ad">🏢 Windows (Active Directory)</option>
+                            <option value="macos">🍎 macOS</option>
+                        </select>
+                    </div>
+                    
+                    <div class="selector-group">
+                        <label for="context-select">Contexte</label>
+                        <select id="context-select">
+                            <option value="local">🔒 Local</option>
+                            <option value="domain">🌐 Domaine</option>
+                            <option value="cloud">☁️ Cloud</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Zone Principale : Checklist Dynamique -->
-        <div class="container-fluid mt-3">
-            <!-- Filtres -->
-            <div class="d-flex align-items-center flex-wrap p-2 mb-3 border rounded bg-light shadow-sm">
-                 <span class="me-2 fw-bold small">Filtrer:</span>
-                 <input type="search" id="checklist-search" class="form-control form-control-sm me-2 mb-1 flex-grow-1" style="min-width: 150px;" placeholder="Rechercher...">
-                 <select id="checklist-filter-status" class="form-select form-select-sm me-2 mb-1" style="width: auto; min-width: 140px;">
-                     <option value="">Tous Statuts</option>
-                     <option value="todo">À vérifier</option>
-                     <option value="checked">Vérifié</option>
-                     <option value="exploitable">Exploitable</option>
-                     <option value="exploited">Exploité</option>
-                 </select>
-                 <select id="checklist-filter-tag" class="form-select form-select-sm mb-1" style="width: auto; min-width: 140px;">
-                     <option value="">Tous Tags</option>
-                     <!-- Tags chargés dynamiquement -->
-                 </select>
-                 <!-- Bouton filtre supprimé car filtrage direct -->
-            </div>
-
-            <!-- NOUVEAU: Liens de Navigation Rapide -->
-            <div id="quick-nav-links" class="quick-nav-links mb-3 pb-2 border-bottom">
-                 <span class="text-muted small me-2 align-self-center">Aller à:</span>
-                 <!-- Liens ajoutés par JS sous forme de badges/boutons -->
-            </div>
-
-            <!-- Conteneur de la Checklist -->
-            <div id="checklist-container" class="mt-3">
-                <p class="text-muted text-center" id="checklist-placeholder">Sélectionnez un node pour afficher la checklist contextuelle.</p>
-                <!-- La checklist sera générée ici par JS -->
+        <!-- Filtres -->
+        <div id="filters-section" class="filters-section" style="display: none;">
+            <div class="filters-card">
+                <h3>🔍 Filtres</h3>
+                
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="checklist-search">Recherche</label>
+                        <input type="text" id="checklist-search" placeholder="Rechercher..." disabled>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="checklist-filter-status">Statut</label>
+                        <select id="checklist-filter-status" disabled>
+                            <option value="">Tous Statuts</option>
+                            <option value="todo">À vérifier</option>
+                            <option value="checked">Vérifié</option>
+                            <option value="exploitable">Exploitable</option>
+                            <option value="exploited">Exploité</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="checklist-filter-tag">Tag</label>
+                        <select id="checklist-filter-tag" disabled>
+                            <option value="">Tous Tags</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Navigation rapide -->
+                <div id="quick-nav-links" class="quick-nav" style="display: none;">
+                    <span class="nav-label">Navigation rapide :</span>
+                    <div class="nav-links"></div>
+                </div>
             </div>
         </div>
-        <!-- FIN Zone Principale -->
 
-    </div> <!-- Fin #main-content -->
+        <!-- Checklist -->
+        <div class="checklist-section">
+            <div id="checklist-container" class="checklist-container">
+                <div class="checklist-placeholder" id="checklist-placeholder">
+                    <span class="placeholder-icon">📝</span>
+                    <h3>Aucune checklist active</h3>
+                    <p>Sélectionnez un système d'exploitation pour afficher la checklist d'escalade de privilèges.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="main-footer">
         <div class="footer-content">
