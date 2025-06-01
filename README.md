@@ -1,83 +1,97 @@
 # Audit Mapper
 ![AuditMapperImg](/assets/photos/logo.png)
 
-Une collection d'outils web conçue pour assister les professionnels de la sécurité lors des tests d'intrusion. Ce projet vise à rationaliser les tâches courantes telles que la génération de rapports, la gestion des données collectées et l'exécution de commandes répétitives.
+AuditMapper est une suite d'outils conçue pour rationaliser et optimiser les opérations des professionnels de la cybersécurité, en particulier lors des audits de sécurité et des tests d'intrusion.
+
+---
+
+### ⚠️ **AVERTISSEMENT IMPORTANT : Projet en Cours de Développement** ⚠️
+
+Veuillez noter qu'AuditMapper est un **projet en cours de développement actif**. Il s'agit d'un **side-project** développé par un étudiant qui abuse un peu du "vibecoding".
+
+En conséquence :
+* **Le code n'est pas optimisé pour le moment** Attendez-vous à des comportements inattendus et des erreurs.
+* **Ce n'est absolument PAS un outil à utiliser dans un environnement de production.** Toute utilisation dans un cadre professionnel ou critique est fortement déconseillée et se fait à vos propres risques.
+* **Le coeur y est en tout cas**
+
+Cependant, je suis engagé à améliorer cet outil. Si vous rencontrez des problèmes, des bugs ou si vous avez des suggestions d'amélioration, n'hésitez pas à me contacter via :
+* **LinkedIn**
+* **Discord**
+
+Je m'engage à prendre en compte tous les retours et à travailler activement pour résoudre les problèmes signalés, afin de faire d'AuditMapper un outil utile et fiable pour la communauté.
+
+---
 
 ## Fonctionnalités Principales
 
-*   **Générateur de Rapports Dynamique** : Créez des templates de rapports de pentest au format Markdown. Sélectionnez les services découverts pour inclure automatiquement les checklists et commandes pertinentes (`assets/js/main.js` lignes 27-89).
-*   **Host Manager Avancé** : Gérez les hôtes découverts, leurs informations (notes, services, credentials), visualisez les relations sous forme de carte réseau, agrégez les credentials et générez des rapports "killchain" (`assets/js/hostmanager_v2.js`, `pages/hostmanager.html`).
-*   **Grep Master** : Analysez et extrayez des informations spécifiques (utilisateurs, hashes, mots de passe, IPs, emails) à partir des outputs bruts de divers outils de pentest (Secretsdump, LSASS dump, NXC, etc.) (`assets/js/grepmaster.js`, `pages/grepmaster.html` lignes 105-127).
-*   **`/etc/hosts` Maker** : Convertissez rapidement la sortie des scans réseau (ex: NXC SMB) en entrées formatées pour le fichier `/etc/hosts` (`assets/js/hostsmaker.js` lignes 11-73).
-*   **Bibliothèque d'Outils** : Accédez à une collection de commandes utiles pour différentes phases du pentest (reconnaissance, exploitation, post-exploitation), prêtes à être copiées (`pages/tools.html` lignes 20-42).
-*   **Guides d'Escalade de Privilèges** : Consultez des checklists pour les techniques d'escalade de privilèges sous Windows et Linux (`pages/privesc.html`).
-*   **Générateur de Noms d'Utilisateur** : Script Python pour générer des listes de noms d'utilisateur potentielles basées sur des formats courants (`tools/usernamegenerator.py` lignes 33-53).
-*   **Scanner de Reconnaissance (IPScan.py)** : Script Python pour l'énumération initiale et l'analyse des versions des services (`tools/IPScan.py` lignes 76-99).
-*   **Rapporteur de Vulnérabilités** : Facilite la création de descriptions standardisées de vulnérabilités et de tableaux récapitulatifs (`pages/vulnreport.html`).
-*   **Support Docker** : Déployez facilement l'application à l'aide de Docker (`Dockerfile` lignes 1-15).
-*   **Mode Nuit** : Thème sombre disponible pour réduire la fatigue visuelle.
+AuditMapper offre des outils puissants conçus pour les professionnels de la cybersécurité, visant à simplifier et automatiser les tâches récurrentes.
 
-## Structure de l'Application
+* 🖥️ **Host Manager**
+    Gérez vos hôtes de manière centralisée avec une interface graphique interactive. Organisez par catégories, ajoutez des notes et générez des rapports automatiquement.
 
-L'application est principalement accessible via une interface web. Les différentes fonctionnalités sont organisées en sections distinctes :
+* 🌐 **Config Generator**
+    Générez automatiquement vos fichiers de configuration (hosts, Kerberos, ProxyChains) à partir de vos données d'audit, assurant une configuration rapide et sans erreur.
 
-*   **Accueil (`index.html`)** : Présentation générale et accès aux différents modules.
-*   **Host Manager (`pages/hostmanager.html`)** : Outil avancé de gestion des hôtes et de cartographie.
-*   **Outils (`pages/tools.html`, `pages/privesc.html`)** : Bibliothèques de commandes et guides.
-*   **Parsers (`pages/hostsmaker.html`, `pages/grepmaster.html`)** : Outils d'analyse et de formatage de données.
-*   **Rapport de Vulnérabilités (`pages/vulnreport.html`)** : Aide à la rédaction de sections de vulnérabilités.
+* 🔍 **Grep Master**
+    Un parser intelligent pour extraire les informations utiles de vos outputs (secretsdump, SAM, LSASS, etc.), vous aidant à identifier rapidement les données critiques.
 
-Des scripts Python complémentaires (`tools/`) peuvent être utilisés en ligne de commande.
+* 🔀 **Pivot Master**
+    Générateur de commandes de pivoting avec visualisation réseau interactive pour vos mouvements latéraux, facilitant la compréhension et l'exécution des pivots.
 
-## Installation
+* 🔑 **Guide Privesc**
+    Checklist interactive pour l'escalade de privilèges avec suivi de progression et génération de rapports, vous guidant à travers les étapes essentielles de la privesc.
 
-### Méthode 1 : Serveur Web Simple (Python)
+* 📊 **Rapport Generator**
+    Créez des rapports de vulnérabilités professionnels avec des templates personnalisables et export multi-format, pour des livrables clairs et concis.
 
-1.  Clonez le dépôt :
-    ```bash
-    git clone https://github.com/felixbillieres/TemplateGenerator.git
-    cd pentest-tools
-    ```
-2.  Lancez un serveur web local :
-    ```bash
-    python3 -m http.server 8000
-    # Ou pour Python 2: python -m SimpleHTTPServer 8000
-    ```
-3.  Accédez à l'application dans votre navigateur via `http://localhost:8000`.
+---
 
-### Méthode 2 : Docker
+## Outils Disponibles
 
-1.  Assurez-vous que Docker est installé et en cours d'exécution.
-2.  Clonez le dépôt (si ce n'est pas déjà fait) :
-    ```bash
-    git clone https://github.com/felixbillieres/TemplateGenerator.git
-    cd pentest-tools
-    ```
-3.  Construisez l'image Docker :
-    ```bash
-    docker build -t pentest-tools-suite .
-    ```
-4.  Lancez un conteneur :
-    ```bash
-    docker run -d -p 8080:80 --name pentest-tools-app pentest-tools-suite
-    ```
-5.  Accédez à l'application dans votre navigateur via `http://localhost:8080`.
+Accédez rapidement à tous vos outils de pentest favoris, intégrés et optimisés pour une efficacité maximale.
 
-## Utilisation
+* ### 🖥️ Host Manager
+    Gestionnaire centralisé pour tous vos hôtes avec interface graphique.
+    * Visualisation réseau interactive
+    * Catégorisation automatique
+    * Export multi-format
+    * Génération de rapports
 
-Une fois l'application lancée (via Python ou Docker), ouvrez votre navigateur web et accédez à l'URL correspondante (`http://localhost:8000` ou `http://localhost:8080` par défaut). Naviguez entre les différentes sections à l'aide de la barre latérale pour utiliser les outils souhaités.
+* ### 🌐 Config Generator
+    Générateur automatique de fichiers de configuration.
+    * Fichiers `/etc/hosts`
+    * Configuration Kerberos
+    * ProxyChains setup
+    * Templates personnalisés
 
-## Technologies Utilisées
+* ### 🔍 Grep Master
+    Parser intelligent pour les outputs de pentest.
+    * Extraction automatique
+    * Support multi-format
+    * Filtrage avancé
+    * Export structuré
 
-*   Frontend : HTML5, CSS3, JavaScript (ES6+)
-*   Bibliothèques JS : Vis.js (pour la cartographie), Marked.js (rendu Markdown), DOMPurify (sécurité)
-*   Backend/Scripts : Python 3 (pour les outils en ligne de commande)
-*   Conteneurisation : Docker, Nginx (image de base)
+* ### 🔀 Pivot Master
+    Générateur de commandes de pivoting.
+    * Visualisation réseau
+    * Commandes automatiques
+    * Multi-protocoles
+    * Historique des pivots
 
-## Contribution
+* ### 🔑 Guide Privesc
+    Checklist interactive pour l'escalade de privilèges.
+    * Checklist contextuelle
+    * Suivi de progression
+    * Multi-plateformes
+    * Rapports détaillés
 
-Les contributions sont les bienvenues ! Si vous souhaitez améliorer le projet, n'hésitez pas à ouvrir une *issue* pour discuter des changements ou à soumettre une *pull request*.
+* ### 🛠️ Bibliothèque d'Outils
+    Collection complète d'outils de pentest.
+    * Outils classés par catégorie
+    * Commandes d'installation
+    * Documentation intégrée
+    * Mise à jour régulière
 
-## Licence
+---
 
-Ce projet est distribué sous la licence MIT. Voir le fichier `LICENSE` pour plus de détails. 
+**Contactez-moi pour tout problème ou suggestion !**
