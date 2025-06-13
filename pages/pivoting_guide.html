@@ -108,25 +108,33 @@
 
         <!-- Header de l'outil -->
         <div class="pivot-header">
-            <h2>🔀 Pivot Command Generator</h2>
             <p>Saisissez vos informations et obtenez des commandes de pivot prêtes à l'emploi</p>
         </div>
 
-        <!-- Configuration principale -->
-        <div class="pivot-container">
-            
-            <!-- Section Configuration -->
-            <div class="config-section">
+        <!-- Container Configuration -->
+        <div class="config-container">
                 <div class="section-card">
                     <h3>⚙️ Configuration</h3>
+                <div class="card-body">
+                    <!-- Option Double Pivot -->
+                    <div class="config-group">
+                        <div class="form-row">
+                            <div class="form-group checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="doublePivot">
+                                    <span>Double Pivot</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Informations attaquant -->
                     <div class="config-group">
                         <h4>🖥️ Machine Attaquante</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="attackerIP">IP Attaquant :</label>
-                                <input type="text" id="attackerIP" value="10.10.14.15" placeholder="10.10.14.15">
+                                <label for="attackerIp">IP Attaquant :</label>
+                                <input type="text" id="attackerIp" value="10.10.14.15" placeholder="10.10.14.15">
                             </div>
                             <div class="form-group">
                                 <label for="attackerPort">Port d'écoute :</label>
@@ -135,74 +143,162 @@
                         </div>
                     </div>
 
-                    <!-- Informations première target -->
+                    <!-- Sélection des outils -->
                     <div class="config-group">
-                        <h4>🎯 Target 1 (Point d'entrée)</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="target1IP">IP Target 1 :</label>
-                                <input type="text" id="target1IP" placeholder="192.168.1.100">
+                        <h4>🛠️ Outils de Pivot</h4>
+                        <div class="tools-grid">
+                            <div class="tool-card" data-supports-double-pivot="true">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="chisel" checked>
+                                    <div class="tool-content">
+                                        <span class="tool-icon">⚡</span>
+                                        <div class="tool-info">
+                                            <h5>Chisel</h5>
+                                            <p>Tunnel HTTP/HTTPS, idéal pour Windows</p>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                            <div class="form-group">
-                                <label for="target1User">Utilisateur :</label>
-                                <input type="text" id="target1User" placeholder="www-data">
-            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="target1OS">OS :</label>
-                                <select id="target1OS">
-                                    <option value="linux">Linux</option>
-                                    <option value="windows">Windows</option>
-                                </select>
+
+                            <div class="tool-card" data-supports-double-pivot="true">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="ssh" checked>
+                                    <div class="tool-content">
+                                        <span class="tool-icon">🔐</span>
+                                        <div class="tool-info">
+                                            <h5>SSH</h5>
+                                            <p>Tunneling SSH, stable et discret</p>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                            <div class="form-group">
-                                <label for="target1Services">Services ouverts :</label>
-                                <input type="text" id="target1Services" placeholder="22,80,443">
+
+                            <div class="tool-card" data-supports-double-pivot="true">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="socat">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">🔄</span>
+                                        <div class="tool-info">
+                                            <h5>Socat</h5>
+                                            <p>Relais bidirectionnel, polyvalent</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="tool-card" data-supports-double-pivot="false">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="netcat">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">📡</span>
+                                        <div class="tool-info">
+                                            <h5>Netcat</h5>
+                                            <p>Relais simple, disponible partout</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="tool-card" data-supports-double-pivot="true">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="ligolo">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">🦊</span>
+                                        <div class="tool-info">
+                                            <h5>Ligolo</h5>
+                                            <p>Tunnel TUN, idéal pour Linux</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="tool-card">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="proxychains">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">⛓️</span>
+                                        <div class="tool-info">
+                                            <h5>ProxyChains</h5>
+                                            <p>Proxy SOCKS, multi-sauts</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="tool-card">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="rpivot">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">🔄</span>
+                                        <div class="tool-info">
+                                            <h5>RPivot</h5>
+                                            <p>Tunnel SOCKS, idéal pour Windows</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="tool-card">
+                                <label class="tool-option">
+                                    <input type="checkbox" name="tools" value="plink">
+                                    <div class="tool-content">
+                                        <span class="tool-icon">🔌</span>
+                                        <div class="tool-info">
+                                            <h5>Plink</h5>
+                                            <p>SSH pour Windows, sans interface</p>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Informations seconde target -->
+                    <!-- Informations Target 1 -->
                     <div class="config-group">
-                        <h4>🎯 Target 2 (Destination finale)</h4>
+                        <h4>🎯 Target 1 (Premier Pivot)</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="target2IP">IP Target 2 :</label>
-                                <input type="text" id="target2IP" placeholder="10.10.10.50">
+                                <label for="target1Ip">IP :</label>
+                                <input type="text" id="target1Ip" placeholder="192.168.1.100">
                             </div>
                             <div class="form-group">
-                                <label for="target2Port">Port cible :</label>
+                                <label for="target1Port">Port :</label>
+                                <input type="number" id="target1Port" value="22" placeholder="22">
+            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target1User">Utilisateur :</label>
+                                <input type="text" id="target1User" placeholder="user">
+                            </div>
+                            <div class="form-group">
+                                <label for="target1Password">Mot de passe :</label>
+                                <input type="password" id="target1Password" placeholder="password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations Target 2 -->
+                    <div class="config-group" id="target2Group">
+                        <h4>🎯 Target 2 (Second Pivot)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="target2Ip">IP :</label>
+                                <input type="text" id="target2Ip" placeholder="172.16.1.100">
+                            </div>
+                            <div class="form-group">
+                                <label for="target2Port">Port :</label>
                                 <input type="number" id="target2Port" value="22" placeholder="22">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="target2OS">OS :</label>
-                                <select id="target2OS">
-                                    <option value="linux">Linux</option>
-                                    <option value="windows">Windows</option>
-                                </select>
+                                <label for="target2User">Utilisateur :</label>
+                                <input type="text" id="target2User" placeholder="user">
                             </div>
                             <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="doublePivot"> Double Pivot (Target 3)
-                                </label>
-                         </div>
-                        </div>
-                    </div>
-
-                    <!-- Target 3 pour double pivot -->
-                    <div class="config-group" id="target3Group" style="display: none;">
-                        <h4>🎯 Target 3 (Double Pivot)</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="target3IP">IP Target 3 :</label>
-                                <input type="text" id="target3IP" placeholder="172.16.1.50">
-                            </div>
-                            <div class="form-group">
-                                <label for="target3Port">Port cible :</label>
-                                <input type="number" id="target3Port" value="3389" placeholder="3389">
+                                <label for="target2Password">Mot de passe :</label>
+                                <input type="password" id="target2Password" placeholder="password">
                             </div>
                         </div>
                     </div>
@@ -213,78 +309,27 @@
                         <button class="btn btn-secondary" onclick="clearForm()">🗑️ Effacer</button>
                         <button class="btn btn-info" onclick="loadExample()">💡 Exemple</button>
                     </div>
-                </div>
-            </div>
 
-            <!-- Section Techniques -->
-            <div class="techniques-section">
-                <div class="section-card">
-                    <h3>🛠️ Techniques de Pivot</h3>
-                    
-                    <div class="techniques-grid">
-                        <!-- SSH Tunneling -->
-                        <div class="technique-card" data-technique="ssh">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-ssh" checked>
-                                <label for="tech-ssh">🔐 SSH Tunneling</label>
+                    <!-- Section des commandes générées -->
+                    <div class="section-card" id="resultsSection">
+                        <div class="section-header">
+                            <h3 class="section-title">
+                                <i class="fas fa-terminal"></i> Commandes Générées
+                            </h3>
+                            <p class="section-description">
+                                Commandes pour établir les tunnels et pivots selon les outils sélectionnés
+                            </p>
+                        </div>
+                        <div class="section-content">
+                            <div class="commands-tabs">
+                                <div class="tabs-nav" id="commandsTabs">
+                                    <!-- Les onglets seront générés dynamiquement -->
                             </div>
-                            <div class="technique-desc">
-                                Tunnels SSH dynamiques et locaux
+                                <div class="tabs-content" id="commandsContent">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Sélectionnez des outils et cliquez sur "Générer les Commandes" pour voir les résultats.
                             </div>
                         </div>
-
-                        <!-- Chisel -->
-                        <div class="technique-card" data-technique="chisel">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-chisel" checked>
-                                <label for="tech-chisel">⚡ Chisel</label>
-                            </div>
-                            <div class="technique-desc">
-                                Tunnels HTTP/HTTPS rapides
-                            </div>
-                        </div>
-
-                        <!-- Ligolo -->
-                        <div class="technique-card" data-technique="ligolo">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-ligolo">
-                                <label for="tech-ligolo">🌐 Ligolo-ng</label>
-                            </div>
-                            <div class="technique-desc">
-                                Tunneling avancé avec interface réseau
-                            </div>
-                        </div>
-
-                        <!-- Socat -->
-                        <div class="technique-card" data-technique="socat">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-socat">
-                                <label for="tech-socat">🔗 Socat</label>
-                            </div>
-                            <div class="technique-desc">
-                                Relais de connexions flexibles
-                            </div>
-                        </div>
-
-                        <!-- Netcat -->
-                        <div class="technique-card" data-technique="netcat">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-netcat">
-                                <label for="tech-netcat">🐱 Netcat</label>
-                            </div>
-                            <div class="technique-desc">
-                                Relais simple et portable
-                            </div>
-                        </div>
-
-                        <!-- Metasploit -->
-                        <div class="technique-card" data-technique="metasploit">
-                            <div class="technique-header">
-                                <input type="checkbox" id="tech-metasploit">
-                                <label for="tech-metasploit">🔴 Metasploit</label>
-                            </div>
-                            <div class="technique-desc">
-                                Pivoting avec Meterpreter
                             </div>
                         </div>
                     </div>
@@ -292,20 +337,13 @@
             </div>
         </div>
 
-        <!-- Section de visualisation réseau -->
-        <div class="network-visualization-section">
+        <!-- Container Topologie Réseau -->
+        <div class="network-container">
             <div class="section-card">
-                <div class="network-header">
                     <h3>🗺️ Topologie Réseau Interactive</h3>
-                    <div class="network-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="resetNetworkView()">🔄 Reset Vue</button>
-                        <button class="btn btn-sm btn-info" onclick="fitNetworkView()">📐 Ajuster</button>
-                        <button class="btn btn-sm btn-success" onclick="exportNetworkImage()">📸 Export Image</button>
-                        <button class="btn btn-sm btn-warning" onclick="toggleNetworkPhysics()">⚡ Physique</button>
-                    </div>
-                </div>
-                
-                <div class="network-container">
+                <div class="card-body">
+                    <!-- Contenu existant de la topologie -->
+                    <div class="network-visualization">
                     <!-- Zone de visualisation -->
                     <div class="network-canvas" id="networkCanvas">
                         <!-- Vis.js network sera injecté ici -->
@@ -320,124 +358,14 @@
                             <div class="info-placeholder">
                                 <i>🖱️</i>
                                 <p>Cliquez sur un nœud pour voir les détails</p>
-                            </div>
-                        </div>
-                </div>
-                </div>
-
-                <!-- Légende et contrôles -->
-                <div class="network-legend-panel">
-                    <div class="legend-section">
-                        <h4>📋 Légende</h4>
-                        <div class="legend-grid">
-                            <div class="legend-item">
-                                <div class="legend-node attacker"></div>
-                                <span>🔥 Attaquant</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-node linux"></div>
-                                <span>🐧 Linux</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-node windows"></div>
-                                <span>🪟 Windows</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-node unknown"></div>
-                                <span>❓ Inconnu</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="legend-section">
-                        <h4>🔗 Connexions</h4>
-                        <div class="legend-grid">
-                            <div class="legend-item">
-                                <div class="legend-edge direct"></div>
-                                <span>Direct</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-edge pivot"></div>
-                                <span>Pivot</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-edge tunnel"></div>
-                                <span>Tunnel</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="legend-section">
-                        <h4>⚙️ Options</h4>
-                        <div class="network-options">
-                            <label>
-                                <input type="checkbox" id="showLabels" checked> Afficher labels
-                            </label>
-                            <label>
-                                <input type="checkbox" id="showEdgeLabels"> Labels connexions
-                            </label>
-                            <label>
-                                <input type="checkbox" id="hierarchicalLayout"> Layout hiérarchique
-                            </label>
-                            <label>
-                                <input type="checkbox" id="smoothEdges" checked> Edges lisses
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Zone explicative intelligente -->
-                <div class="pivot-explanation-panel">
-                    <div class="explanation-header">
-                        <h4>💡 Explication du Pivot</h4>
-                        <div class="explanation-status" id="explanationStatus">
-                            <span class="status-indicator">🔄</span>
-                            <span>Analysing configuration...</span>
-                        </div>
-                    </div>
-                    
-                    <div class="explanation-content" id="explanationContent">
-                        <div class="explanation-placeholder">
-                            <i>📝</i>
-                            <p>Configurez vos targets pour voir l'explication détaillée du pivot...</p>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </div>
-            </div>
-
-        <!-- Section des résultats -->
-        <div class="results-section" id="resultsSection" style="display: none;">
-            <div class="section-card">
-                <div class="results-header">
-                    <h3>💻 Commandes Générées</h3>
-                    <div class="results-actions">
-                        <button class="btn btn-sm btn-info" onclick="copyAllCommands()">📋 Copier Tout</button>
-                        <button class="btn btn-sm btn-success" onclick="exportScript()">💾 Export Script</button>
-                        <button class="btn btn-sm btn-warning" onclick="exportCheatsheet()">📝 Cheatsheet</button>
-                </div>
-                </div>
-
-                <div class="commands-container">
-                    <div class="commands-tabs">
-                        <div class="tab-nav" id="commandTabs">
-                            <!-- Tabs générés dynamiquement -->
-                        </div>
-                </div>
-
-                    <div class="commands-content" id="commandsOutput">
-                        <!-- Commandes générées ici -->
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Section aide -->
-        <div class="help-section">
-            <div class="section-card">
-                <h3>💡 Aide & Tips</h3>
-                
+                    <div class="help-section mt-4">
+                        <h4 class="mb-3">💡 Aide & Tips</h4>
                 <div class="tips-grid">
                     <div class="tip-card">
                         <h4>🔐 SSH Tunneling</h4>
@@ -465,7 +393,8 @@
                 </div>
             </div>
             </div>
-
+            </div>
+        </div>
     </div>
 
     <footer class="main-footer">

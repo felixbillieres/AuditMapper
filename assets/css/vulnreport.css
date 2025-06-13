@@ -1,0 +1,36 @@
+.main-header {
+    background-color: #3498db;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    height: 60px;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+}
+
+.main-header h1 {
+    font-size: 1.8rem;
+    color: white;
+    margin: 0;
+    align-self: center;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+} 

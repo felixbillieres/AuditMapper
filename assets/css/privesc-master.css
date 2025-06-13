@@ -1,0 +1,914 @@
+/*
+=======================================================
+    PRIVESC MASTER CSS - VERSION MVP HARMONISÉE
+    Compatible avec AuditMapper Design System
+=======================================================
+*/
+
+/* ==================== VARIABLES MVP HARMONISÉES ==================== */
+:root {
+    /* Couleurs principales exactes du hostmanager */
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    
+    /* Couleurs spécifiques privesc */
+    --privesc-primary: #8b5cf6; /* Violet pour privesc */
+    --privesc-accent: #10b981;   /* Vert pour succès */
+    
+    /* Couleurs de surface harmonisées */
+    --background-color: #f0f2f5;
+    --surface-color: #ffffff;
+    --border-color: #dee2e6;
+    --text-color: #333333;
+    --text-muted: #6c757d;
+    
+    /* Mode sombre exact du hostmanager */
+    --dark-bg-color: #1e1e1e;
+    --dark-surface-color: #2a2a2a;
+    --dark-border-color: #404040;
+    --dark-text-color: #e0e0e0;
+    --dark-text-color-muted: #b0b0b0;
+    --dark-heading-color: #ffffff;
+    
+    /* Espacement et bordures harmonisés */
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    
+    /* Animations */
+    --transition: all 0.3s ease;
+}
+
+/* ==================== MODE SOMBRE HARMONISÉ ==================== */
+body.dark-theme {
+    --background-color: var(--dark-bg-color);
+    --surface-color: var(--dark-surface-color);
+    --border-color: var(--dark-border-color);
+    --text-color: var(--dark-text-color);
+    --text-muted: var(--dark-text-color-muted);
+}
+
+body.dark-theme .main-content {
+    background-color: var(--dark-bg-color);
+}
+
+/* ==================== MAIN CONTENT RESPONSIVE INTEGRATION ==================== */
+.main-content {
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
+    padding: 2rem;
+    min-height: calc(100vh - 80px);
+    background-color: var(--background-color);
+}
+
+.main-content.full-width {
+    margin-left: 0;
+}
+
+/* Responsive pour mobile */
+@media screen and (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+/* ==================== HEADER PRIVESC MASTER ==================== */
+.main-header {
+    background-color: #3498db;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    height: 60px;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+}
+
+.main-header h1 {
+    font-size: 1.8rem;
+    color: white;
+    margin: 0;
+    align-self: center;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+}
+
+/* ==================== VIEW CONTROLS ==================== */
+.view-controls {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: 0.25rem;
+    backdrop-filter: blur(10px);
+}
+
+.view-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--border-radius) - 2px);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.1rem;
+}
+
+.view-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.view-btn.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ==================== SECTION CARDS MVP ==================== */
+.form-section {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+}
+
+.form-section:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.form-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.section-description {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* ==================== CONFIGURATION GRID ==================== */
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.config-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.config-group label {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+/* ==================== FILTERS GRID ==================== */
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* ==================== FORM CONTROLS MVP ==================== */
+.form-control {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    background: var(--surface-color);
+    color: var(--text-color);
+    transition: var(--transition);
+    width: 100%;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    background: var(--surface-color);
+}
+
+.form-control:disabled {
+    background: var(--background-color);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ==================== BUTTONS MVP ==================== */
+.btn {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #2980b9);
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary-color), #34495e);
+    color: white;
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--info-color), #138496);
+    color: white;
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #1e7e34);
+    color: white;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ==================== STATS GRID ==================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: var(--transition);
+}
+
+.stat-card.stat-todo::before { background: var(--text-muted); }
+.stat-card.stat-checked::before { background: var(--success-color); }
+.stat-card.stat-exploitable::before { background: var(--warning-color); }
+.stat-card.stat-exploited::before { background: var(--danger-color); }
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ==================== PROGRESS BAR ==================== */
+.progress-bar-container {
+    margin-top: 1.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    border-radius: 6px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+.progress-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ==================== QUICK NAVIGATION ==================== */
+.quick-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.nav-link {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* ==================== CHECKLIST CONTAINER ==================== */
+.checklist-container {
+    min-height: 400px;
+}
+
+.checklist-placeholder {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.placeholder-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.6;
+}
+
+.placeholder-content h3 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.placeholder-content p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.placeholder-suggestions {
+    text-align: left;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.placeholder-suggestions h4 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.placeholder-suggestions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.placeholder-suggestions li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.placeholder-suggestions li:last-child {
+    border-bottom: none;
+}
+
+/* ==================== CHECKLIST ITEMS ==================== */
+.checklist-item {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+}
+
+.checklist-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    transition: var(--transition);
+}
+
+.checklist-item.status-todo::before { background: var(--text-muted); }
+.checklist-item.status-checked::before { background: var(--success-color); }
+.checklist-item.status-exploitable::before { background: var(--warning-color); }
+.checklist-item.status-exploited::before { background: var(--danger-color); }
+
+.checklist-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.checklist-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.checklist-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.checklist-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status-select {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    background: var(--surface-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    min-width: 140px;
+}
+
+.checklist-content {
+    padding: 1.5rem;
+}
+
+.checklist-description {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* ==================== COMMAND BLOCKS ==================== */
+.command-section {
+    margin: 1.5rem 0;
+}
+
+.command-section h6 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.command-block {
+    background: var(--background-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    position: relative;
+    overflow: hidden;
+}
+
+.command-block pre {
+    margin: 0;
+    padding: 1.25rem;
+    background: transparent;
+    color: var(--text-color);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.8;
+}
+
+.copy-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+}
+
+/* ==================== BADGES ==================== */
+.tag-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.badge.tag-enumeration { background: var(--info-color); }
+.badge.tag-exploit { background: var(--danger-color); }
+.badge.tag-persistence { background: var(--warning-color); }
+.badge.tag-evasion { background: var(--secondary-color); }
+
+/* ==================== EXPORT SECTION ==================== */
+.export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.export-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.export-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 1.5rem;
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+}
+
+.export-stat {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.export-stat strong {
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+/* ==================== MODE SOMBRE SPÉCIFIQUE ==================== */
+body.dark-theme .form-section {
+    background: var(--dark-surface-color);
+    border-color: var(--dark-border-color);
+    border-left-color: var(--primary-color);
+}
+
+body.dark-theme .form-section h3 {
+    color: var(--dark-heading-color);
+    border-bottom-color: var(--dark-border-color);
+}
+
+body.dark-theme .stat-card {
+    background: var(--dark-surface-color);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .checklist-item {
+    background: var(--dark-surface-color);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .checklist-header {
+    border-bottom-color: var(--dark-border-color);
+}
+
+body.dark-theme .command-block {
+    background: var(--dark-bg-color);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .placeholder-suggestions {
+    background: var(--dark-surface-color);
+    border-color: var(--dark-border-color);
+}
+
+body.dark-theme .export-stats {
+    background: var(--dark-bg-color);
+    border-color: var(--dark-border-color);
+}
+
+/* ==================== RESPONSIVE DESIGN INTÉGRÉ ==================== */
+/* Conteneurs flexibles pour l'adaptation à la sidebar */
+.stats-section,
+.quick-nav-section,
+.export-section {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Responsive pour tablette */
+@media (max-width: 1200px) {
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    .config-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .main-header::after {
+        display: none;
+    }
+    
+    .header-content h1 {
+        font-size: 2.2rem;
+    }
+    
+    .config-grid,
+    .filters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .checklist-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .export-options {
+        flex-direction: column;
+    }
+    
+    .export-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .quick-nav-links {
+        justify-content: center;
+    }
+    
+    .view-controls {
+        order: -1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.75rem;
+    }
+    
+    .form-section {
+        padding: 1.25rem;
+    }
+    
+    .header-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .checklist-item {
+        margin-bottom: 1rem;
+    }
+    
+    .checklist-content {
+        padding: 1rem;
+    }
+}
+
+/* ==================== ANIMATIONS D'ENTRÉE ==================== */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.checklist-item {
+    animation: slideInUp 0.4s ease-out;
+}
+
+.stat-card {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.form-section {
+    animation: slideInUp 0.2s ease-out;
+}
+
+/* Animation différée pour les éléments multiples */
+.checklist-item:nth-child(1) { animation-delay: 0.1s; }
+.checklist-item:nth-child(2) { animation-delay: 0.2s; }
+.checklist-item:nth-child(3) { animation-delay: 0.3s; }
+.checklist-item:nth-child(4) { animation-delay: 0.4s; }
+.checklist-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* ==================== SCROLLBAR CUSTOM ==================== */
+.checklist-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.checklist-container::-webkit-scrollbar-track {
+    background: var(--background-color);
+    border-radius: 4px;
+}
+
+.checklist-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.checklist-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+    .sidebar,
+    .sidebar-toggle,
+    .header-controls,
+    .export-section {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .checklist-item {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+} 

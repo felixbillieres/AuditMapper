@@ -3,16 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide Privesc - AuditMapper</title>
+    <title>Privesc Master - AuditMapper</title>
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
-    <link rel="stylesheet" href="/assets/css/privesc.css">
+    <link rel="stylesheet" href="/assets/css/privesc-master.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- JavaScript Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Page Info for Template Loader -->
+    <script>
+        window.pageInfo = {
+            title: 'Privesc Master',
+            headerTitle: 'Privesc Master - Escalade de Privilèges',
+            activePage: 'privesc'
+        };
+    </script>
+    <script src="/assets/js/template-loader.js"></script>
 </head>
 <body>
-    <!-- Bouton pour afficher/masquer la sidebar -->
+    <!-- Bouton Toggle Sidebar -->
     <button id="sidebar-toggle" class="sidebar-toggle">
         <i>☰</i>
     </button>
@@ -79,17 +96,15 @@
     </div>
 
     <!-- Header -->
-    <header class="main-header">
+    <header id="main-header" class="main-header">
         <div class="header-container">
-            <div class="header-content">
-                <h1>🔑 Guide Privesc</h1>
-                <p class="header-subtitle">Checklist complète pour l'escalade de privilèges</p>
-            </div>
+            <h1>🔑 Privesc Master</h1>
             <div class="header-controls">
                 <div class="language-selector">
                     <button id="languageDropdown" class="language-dropdown">
-                        <span class="language-flag">🇫🇷</span>
-                        <span id="currentLanguage">FR</span>
+                        <i class="icon-language">🌍</i>
+                        <span id="currentLanguage">Français</span>
+                        <i class="dropdown-arrow">▼</i>
                     </button>
                     <div id="languageMenu" class="language-menu">
                         <div class="language-option" data-lang="fr">
@@ -107,99 +122,200 @@
         </div>
     </header>
 
-    <!-- Contenu principal -->
+    <!-- Contenu Principal -->
     <div id="main-content" class="main-content">
-        <!-- Sélection de l'environnement -->
-        <div class="environment-section">
-            <div class="environment-card">
-                <h2>🎯 Configuration de l'Environnement</h2>
-                <p class="environment-description">
-                    Sélectionnez le type d'environnement pour afficher la checklist appropriée.
-                </p>
-                
-                <div class="environment-selector">
-                    <div class="selector-group">
-                        <label for="os-select">Système d'exploitation</label>
-                        <select id="os-select">
-                            <option value="">-- Sélectionnez un OS --</option>
-                            <option value="linux">🐧 Linux</option>
-                            <option value="windows">🪟 Windows</option>
-                            <option value="windows-ad">🏢 Windows (Active Directory)</option>
-                            <option value="macos">🍎 macOS</option>
-                        </select>
+        <!-- Section Configuration -->
+        <div class="page-controls">
+            <div class="configuration-section">
+                <div class="form-section">
+                    <h3>⚙️ Configuration de l'Environnement</h3>
+                    <div class="config-grid">
+                        <div class="config-group">
+                            <label for="osSelect">Système d'exploitation:</label>
+                            <select id="osSelect" class="form-control">
+                                <option value="">-- Sélectionnez un OS --</option>
+                                <option value="linux">🐧 Linux</option>
+                                <option value="windows">🪟 Windows</option>
+                                <option value="windows-ad">🏢 Windows (Active Directory)</option>
+                                <option value="macos">🍎 macOS</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label for="contextSelect">Contexte:</label>
+                            <select id="contextSelect" class="form-control">
+                                <option value="local">🔒 Local</option>
+                                <option value="domain">🌐 Domaine</option>
+                                <option value="cloud">☁️ Cloud</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label for="targetOS">Version/Distribution:</label>
+                            <input type="text" id="targetOS" class="form-control" placeholder="Ubuntu 20.04, Windows 10, etc.">
+                        </div>
+                        <div class="config-group">
+                            <label for="currentUser">Utilisateur actuel:</label>
+                            <input type="text" id="currentUser" class="form-control" placeholder="www-data, iis apppool, etc.">
+                        </div>
                     </div>
-                    
-                    <div class="selector-group">
-                        <label for="context-select">Contexte</label>
-                        <select id="context-select">
-                            <option value="local">🔒 Local</option>
-                            <option value="domain">🌐 Domaine</option>
-                            <option value="cloud">☁️ Cloud</option>
-                        </select>
+                </div>
+            </div>
+            
+            <div class="filters-section">
+                <div class="form-section">
+                    <h3>🔍 Filtres & Recherche</h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="checklistSearch">Recherche:</label>
+                            <input type="text" id="checklistSearch" class="form-control" placeholder="Rechercher..." disabled>
+                        </div>
+                        <div class="filter-group">
+                            <label for="statusFilter">Statut:</label>
+                            <select id="statusFilter" class="form-control" disabled>
+                                <option value="">Tous</option>
+                                <option value="todo">📝 À vérifier</option>
+                                <option value="checked">✅ Vérifié</option>
+                                <option value="exploitable">⚠️ Exploitable</option>
+                                <option value="exploited">🔥 Exploité</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="tagFilter">Tag:</label>
+                            <select id="tagFilter" class="form-control" disabled>
+                                <option value="">Tous les tags</option>
+                            </select>
+                        </div>
+                        <div class="view-controls">
+                            <button id="progressView" class="view-btn active" title="Vue progression">📊</button>
+                            <button id="listView" class="view-btn" title="Vue liste">📋</button>
+                            <button id="categoryView" class="view-btn" title="Vue catégories">📁</button>
+                        </div>
+                        <div class="filter-actions">
+                            <button id="clearFilters" class="btn btn-secondary" disabled>🗑️ Effacer</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Filtres -->
-        <div id="filters-section" class="filters-section" style="display: none;">
-            <div class="filters-card">
-                <h3>🔍 Filtres</h3>
-                
-                <div class="filters-grid">
-                    <div class="filter-group">
-                        <label for="checklist-search">Recherche</label>
-                        <input type="text" id="checklist-search" placeholder="Rechercher..." disabled>
+        <!-- Section Statistiques -->
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <div class="form-section">
+                <h3>📊 Progression de l'Audit</h3>
+                <div class="stats-grid">
+                    <div class="stat-card stat-todo">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="todoCount">0</span>
+                            <span class="stat-label">À vérifier</span>
+                        </div>
                     </div>
-                    
-                    <div class="filter-group">
-                        <label for="checklist-filter-status">Statut</label>
-                        <select id="checklist-filter-status" disabled>
-                            <option value="">Tous Statuts</option>
-                            <option value="todo">À vérifier</option>
-                            <option value="checked">Vérifié</option>
-                            <option value="exploitable">Exploitable</option>
-                            <option value="exploited">Exploité</option>
-                        </select>
+                    <div class="stat-card stat-checked">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="checkedCount">0</span>
+                            <span class="stat-label">Vérifiés</span>
+                        </div>
                     </div>
-                    
-                    <div class="filter-group">
-                        <label for="checklist-filter-tag">Tag</label>
-                        <select id="checklist-filter-tag" disabled>
-                            <option value="">Tous Tags</option>
-                        </select>
+                    <div class="stat-card stat-exploitable">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="exploitableCount">0</span>
+                            <span class="stat-label">Exploitables</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-exploited">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="exploitedCount">0</span>
+                            <span class="stat-label">Exploités</span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Navigation rapide -->
-                <div id="quick-nav-links" class="quick-nav" style="display: none;">
-                    <span class="nav-label">Navigation rapide :</span>
-                    <div class="nav-links"></div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0% complété</span>
                 </div>
             </div>
         </div>
 
-        <!-- Checklist -->
-        <div class="checklist-section">
-            <div id="checklist-container" class="checklist-container">
-                <div class="checklist-placeholder" id="checklist-placeholder">
-                    <span class="placeholder-icon">📝</span>
-                    <h3>Aucune checklist active</h3>
-                    <p>Sélectionnez un système d'exploitation pour afficher la checklist d'escalade de privilèges.</p>
+        <!-- Section Navigation Rapide -->
+        <div class="quick-nav-section" id="quickNavSection" style="display: none;">
+            <div class="form-section">
+                <h3>🧭 Navigation Rapide</h3>
+                <div class="quick-nav-links" id="quickNavLinks">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Checklist Principale -->
+        <div class="main-section">
+            <div class="checklist-section">
+                <div id="checklistContainer" class="checklist-container">
+                    <div class="checklist-placeholder" id="checklistPlaceholder">
+                        <div class="placeholder-content">
+                            <div class="placeholder-icon">🔑</div>
+                            <h3>Aucune checklist active</h3>
+                            <p>Sélectionnez un système d'exploitation pour démarrer votre checklist d'escalade de privilèges.</p>
+                            <div class="placeholder-suggestions">
+                                <h4>💡 Suggestions :</h4>
+                                <ul>
+                                    <li>🐧 <strong>Linux</strong> - SUID/SGID, sudo, capabilities, cron jobs</li>
+                                    <li>🪟 <strong>Windows</strong> - Services, tokens, UAC, registry</li>
+                                    <li>🏢 <strong>Active Directory</strong> - Kerberoasting, ASREPRoast, DCSync</li>
+                                    <li>🍎 <strong>macOS</strong> - LaunchAgents, sudo, entitlements</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Export -->
+        <div class="export-section" id="exportSection" style="display: none;">
+            <div class="form-section">
+                <h3>📤 Export & Sauvegarde</h3>
+                <p class="section-description">Exportez votre progression et vos résultats dans différents formats</p>
+                
+                <div class="export-controls">
+                    <div class="export-options">
+                        <button id="exportJSON" class="btn btn-info">📄 JSON</button>
+                        <button id="exportMarkdown" class="btn btn-info">📝 Markdown</button>
+                        <button id="exportHTML" class="btn btn-info">🌐 HTML</button>
+                        <button id="exportZip" class="btn btn-success">📦 Archive ZIP</button>
+                    </div>
+                    <div class="export-stats" id="exportStats">
+                        <div class="export-stat">
+                            <strong id="totalItems">0</strong> éléments total
+                        </div>
+                        <div class="export-stat">
+                            <strong id="completedItems">0</strong> complétés
+                        </div>
+                        <div class="export-stat">
+                            <strong id="vulnerabilitiesFound">0</strong> vulnérabilités trouvées
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Footer Standard -->
     <footer class="main-footer">
         <div class="footer-content">
             <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
     
+    <!-- Scripts de Base (Ordre Obligatoire) -->
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
-    <script src="/assets/js/privesc.js"></script>
+    
+    <!-- Scripts Spécifiques à la Page -->
+    <script src="/assets/js/privesc-master.js"></script>
 </body>
 </html> 

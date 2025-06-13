@@ -4,25 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bibliothèque d'Outils - AuditMapper</title>
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="stylesheet" href="/assets/css/tools.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        h1, h2, h3, h4 { color: #333; }
-        .tool-section { margin-bottom: 30px; border: 1px solid #eee; padding: 15px; border-radius: 5px; }
-        .tool-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .tool-item { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
-        .tool-item h3 { margin-top: 0; color: #555; }
-        .tool-item h4 { color: #777; margin-bottom: 5px; }
-        .tool-item p { color: #666; margin-bottom: 10px; }
-        code { display: block; background-color: #eee; padding: 10px; border-radius: 3px; overflow-x: auto; color: #222; }
-        .category-title { font-size: 1.5em; color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
-    </style>
+    
+    <!-- JavaScript Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Page Info for Template Loader -->
     <script>
-        // Informations spécifiques à cette page
         window.pageInfo = {
             title: 'Outils de Pentest',
             headerTitle: 'Bibliothèque d\'Outils de Pentest',
@@ -32,7 +28,7 @@
     <script src="/assets/js/template-loader.js"></script>
 </head>
 <body>
-    <!-- Bouton pour afficher/masquer la sidebar -->
+    <!-- Bouton Toggle Sidebar -->
     <button id="sidebar-toggle" class="sidebar-toggle">
         <i>☰</i>
     </button>
@@ -101,24 +97,22 @@
     <!-- Header -->
     <header id="main-header" class="main-header">
         <div class="header-container">
-            <div class="header-content">
-                <h1>🛠️ Bibliothèque d'Outils</h1>
-                <p class="header-subtitle">Collection complète d'outils pour audits de sécurité et tests d'intrusion</p>
-            </div>
+            <h1>🛠️ Bibliothèque d'Outils</h1>
             <div class="header-controls">
-                <div class="search-container">
-                    <input type="text" id="toolSearch" placeholder="Rechercher un outil..." class="search-input">
-                    <button class="search-btn">🔍</button>
-                </div>
-                <div class="view-controls">
-                    <button id="gridView" class="view-btn active" title="Vue grille">⊞</button>
-                    <button id="listView" class="view-btn" title="Vue liste">☰</button>
-                </div>
                 <div class="language-selector">
-                    <select id="languageSelect" class="language-select">
-                        <option value="fr">🇫🇷 Français</option>
-                        <option value="en">🇬🇧 English</option>
-                    </select>
+                    <button id="languageDropdown" class="language-dropdown">
+                        <i class="icon-language">🌍</i>
+                        <span id="currentLanguage">Français</span>
+                        <i class="dropdown-arrow">▼</i>
+                    </button>
+                    <div id="languageMenu" class="language-menu">
+                        <div class="language-option" data-lang="fr">
+                            <span class="language-flag">🇫🇷</span>Français
+                        </div>
+                        <div class="language-option" data-lang="en">
+                            <span class="language-flag">🇬🇧</span>English
+                        </div>
+                    </div>
                 </div>
                 <button id="toggleTheme" class="theme-toggle">
                     <i class="icon-theme">🌓</i>
@@ -127,143 +121,198 @@
         </div>
     </header>
 
-    <!-- Contenu principal -->
+    <!-- Contenu Principal -->
     <div id="main-content" class="main-content">
-        <!-- Filtres et statistiques -->
-        <div class="tools-controls">
+        <!-- Section de Contrôles et Filtres -->
+        <div class="page-controls">
             <div class="filters-section">
-                <h3>Filtres</h3>
-                <div class="filter-group">
-                    <label for="categoryFilter">Catégorie:</label>
-                    <select id="categoryFilter" class="filter-select">
-                        <option value="">Toutes les catégories</option>
-                        <option value="reconnaissance">🔍 Reconnaissance</option>
-                        <option value="scanning">📡 Scanning</option>
-                        <option value="exploitation">💥 Exploitation</option>
-                        <option value="post-exploitation">🔓 Post-Exploitation</option>
-                        <option value="privilege-escalation">⬆️ Escalade de Privilèges</option>
-                        <option value="lateral-movement">↔️ Mouvement Latéral</option>
-                        <option value="persistence">🔒 Persistance</option>
-                        <option value="defense-evasion">🥷 Évasion de Défense</option>
-                        <option value="credential-access">🔑 Accès aux Identifiants</option>
-                        <option value="discovery">🗺️ Découverte</option>
-                        <option value="collection">📦 Collection</option>
-                        <option value="exfiltration">📤 Exfiltration</option>
-                        <option value="forensics">🔬 Forensics</option>
-                        <option value="utilities">⚙️ Utilitaires</option>
-                    </select>
+                <div class="form-section">
+                    <h3>🔧 Filtres & Recherche</h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="categoryFilter">Catégorie:</label>
+                            <select id="categoryFilter" class="filter-select form-control">
+                                <option value="">Toutes les catégories</option>
+                                <option value="reconnaissance">🔍 Reconnaissance</option>
+                                <option value="scanning">📡 Scanning</option>
+                                <option value="exploitation">💥 Exploitation</option>
+                                <option value="post-exploitation">🔓 Post-Exploitation</option>
+                                <option value="privilege-escalation">⬆️ Escalade de Privilèges</option>
+                                <option value="lateral-movement">↔️ Mouvement Latéral</option>
+                                <option value="persistence">🔒 Persistance</option>
+                                <option value="defense-evasion">🥷 Évasion de Défense</option>
+                                <option value="credential-access">🔑 Accès aux Identifiants</option>
+                                <option value="discovery">🗺️ Découverte</option>
+                                <option value="collection">📦 Collection</option>
+                                <option value="exfiltration">📤 Exfiltration</option>
+                                <option value="forensics">🔬 Forensics</option>
+                                <option value="utilities">⚙️ Utilitaires</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="platformFilter">Plateforme:</label>
+                            <select id="platformFilter" class="filter-select form-control">
+                                <option value="">Toutes les plateformes</option>
+                                <option value="linux">🐧 Linux</option>
+                                <option value="windows">🪟 Windows</option>
+                                <option value="macos">🍎 macOS</option>
+                                <option value="web">🌐 Web</option>
+                                <option value="mobile">📱 Mobile</option>
+                                <option value="network">🌐 Réseau</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="difficultyFilter">Difficulté:</label>
+                            <select id="difficultyFilter" class="filter-select form-control">
+                                <option value="">Toutes les difficultés</option>
+                                <option value="beginner">🟢 Débutant</option>
+                                <option value="intermediate">🟡 Intermédiaire</option>
+                                <option value="advanced">🔴 Avancé</option>
+                                <option value="expert">⚫ Expert</option>
+                            </select>
+                        </div>
+                        <div class="view-controls">
+                            <button id="gridView" class="view-btn active" title="Vue grille">⊞</button>
+                            <button id="listView" class="view-btn" title="Vue liste">☰</button>
+                        </div>
+                        <div class="filter-actions">
+                            <button id="clearFilters" class="btn btn-secondary">🗑️ Effacer les filtres</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <label for="platformFilter">Plateforme:</label>
-                    <select id="platformFilter" class="filter-select">
-                        <option value="">Toutes les plateformes</option>
-                        <option value="linux">🐧 Linux</option>
-                        <option value="windows">🪟 Windows</option>
-                        <option value="macos">🍎 macOS</option>
-                        <option value="web">🌐 Web</option>
-                        <option value="mobile">📱 Mobile</option>
-                        <option value="network">🌐 Réseau</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="difficultyFilter">Difficulté:</label>
-                    <select id="difficultyFilter" class="filter-select">
-                        <option value="">Toutes les difficultés</option>
-                        <option value="beginner">🟢 Débutant</option>
-                        <option value="intermediate">🟡 Intermédiaire</option>
-                        <option value="advanced">🔴 Avancé</option>
-                        <option value="expert">⚫ Expert</option>
-                    </select>
-                </div>
-                <button id="clearFilters" class="clear-filters-btn">Effacer les filtres</button>
             </div>
             
             <div class="stats-section">
-                <div class="stat-card">
-                    <span class="stat-number" id="totalTools">0</span>
-                    <span class="stat-label">Outils Total</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number" id="filteredTools">0</span>
-                    <span class="stat-label">Outils Affichés</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-number" id="categoriesCount">0</span>
-                    <span class="stat-label">Catégories</span>
+                <div class="form-section">
+                    <h3>📊 Statistiques</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalTools">0</span>
+                            <span class="stat-label">Outils Total</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="filteredTools">0</span>
+                            <span class="stat-label">Outils Affichés</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="categoriesCount">0</span>
+                            <span class="stat-label">Catégories</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section des outils -->
-        <div class="tools-section">
-            <div id="toolsContainer" class="tools-grid">
-                <!-- Les outils seront générés dynamiquement par JavaScript -->
-            </div>
-            
-            <!-- Message si aucun outil trouvé -->
-            <div id="noToolsMessage" class="no-tools-message" style="display: none;">
-                <div class="no-tools-icon">🔍</div>
-                <h3>Aucun outil trouvé</h3>
-                <p>Essayez de modifier vos critères de recherche ou de filtrage.</p>
-                <button id="resetSearch" class="btn btn-primary">Réinitialiser la recherche</button>
+        <!-- Section Principale des Outils -->
+        <div class="main-section">
+            <div class="form-section">
+                <div class="tools-header">
+                    <h3>🛠️ Outils Disponibles</h3>
+                    <div class="tools-actions">
+                        <button id="exportToolsList" class="btn btn-info">📋 Exporter la liste</button>
+                    </div>
+                </div>
+                
+                <div id="toolsContainer" class="tools-grid">
+                    <!-- Les outils seront générés dynamiquement par JavaScript -->
+                </div>
+                
+                <!-- Message si aucun outil trouvé -->
+                <div id="noToolsMessage" class="no-tools-message" style="display: none;">
+                    <div class="no-tools-content">
+                        <div class="no-tools-icon">🔍</div>
+                        <h3>Aucun outil trouvé</h3>
+                        <p>Essayez de modifier vos critères de recherche ou de filtrage.</p>
+                        <button id="resetSearch" class="btn btn-primary">🔄 Réinitialiser la recherche</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Section d'installation rapide -->
+        <!-- Section Installation Rapide -->
         <div class="quick-install-section">
-            <h3>Installation Rapide</h3>
-            <div class="install-tabs">
-                <button class="install-tab active" data-os="debian">🐧 Debian/Ubuntu</button>
-                <button class="install-tab" data-os="redhat">🎩 RedHat/CentOS</button>
-                <button class="install-tab" data-os="arch">🏛️ Arch Linux</button>
-                <button class="install-tab" data-os="macos">🍎 macOS</button>
-                <button class="install-tab" data-os="windows">🪟 Windows</button>
-            </div>
-            <div class="install-content">
-                <div id="installCommands" class="install-commands">
-                    <!-- Les commandes d'installation seront générées dynamiquement -->
+            <div class="form-section">
+                <h3>🚀 Installation Rapide</h3>
+                <p class="section-description">Commandes d'installation pour les outils populaires selon votre système d'exploitation</p>
+                
+                <div class="install-tabs">
+                    <button class="install-tab active" data-os="debian">🐧 Debian/Ubuntu</button>
+                    <button class="install-tab" data-os="redhat">🎩 RedHat/CentOS</button>
+                    <button class="install-tab" data-os="arch">🏛️ Arch Linux</button>
+                    <button class="install-tab" data-os="macos">🍎 macOS</button>
+                    <button class="install-tab" data-os="windows">🪟 Windows</button>
                 </div>
-                <button id="copyInstallCommands" class="copy-btn">📋 Copier les commandes</button>
+                
+                <div class="install-content">
+                    <div id="installCommands" class="install-commands">
+                        <!-- Les commandes d'installation seront générées dynamiquement -->
+                    </div>
+                    <div class="install-actions">
+                        <button id="copyInstallCommands" class="btn btn-success">📋 Copier les commandes</button>
+                        <button id="downloadInstallScript" class="btn btn-info">💾 Télécharger le script</button>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Modal pour les détails d'un outil -->
-        <div id="toolModal" class="modal">
+    <!-- Modal pour les détails d'un outil -->
+    <div id="toolModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 id="modalToolName"></h2>
-                    <button class="modal-close">&times;</button>
+                    <h2 class="modal-title" id="modalToolName"></h2>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="tool-details">
                         <div class="tool-meta">
-                            <span class="tool-category" id="modalToolCategory"></span>
-                            <span class="tool-difficulty" id="modalToolDifficulty"></span>
-                            <span class="tool-platform" id="modalToolPlatform"></span>
+                            <span class="tool-category badge" id="modalToolCategory"></span>
+                            <span class="tool-difficulty badge" id="modalToolDifficulty"></span>
+                            <span class="tool-platform badge" id="modalToolPlatform"></span>
                         </div>
                         <p class="tool-description" id="modalToolDescription"></p>
+                        
                         <div class="tool-features">
-                            <h4>Fonctionnalités principales:</h4>
+                            <h4>✨ Fonctionnalités principales:</h4>
                             <ul id="modalToolFeatures"></ul>
                         </div>
+                        
                         <div class="tool-installation">
-                            <h4>Installation:</h4>
+                            <h4>📦 Installation:</h4>
                             <div class="code-block">
-                                <code id="modalInstallCommand"></code>
-                                <button class="copy-code-btn" onclick="copyToClipboard('modalInstallCommand')">📋</button>
+                                <pre><code id="modalInstallCommand"></code></pre>
+                                <button class="copy-code-btn btn btn-sm btn-outline-secondary" onclick="copyToClipboard('modalInstallCommand')">
+                                    📋 Copier
+                                </button>
                             </div>
                         </div>
+                        
                         <div class="tool-usage">
-                            <h4>Utilisation de base:</h4>
+                            <h4>🚀 Utilisation de base:</h4>
                             <div class="code-block">
-                                <code id="modalUsageExample"></code>
-                                <button class="copy-code-btn" onclick="copyToClipboard('modalUsageExample')">📋</button>
+                                <pre><code id="modalUsageExample"></code></pre>
+                                <button class="copy-code-btn btn btn-sm btn-outline-secondary" onclick="copyToClipboard('modalUsageExample')">
+                                    📋 Copier
+                                </button>
                             </div>
                         </div>
+                        
                         <div class="tool-links">
-                            <a id="modalOfficialLink" href="#" target="_blank" class="tool-link">🌐 Site officiel</a>
-                            <a id="modalGithubLink" href="#" target="_blank" class="tool-link">📂 GitHub</a>
-                            <a id="modalDocsLink" href="#" target="_blank" class="tool-link">📖 Documentation</a>
+                            <h4>🔗 Liens utiles:</h4>
+                            <div class="links-grid">
+                                <a id="modalOfficialLink" href="#" target="_blank" class="tool-link btn btn-outline-primary">
+                                    🌐 Site officiel
+                                </a>
+                                <a id="modalGithubLink" href="#" target="_blank" class="tool-link btn btn-outline-dark">
+                                    📂 GitHub
+                                </a>
+                                <a id="modalDocsLink" href="#" target="_blank" class="tool-link btn btn-outline-info">
+                                    📖 Documentation
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -271,15 +320,19 @@
         </div>
     </div>
 
+    <!-- Footer Standard -->
     <footer class="main-footer">
         <div class="footer-content">
             <p>Made with ❤️ by Elliot Belt - AuditMapper Security Suite</p>
         </div>
     </footer>
     
+    <!-- Scripts de Base (Ordre Obligatoire) -->
     <script src="/assets/js/sidebar.js"></script>
     <script src="/assets/js/theme.js"></script>
     <script src="/assets/js/language.js"></script>
+    
+    <!-- Scripts Spécifiques à la Page -->
     <script src="/assets/js/tools.js"></script>
 </body>
 </html>
