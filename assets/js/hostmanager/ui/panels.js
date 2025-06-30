@@ -27,14 +27,27 @@ export class PanelUI {
             importSessionInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
+                    // Afficher un indicateur de chargement
+                    const loadingAlert = document.createElement('div');
+                    loadingAlert.className = 'alert alert-info';
+                    loadingAlert.textContent = 'Import en cours...';
+                    document.body.appendChild(loadingAlert);
+                    
                     this.hostManager.modules.storage.importSession(file)
                         .then(() => {
+                            document.body.removeChild(loadingAlert);
                             alert('Session importée avec succès!');
                             this.hostManager.modules.categoryUI.renderCategories();
                             this.hostManager.modules.network.updateNetwork();
+                            // Réinitialiser l'input pour permettre la sélection du même fichier
+                            e.target.value = '';
                         })
                         .catch(error => {
-                            alert('Erreur lors de l\'importation: ' + error.message);
+                            document.body.removeChild(loadingAlert);
+                            console.error('Erreur import session:', error);
+                            alert('Erreur import session: ' + error.message);
+                            // Réinitialiser l'input
+                            e.target.value = '';
                         });
                 }
             });

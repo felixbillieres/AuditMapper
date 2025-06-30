@@ -20,13 +20,9 @@ export class AdvancedReportGenerator {
     initialize() {
         console.log(">>> AdvancedReportGenerator.initialize: START");
         
-        // Vérifier que les éléments existent
+        // Vérifier que les éléments nécessaires existent (seulement le rapport technique)
         const elements = [
-            'generateExecutiveSummary',
-            'generateTechnicalReport', 
-            'generateKillChainReport',
-            'generateCredentialReport',
-            'reportPreviewMini',
+            'generateTechnicalReport',
             'reportCategoryFilters'
         ];
         
@@ -46,21 +42,9 @@ export class AdvancedReportGenerator {
     }
 
     setupEventListeners() {
-        // Boutons de type de rapport
-        document.getElementById('generateExecutiveSummary')?.addEventListener('click', () => {
-            this.selectReportType('executive');
-        });
-        
+        // Seulement le bouton de rapport technique
         document.getElementById('generateTechnicalReport')?.addEventListener('click', () => {
             this.selectReportType('technical');
-        });
-        
-        document.getElementById('generateKillChainReport')?.addEventListener('click', () => {
-            this.selectReportType('killchain');
-        });
-        
-        document.getElementById('generateCredentialReport')?.addEventListener('click', () => {
-            this.selectReportType('credentials');
         });
 
         // Aperçu complet
@@ -84,12 +68,10 @@ export class AdvancedReportGenerator {
         // Options de rapport
         document.getElementById('reportTitle')?.addEventListener('input', (e) => {
             this.reportOptions.title = e.target.value;
-            this.updatePreview();
         });
         
         document.getElementById('reportAuthor')?.addEventListener('input', (e) => {
             this.reportOptions.author = e.target.value;
-            this.updatePreview();
         });
 
         // Édition manuelle
@@ -138,7 +120,6 @@ export class AdvancedReportGenerator {
                     this.selectedCategories.delete(categoryName);
                     filterItem.classList.remove('active');
                 }
-                this.updatePreview();
             });
             
             // Sélectionner par défaut
@@ -151,49 +132,31 @@ export class AdvancedReportGenerator {
     }
 
     selectReportType(type) {
-        this.currentReportType = type;
+        // Forcer le type à être toujours 'technical'
+        this.currentReportType = 'technical';
         
-        // Mettre à jour l'UI - corriger les IDs des boutons
+        // Mettre à jour l'UI - seul le bouton technique
         document.querySelectorAll('.btn-group .btn').forEach(btn => {
             btn.classList.remove('active');
         });
         
-        // Corriger les IDs des boutons
-        let activeBtn;
-        switch(type) {
-            case 'executive':
-                activeBtn = document.getElementById('generateExecutiveSummary');
-                break;
-            case 'technical':
-                activeBtn = document.getElementById('generateTechnicalReport');
-                break;
-            case 'killchain':
-                activeBtn = document.getElementById('generateKillChainReport');
-                break;
-            case 'credentials':
-                activeBtn = document.getElementById('generateCredentialReport');
-                break;
-        }
-        
+        const activeBtn = document.getElementById('generateTechnicalReport');
         if (activeBtn) {
             activeBtn.classList.add('active');
         }
         
-        // Générer l'aperçu
+        // Générer le rapport et l'aperçu
         this.generateReport();
-        this.updatePreview();
         
         // Activer les boutons d'export
         this.enableExportButtons();
+        
+        // Afficher automatiquement le preview complet
+        this.showFullPreview();
     }
 
     generateReport() {
-        if (!this.currentReportType) {
-            console.warn('No report type selected');
-            return;
-        }
-
-        console.log(`Generating ${this.currentReportType} report...`);
+        console.log('Generating technical report...');
         
         const hostData = this.hostManager.getData();
         console.log('Host data:', hostData);
@@ -202,29 +165,13 @@ export class AdvancedReportGenerator {
         console.log('Filtered data:', filteredData);
         
         try {
-            switch (this.currentReportType) {
-                case 'executive':
-                    this.currentReportData = this.generateExecutiveSummary(filteredData);
-                    break;
-                case 'technical':
-                    this.currentReportData = this.generateTechnicalReport(filteredData);
-                    break;
-                case 'killchain':
-                    this.currentReportData = this.generateKillChainReport(filteredData);
-                    break;
-                case 'credentials':
-                    this.currentReportData = this.generateCredentialReport(filteredData);
-                    break;
-                default:
-                    console.error('Unknown report type:', this.currentReportType);
-                    return;
-            }
-            
-            console.log('Generated report data:', this.currentReportData);
+            // Toujours générer seulement le rapport technique
+            this.currentReportData = this.generateTechnicalReport(filteredData);
+            console.log('Generated technical report data:', this.currentReportData);
             
         } catch (error) {
-            console.error('Error generating report:', error);
-            this.currentReportData = `# Erreur de génération\n\nUne erreur s'est produite lors de la génération du rapport: ${error.message}`;
+            console.error('Error generating technical report:', error);
+            this.currentReportData = `# Erreur de génération du rapport technique\n\nUne erreur s'est produite lors de la génération du rapport: ${error.message}`;
         }
     }
 
@@ -541,22 +488,8 @@ ${this.analyzeServiceAccountsText(data)}
     }
 
     updatePreview() {
-        const previewContainer = document.getElementById('reportPreviewMini');
-        if (!previewContainer) return;
-
-        if (!this.currentReportData) {
-            previewContainer.innerHTML = `
-                <div class="text-center text-muted p-3">
-                    <i class="fas fa-file-alt fa-2x mb-2"></i>
-                    <p>Sélectionnez un type de rapport pour voir l'aperçu</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Convertir le markdown en HTML pour l'aperçu
-        const htmlContent = this.convertMarkdownToPreviewHtml(this.currentReportData);
-        previewContainer.innerHTML = htmlContent;
+        // Plus d'aperçu automatique - seulement via le bouton
+        return;
     }
 
     convertMarkdownToPreviewHtml(markdown) {
@@ -626,116 +559,138 @@ ${this.analyzeServiceAccountsText(data)}
             return;
         }
 
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content" style="background: #2c3e50; color: #ecf0f1;">
-                    <div class="modal-header" style="border-bottom: 1px solid #34495e;">
-                        <h5 class="modal-title" style="color: #3498db;">
-                            Aperçu Complet - ${this.capitalizeFirst(this.currentReportType)}
-                        </h5>
-                        <button type="button" class="close" data-dismiss="modal" style="color: #ecf0f1;">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: 20px;">
-                        ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
-                    </div>
-                    <div class="modal-footer" style="border-top: 1px solid #34495e;">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary" id="editFromPreview">Modifier</button>
-                        <button type="button" class="btn btn-success" id="exportFromPreview">Exporter</button>
-                    </div>
+        // Créer un div de prévisualisation directement dans la page
+        let previewContainer = document.getElementById('renderedPreview');
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'renderedPreview';
+            previewContainer.className = 'rendered-preview-container';
+            
+            // Insérer après la section de rapports
+            const reportsSection = document.getElementById('advancedReportsSection');
+            if (reportsSection) {
+                reportsSection.insertAdjacentElement('afterend', previewContainer);
+            } else {
+                document.body.appendChild(previewContainer);
+            }
+        }
+
+        previewContainer.innerHTML = `
+            <div class="preview-header">
+                <h5 class="preview-title">
+                    📊 Rapport Technique Généré
+                </h5>
+                <div class="preview-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="editFromPreview">✏️ Modifier</button>
+                    <button type="button" class="btn btn-success btn-sm" id="exportFromPreview">📤 Exporter</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="closePreview">✕ Fermer</button>
                 </div>
+            </div>
+            <div class="preview-content">
+                ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
             </div>
         `;
 
-        document.body.appendChild(modal);
-        $(modal).modal('show');
-
         // Événements pour les boutons
-        modal.querySelector('#editFromPreview').addEventListener('click', () => {
-            $(modal).modal('hide');
+        previewContainer.querySelector('#editFromPreview').addEventListener('click', () => {
             this.showManualEditor();
         });
 
-        modal.querySelector('#exportFromPreview').addEventListener('click', () => {
+        previewContainer.querySelector('#exportFromPreview').addEventListener('click', () => {
             this.exportReport('markdown');
         });
 
-        // Nettoyer après fermeture
-        $(modal).on('hidden.bs.modal', () => {
-            document.body.removeChild(modal);
+        previewContainer.querySelector('#closePreview').addEventListener('click', () => {
+            previewContainer.style.display = 'none';
         });
+
+        // Afficher le conteneur et faire défiler vers lui
+        previewContainer.style.display = 'block';
+        previewContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
     showManualEditor() {
         if (!this.currentReportData) return;
 
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Éditeur Manuel - ${this.capitalizeFirst(this.currentReportType)}</h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span>&times;</span>
-                        </button>
+        // Créer un div d'édition directement dans la page
+        let editorContainer = document.getElementById('manualReportEditor');
+        if (!editorContainer) {
+            editorContainer = document.createElement('div');
+            editorContainer.id = 'manualReportEditor';
+            editorContainer.className = 'manual-editor-container';
+            
+            // Insérer après la section de rapports
+            const reportsSection = document.getElementById('advancedReportsSection');
+            if (reportsSection) {
+                reportsSection.insertAdjacentElement('afterend', editorContainer);
+            } else {
+                document.body.appendChild(editorContainer);
+            }
+        }
+
+        editorContainer.innerHTML = `
+            <div class="editor-header">
+                <h5 class="editor-title">✏️ Éditeur Manuel - Rapport Technique</h5>
+                <div class="editor-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="saveManualChanges">💾 Sauvegarder</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="closeEditor">✕ Fermer</button>
+                </div>
+            </div>
+            <div class="editor-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Édition Markdown</h6>
+                        <textarea id="markdownEditor" class="form-control" rows="25" style="font-family: monospace;">${this.currentReportData}</textarea>
                     </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Édition Markdown</h6>
-                                <textarea id="manualReportEditor" class="form-control" rows="25" style="font-family: monospace;">${this.currentReportData}</textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Aperçu</h6>
-                                <div id="manualReportPreview" class="border p-3" style="height: 600px; overflow-y: auto; background: #f8f9fa;">
-                                    ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
-                                </div>
-                            </div>
+                    <div class="col-md-6">
+                        <h6>Aperçu</h6>
+                        <div id="livePreview" class="border p-3" style="height: 600px; overflow-y: auto; background: #f8f9fa;">
+                            ${this.convertMarkdownToPreviewHtml(this.currentReportData)}
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                        <button type="button" class="btn btn-primary" id="saveManualChanges">Sauvegarder</button>
                     </div>
                 </div>
             </div>
         `;
 
-        document.body.appendChild(modal);
-        $(modal).modal('show');
-
         // Mise à jour en temps réel de l'aperçu
-        const editor = modal.querySelector('#manualReportEditor');
-        const preview = modal.querySelector('#manualReportPreview');
+        const editor = editorContainer.querySelector('#markdownEditor');
+        const preview = editorContainer.querySelector('#livePreview');
         
         editor.addEventListener('input', () => {
             preview.innerHTML = this.convertMarkdownToPreviewHtml(editor.value);
         });
 
         // Sauvegarder les modifications
-        modal.querySelector('#saveManualChanges').addEventListener('click', () => {
+        editorContainer.querySelector('#saveManualChanges').addEventListener('click', () => {
             this.currentReportData = editor.value;
-            this.updatePreview();
-            $(modal).modal('hide');
+            editorContainer.style.display = 'none';
+            // Afficher un message de confirmation
+            alert('Rapport sauvegardé avec succès !');
         });
 
-        // Nettoyer après fermeture
-        $(modal).on('hidden.bs.modal', () => {
-            document.body.removeChild(modal);
+        // Fermer l'éditeur
+        editorContainer.querySelector('#closeEditor').addEventListener('click', () => {
+            editorContainer.style.display = 'none';
         });
+
+        // Afficher le conteneur et faire défiler vers lui
+        editorContainer.style.display = 'block';
+        editorContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
     enableExportButtons() {
-        document.getElementById('previewFullReport').disabled = false;
-        document.getElementById('editReportManually').disabled = false;
-        document.getElementById('exportReportPdf').disabled = false;
-        document.getElementById('exportReportMd').disabled = false;
-        document.getElementById('exportReportHtml').disabled = false;
+        // Activer seulement les boutons qui existent
+        const buttons = [
+            'previewFullReport', 'editReportManually', 
+            'exportReportPdf', 'exportReportMd', 'exportReportHtml'
+        ];
+        
+        buttons.forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.disabled = false;
+            }
+        });
     }
 
     exportReport(format) {
@@ -802,13 +757,8 @@ ${this.analyzeServiceAccountsText(data)}
     }
 
     capitalizeFirst(str) {
-        const names = {
-            'executive': 'Rapport Exécutif',
-            'technical': 'Rapport Technique', 
-            'killchain': 'Rapport Kill Chain',
-            'credentials': 'Rapport Credentials'
-        };
-        return names[str] || str;
+        // Toujours retourner le nom du rapport technique
+        return 'Rapport Technique';
     }
 
     // Méthodes utilitaires pour les rapports spécialisés
@@ -1089,8 +1039,12 @@ ${this.analyzeServiceAccountsText(data)}
         for (const [categoryName, category] of Object.entries(data.categories)) {
             const hosts = category.hosts || {};
             for (const [hostId, host] of Object.entries(hosts)) {
-                if (host.services && host.services.length > 0) {
-                    vectors += `- ${hostId}: ${host.services.join(', ')}\n`;
+                if (host.services) {
+                    if (typeof host.services === 'string') {
+                        vectors += `- ${hostId}: ${host.services}\n`;
+                    } else if (Array.isArray(host.services) && host.services.length > 0) {
+                        vectors += `- ${hostId}: ${host.services.join(', ')}\n`;
+                    }
                 }
             }
         }

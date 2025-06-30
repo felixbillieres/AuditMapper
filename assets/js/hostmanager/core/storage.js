@@ -63,20 +63,64 @@ export class StorageManager {
     importSession(file) {
         console.log(">>> importSession: START");
         return new Promise((resolve, reject) => {
+            // Vérifier que le fichier existe et est valide
+            if (!file) {
+                reject(new Error("Aucun fichier sélectionné"));
+                return;
+            }
+            
+            // Vérifier le type de fichier
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                reject(new Error("Le fichier doit être au format JSON"));
+                return;
+            }
+            
             const reader = new FileReader();
+            
             reader.onload = (e) => {
                 try {
-                    const importedData = JSON.parse(e.target.result);
-                    this.hostManager.updateData(importedData);
+                    const result = e.target.result;
+                    if (!result || result.trim() === '') {
+                        throw new Error("Le fichier est vide");
+                    }
+                    
+                    const importedData = JSON.parse(result);
+                    
+                    // Valider la structure des données
+                    if (!importedData || typeof importedData !== 'object') {
+                        throw new Error("Format de données invalide");
+                    }
+                    
+                    // Ajouter une structure par défaut si nécessaire
+                    const validData = {
+                        categories: importedData.categories || {},
+                        edges: importedData.edges || []
+                    };
+                    
+                    this.hostManager.updateData(validData);
                     console.log("Session imported successfully.");
                     resolve();
                 } catch (error) {
                     console.error("Error parsing imported file:", error);
-                    reject(error);
+                    reject(new Error("Erreur lors de l'analyse du fichier: " + error.message));
                 }
             };
-            reader.onerror = () => reject(new Error("File reading failed"));
-            reader.readAsText(file);
+            
+            reader.onerror = (error) => {
+                console.error("FileReader error:", error);
+                reject(new Error("Impossible de lire le fichier. Vérifiez que le fichier n'est pas corrompu."));
+            };
+            
+            reader.onabort = () => {
+                reject(new Error("Lecture du fichier interrompue"));
+            };
+            
+            try {
+                reader.readAsText(file, 'UTF-8');
+            } catch (error) {
+                console.error("Error starting file read:", error);
+                reject(new Error("Impossible de démarrer la lecture du fichier"));
+            }
         });
     }
 

@@ -722,14 +722,6 @@ let filteredTools = [...toolsDatabase];
 let currentView = 'grid';
 let currentOS = 'debian';
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-    initializeToolsPage();
-    setupEventListeners();
-    renderTools();
-    updateStats();
-});
-
 // Configuration des event listeners
 function setupEventListeners() {
     // Recherche
@@ -768,9 +760,9 @@ function setupEventListeners() {
     if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
     if (resetSearchBtn) resetSearchBtn.addEventListener('click', clearAllFilters);
 
-    // Modal
+    // Modal - corriger le sélecteur pour le bouton de fermeture
     const modal = document.getElementById('toolModal');
-    const closeBtn = document.querySelector('.modal-close');
+    const closeBtn = document.querySelector('.close');
     
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (modal) {
@@ -861,13 +853,7 @@ function renderTools() {
 
     container.innerHTML = filteredTools.map(tool => createToolCard(tool)).join('');
 
-    // Ajouter les event listeners pour les cartes
-    container.querySelectorAll('.tool-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const toolId = card.dataset.toolId;
-            openToolModal(toolId);
-        });
-    });
+    // Les event listeners sont gérés par l'onclick dans le HTML, pas besoin d'en ajouter ici
 }
 
 // Création d'une carte d'outil
@@ -967,6 +953,8 @@ function openToolModal(toolId) {
     const tool = toolsDatabase.find(t => t.id === toolId);
     if (!tool) return;
 
+    console.log('Opening modal for tool:', tool.name); // Debug
+
     // Remplir les informations
     const modalElements = {
         modalToolName: tool.name,
@@ -1000,11 +988,10 @@ function openToolModal(toolId) {
         if (element) element.href = href;
     });
 
-    // Afficher la modal
+    // Afficher la modal avec Bootstrap
     const modal = document.getElementById('toolModal');
     if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        $(modal).modal('show');
     }
 }
 
@@ -1012,8 +999,7 @@ function openToolModal(toolId) {
 function closeModal() {
     const modal = document.getElementById('toolModal');
     if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        $(modal).modal('hide');
     }
 }
 
@@ -1103,4 +1089,26 @@ style.textContent = `
         to { transform: translateX(100%); opacity: 0; }
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Tools page loaded, initializing...');
+    
+    // Initialiser les outils filtrés avec tous les outils
+    filteredTools = [...toolsDatabase];
+    
+    // Configurer les event listeners
+    setupEventListeners();
+    
+    // Initialiser la page
+    initializeToolsPage();
+    
+    // Rendre les outils
+    renderTools();
+    
+    // Mettre à jour les statistiques
+    updateStats();
+    
+    console.log('Tools page initialization complete');
+}); 

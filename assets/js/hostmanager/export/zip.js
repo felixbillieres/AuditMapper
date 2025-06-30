@@ -398,7 +398,7 @@ Cet export est compatible avec :
             const reportGenerator = this.hostManager.modules.advancedReports;
             
             // Générer chaque type de rapport
-            const reportTypes = ['executive', 'technical', 'killchain', 'credentials'];
+            const reportTypes = ['technical'];
             
             for (const type of reportTypes) {
                 try {

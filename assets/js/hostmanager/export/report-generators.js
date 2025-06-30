@@ -426,15 +426,8 @@ ${this.generateRiskMatrixAnalysis(data)}`;
     }
 
     getReportTypeLabel() {
-        const labels = {
-            executive: 'Rapport Exécutif',
-            technical: 'Rapport Technique',
-            killchain: 'Analyse Kill Chain',
-            credentials: 'Analyse Credentials',
-            infrastructure: 'Analyse Infrastructure',
-            compliance: 'Rapport de Conformité'
-        };
-        return labels[this.config.type] || 'Rapport de Sécurité';
+        // Toujours retourner le label du rapport technique
+        return 'Rapport Technique';
     }
 
     // ==================== EXTRACTION DE DONNÉES ====================

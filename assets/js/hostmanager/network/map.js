@@ -350,12 +350,16 @@ export class NetworkMap {
         // Hover effects
         this.network.on('hoverNode', (params) => {
             this.container.style.cursor = 'pointer';
-            this.highlightConnectedNodes(params.node);
+            if (this.highlightConnectedNodes) {
+                this.highlightConnectedNodes(params.node);
+            }
         });
 
         this.network.on('blurNode', (params) => {
             this.container.style.cursor = 'default';
-            this.resetHighlight();
+            if (this.resetHighlight) {
+                this.resetHighlight();
+            }
         });
     }
 
@@ -901,5 +905,87 @@ export class NetworkMap {
             'Full': 8
         };
         return widths[compromiseLevel] || 3;
+    }
+
+    highlightConnectedNodes(nodeId) {
+        if (!this.network || !this.nodes || !this.edges) return;
+        
+        try {
+            const connectedNodes = this.network.getConnectedNodes(nodeId);
+            const connectedEdges = this.network.getConnectedEdges(nodeId);
+            
+            // Réinitialiser tous les nodes
+            const allNodes = this.nodes.get();
+            const updatedNodes = allNodes.map(node => {
+                if (node.id === nodeId) {
+                    // Node survolé - plus lumineux
+                    return {
+                        ...node,
+                        color: {
+                            ...node.color,
+                            background: this.lightenColor(node.color.background, 0.3)
+                        }
+                    };
+                } else if (connectedNodes.includes(node.id)) {
+                    // Nodes connectés - légèrement mis en évidence
+                    return {
+                        ...node,
+                        color: {
+                            ...node.color,
+                            background: this.lightenColor(node.color.background, 0.1)
+                        }
+                    };
+                } else {
+                    // Autres nodes - plus sombres
+                    return {
+                        ...node,
+                        color: {
+                            ...node.color,
+                            background: this.darkenColor(node.color.background, 0.3)
+                        }
+                    };
+                }
+            });
+            
+            this.nodes.update(updatedNodes);
+        } catch (error) {
+            console.warn('Error in highlightConnectedNodes:', error);
+        }
+    }
+
+    resetHighlight() {
+        if (!this.network || !this.nodes) return;
+        
+        try {
+            // Restaurer les couleurs originales
+            const hostData = this.hostManager.getData();
+            const allNodes = this.nodes.get();
+            
+            const updatedNodes = allNodes.map(node => {
+                const categoryColor = this.getCategoryColor(node.categoryName);
+                const compromiseLevel = node.hostData?.compromiseLevel || 'None';
+                const compromiseBorderColor = this.compromiseColors[compromiseLevel];
+                
+                return {
+                    ...node,
+                    color: {
+                        background: categoryColor,
+                        border: compromiseBorderColor,
+                        highlight: {
+                            background: this.lightenColor(categoryColor, 0.2),
+                            border: this.darkenColor(compromiseBorderColor, 0.3)
+                        },
+                        hover: {
+                            background: this.lightenColor(categoryColor, 0.1),
+                            border: compromiseBorderColor
+                        }
+                    }
+                };
+            });
+            
+            this.nodes.update(updatedNodes);
+        } catch (error) {
+            console.warn('Error in resetHighlight:', error);
+        }
     }
 } 
