@@ -112,9 +112,22 @@
                 <div class="input-header">
                     <h2>📥 Données à Analyser</h2>
                     <div class="input-controls">
-                        <button id="refreshAnalysis" class="btn btn-primary">🔄 Analyser</button>
+                        <button id="analyzeBtn" class="btn btn-primary">
+                            <span class="btn-icon">🔍</span>
+                            Analyser
+                        </button>
                         <button id="clearInput" class="btn btn-secondary">🗑️ Vider</button>
                         <button id="loadSample" class="btn btn-secondary">📋 Exemple</button>
+                    </div>
+                </div>
+                
+                <!-- Disclaimer intégré -->
+                <div class="disclaimer-integrated">
+                    <div class="disclaimer-content">
+                        <div class="disclaimer-icon">⚠️</div>
+                        <div class="disclaimer-text">
+                            <strong>Attention :</strong> Je ne suis pas un expert en regex ! Cet outil tente de faciliter l'extraction des données, mais il est <strong>crucial de toujours vérifier manuellement</strong> les résultats car l'outil peut avoir manqué des informations critiques. Si vous souhaitez m'aider à améliorer l'extraction, n'hésitez pas à me contacter !
+                        </div>
                     </div>
                 </div>
                 
@@ -166,114 +179,112 @@
             </div>
         </div>
 
-        <!-- Section d'extraction rapide -->
-        <div class="quick-extract-section">
-            <div class="quick-extract-card">
-                <h3>⚡ Extraction Rapide</h3>
-                <div class="quick-buttons">
-                    <button id="extractUsers" class="extract-btn" data-type="users">
-                        <div class="btn-icon">👤</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Utilisateurs</span>
-                            <span class="btn-count" id="usersCount">0</span>
-                        </div>
-                    </button>
-                    
-                    <button id="extractHashes" class="extract-btn" data-type="hashes">
-                        <div class="btn-icon">🔐</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Hashes</span>
-                            <span class="btn-count" id="hashesCount">0</span>
-                        </div>
-                    </button>
-                    
-                    <button id="extractPasswords" class="extract-btn" data-type="passwords">
-                        <div class="btn-icon">🔑</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Mots de passe</span>
-                            <span class="btn-count" id="passwordsCount">0</span>
-                        </div>
-                    </button>
-                    
-                    <button id="extractDomains" class="extract-btn" data-type="domains">
-                        <div class="btn-icon">🌐</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Domaines</span>
-                            <span class="btn-count" id="domainsCount">0</span>
-                        </div>
-                    </button>
-                    
-                    <button id="extractIps" class="extract-btn" data-type="ips">
-                        <div class="btn-icon">🌍</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Adresses IP</span>
-                            <span class="btn-count" id="ipsCount">0</span>
-                        </div>
-                    </button>
-                    
-                    <button id="extractEmails" class="extract-btn" data-type="emails">
-                        <div class="btn-icon">📧</div>
-                        <div class="btn-text">
-                            <span class="btn-title">Emails</span>
-                            <span class="btn-count" id="emailsCount">0</span>
-                        </div>
-                    </button>
+        <!-- Section d'extraction fusionnée -->
+        <div id="extract-section" class="extract-section">
+            <div class="extract-card">
+                <div class="extract-header">
+                    <h3>🔬 Extraction Rapide & Avancée</h3>
                 </div>
-            </div>
-        </div>
-
-        <!-- Section d'extraction avancée -->
-        <div class="advanced-extract-section">
-            <div class="advanced-extract-card">
-                <h3>🔬 Extraction Avancée</h3>
-                <div class="advanced-grid">
-                    <button id="extractCredentials" class="advanced-btn">
-                        <div class="advanced-icon">🎯</div>
-                        <div class="advanced-content">
-                            <h4>Credentials Complets</h4>
-                            <p>User:Domain:Hash format</p>
-                        </div>
-                    </button>
-                    
-                    <button id="extractKerberos" class="advanced-btn">
-                        <div class="advanced-icon">🎫</div>
-                        <div class="advanced-content">
-                            <h4>Tickets Kerberos</h4>
-                            <p>TGT/TGS et hashes</p>
-                        </div>
-                    </button>
-                    
-                    <button id="extractSecrets" class="advanced-btn">
-                        <div class="advanced-icon">🔒</div>
-                        <div class="advanced-content">
-                            <h4>Secrets LSA</h4>
-                            <p>DPAPI, LSA secrets</p>
-                        </div>
-                    </button>
-                    
-                    <button id="extractMachineAccounts" class="advanced-btn">
-                        <div class="advanced-icon">🖥️</div>
-                        <div class="advanced-content">
-                            <h4>Comptes Machine</h4>
-                            <p>Computer accounts</p>
-                        </div>
-                    </button>
-                    
-                    <button id="extractServices" class="advanced-btn">
-                        <div class="advanced-icon">⚙️</div>
-                        <div class="advanced-content">
-                            <h4>Comptes Service</h4>
-                            <p>Service accounts</p>
-                        </div>
-                    </button>
-                    
-                    <button id="extractPorts" class="advanced-btn">
-                        <div class="advanced-icon">🚪</div>
-                        <div class="advanced-content">
-                            <h4>Ports & Services</h4>
-                            <p>Nmap, scan results</p>
-                        </div>
-                    </button>
+                
+                <!-- Section Extraction Rapide -->
+                <div class="extract-section-rapid">
+                    <h4>⚡ Extraction Rapide</h4>
+                    <div class="quick-buttons">
+                        <button id="extractUsers" class="extract-btn" data-type="users">
+                            <div class="btn-icon">👤</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Utilisateurs</span>
+                                <span class="btn-count" id="usersCount">0</span>
+                            </div>
+                        </button>
+                        <button id="extractHashes" class="extract-btn" data-type="hashes">
+                            <div class="btn-icon">🔐</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Hashes</span>
+                                <span class="btn-count" id="hashesCount">0</span>
+                            </div>
+                        </button>
+                        <button id="extractPasswords" class="extract-btn" data-type="passwords">
+                            <div class="btn-icon">🔑</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Mots de passe</span>
+                                <span class="btn-count" id="passwordsCount">0</span>
+                            </div>
+                        </button>
+                        <button id="extractDomains" class="extract-btn" data-type="domains">
+                            <div class="btn-icon">🌐</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Domaines</span>
+                                <span class="btn-count" id="domainsCount">0</span>
+                            </div>
+                        </button>
+                        <button id="extractIps" class="extract-btn" data-type="ips">
+                            <div class="btn-icon">🌍</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Adresses IP</span>
+                                <span class="btn-count" id="ipsCount">0</span>
+                            </div>
+                        </button>
+                        <button id="extractEmails" class="extract-btn" data-type="emails">
+                            <div class="btn-icon">📧</div>
+                            <div class="btn-text">
+                                <span class="btn-title">Emails</span>
+                                <span class="btn-count" id="emailsCount">0</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Séparateur -->
+                <div class="extract-separator"></div>
+                
+                <!-- Section Extraction Avancée -->
+                <div class="extract-section-advanced">
+                    <h4>🔬 Extraction Avancée</h4>
+                    <div class="advanced-grid">
+                        <button id="extractCredentials" class="advanced-btn">
+                            <div class="advanced-icon">🎯</div>
+                            <div class="advanced-content">
+                                <h4>Credentials Complets</h4>
+                                <p>User:Domain:Hash format</p>
+                            </div>
+                        </button>
+                        <button id="extractKerberos" class="advanced-btn">
+                            <div class="advanced-icon">🎫</div>
+                            <div class="advanced-content">
+                                <h4>Tickets Kerberos</h4>
+                                <p>TGT/TGS et hashes</p>
+                            </div>
+                        </button>
+                        <button id="extractSecrets" class="advanced-btn">
+                            <div class="advanced-icon">🔒</div>
+                            <div class="advanced-content">
+                                <h4>Secrets LSA</h4>
+                                <p>DPAPI, LSA secrets</p>
+                            </div>
+                        </button>
+                        <button id="extractMachineAccounts" class="advanced-btn">
+                            <div class="advanced-icon">🖥️</div>
+                            <div class="advanced-content">
+                                <h4>Comptes Machine</h4>
+                                <p>Computer accounts</p>
+                            </div>
+                        </button>
+                        <button id="extractServices" class="advanced-btn">
+                            <div class="advanced-icon">⚙️</div>
+                            <div class="advanced-content">
+                                <h4>Comptes Service</h4>
+                                <p>Service accounts</p>
+                            </div>
+                        </button>
+                        <button id="extractPorts" class="advanced-btn">
+                            <div class="advanced-icon">🚪</div>
+                            <div class="advanced-content">
+                                <h4>Ports & Services</h4>
+                                <p>Nmap, scan results</p>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -312,7 +323,6 @@
                     <div class="results-tabs">
                         <button class="tab-btn active" data-tab="formatted">📋 Formaté</button>
                         <button class="tab-btn" data-tab="raw">📄 Brut</button>
-                        <button class="tab-btn" data-tab="stats">📊 Statistiques</button>
                     </div>
                     
                     <div class="tab-content">
@@ -322,10 +332,6 @@
                         
                         <div id="rawTab" class="tab-pane">
                             <textarea id="rawResults" readonly></textarea>
-                        </div>
-                        
-                        <div id="statsTab" class="tab-pane">
-                            <div id="statsResults" class="stats-results"></div>
                         </div>
                     </div>
                 </div>

@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     loadHistory();
     updateStats();
+    updateExtractionCounts();
 });
 
 // Event listeners
@@ -30,19 +31,20 @@ function initializeEventListeners() {
     // Input textarea
     const rawOutput = document.getElementById('rawOutput');
     if (rawOutput) {
-        rawOutput.addEventListener('input', debounce(handleInputChange, 500));
+        rawOutput.addEventListener('input', debounce(handleInputChange, 300));
         rawOutput.addEventListener('paste', handlePaste);
     }
     
     // Boutons de contrôle
-    const refreshBtn = document.getElementById('refreshAnalysis');
-    if (refreshBtn) refreshBtn.addEventListener('click', forceRefreshAnalysis);
-    
     const clearBtn = document.getElementById('clearInput');
     if (clearBtn) clearBtn.addEventListener('click', clearInput);
     
     const loadBtn = document.getElementById('loadSample');
     if (loadBtn) loadBtn.addEventListener('click', loadSample);
+    
+    // Bouton Analyser principal
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    if (analyzeBtn) analyzeBtn.addEventListener('click', forceRefreshAnalysis);
     
     // Sélecteur de type d'output
     const outputTypeSelect = document.getElementById('outputType');
@@ -120,10 +122,10 @@ function forceRefreshAnalysis() {
     }
     
     // Animation du bouton
-    const refreshBtn = document.getElementById('refreshAnalysis');
-    if (refreshBtn) {
-        refreshBtn.innerHTML = '⏳ Analyse...';
-        refreshBtn.disabled = true;
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    if (analyzeBtn) {
+        analyzeBtn.innerHTML = '<span class="btn-icon">⏳</span>Analyse...';
+        analyzeBtn.disabled = true;
     }
     
     setTimeout(() => {
@@ -131,9 +133,9 @@ function forceRefreshAnalysis() {
         detectOutputType();
         updateExtractionCounts();
         
-        if (refreshBtn) {
-            refreshBtn.innerHTML = '🔄 Analyser';
-            refreshBtn.disabled = false;
+        if (analyzeBtn) {
+            analyzeBtn.innerHTML = '<span class="btn-icon">🔍</span>Analyser';
+            analyzeBtn.disabled = false;
         }
         
         showNotification('Analyse terminée!', 'success');
@@ -188,68 +190,36 @@ function detectOutputType() {
     const rawOutput = document.getElementById('rawOutput');
     const outputTypeSelect = document.getElementById('outputType');
     const detectedElement = document.getElementById('detectedType');
-    
     if (!rawOutput || !outputTypeSelect || !detectedElement) return;
-    if (outputTypeSelect.value !== 'auto') return;
-    
+    if (outputTypeSelect.value !== 'auto') {
+        detectedElement.textContent = outputTypeSelect.value;
+        detectedElement.style.opacity = 1;
+        return;
+    }
     let detectedType = 'generic';
     let confidence = 0;
-    
-    // Patterns avec scores de confiance
     const detectionTests = [
-        {
-            type: 'mimikatz',
-            pattern: /Authentication Id\s*:\s*0\s*;\s*\d+.*Username\s*:\s*\w+.*Domain\s*:\s*\w+/mis,
-            score: 10
-        },
-        {
-            type: 'secretsdump',
-            pattern: /^[^:]+:\d+:[a-fA-F0-9]{32}:[a-fA-F0-9]{32}:::/m,
-            score: 9
-        },
-        {
-            type: 'rpcclient',
-            pattern: /user:\[[^\]]+\]\s+rid:\[0x[a-fA-F0-9]+\]/mi,
-            score: 8
-        },
-        {
-            type: 'shadow',
-            pattern: /^[^:]+:\$\d+\$[^:]+:/m,
-            score: 7
-        },
-        {
-            type: 'passwd',
-            pattern: /^[^:]+:x:\d+:\d+:[^:]*:[^:]*:[^:]*$/m,
-            score: 6
-        },
-        {
-            type: 'sam',
-            pattern: /^[^:]+:\d+:[a-fA-F0-9]{32}:[a-fA-F0-9]{32}:::/m,
-            score: 5
-        }
+        { type: 'secretsdump', pattern: /^[^:]+:\d+:[a-fA-F0-9]{32}:[a-fA-F0-9]{32}:::/m, score: 3 },
+        { type: 'mimikatz', pattern: /Authentication Id\s*:\s*0\s*;\s*\d+|Username\s*:\s*\w+.*Domain\s*:\s*\w+/mi, score: 3 },
+        { type: 'sam', pattern: /^[^:]+:\d+:[a-fA-F0-9]{32}:[a-fA-F0-9]{32}:::/m, score: 2 },
+        { type: 'lsass', pattern: /Authentication Id\s*:\s*0\s*;\s*\d+.*Session\s*:\s*\w+.*User Name\s*:\s*\w+/mi, score: 2 },
+        { type: 'rpcclient', pattern: /user:\[[^\]]+\]\s+rid:\[0x[a-fA-F0-9]+\]/mi, score: 2 },
+        { type: 'ldap', pattern: /sAMAccountName:\s*\w+|uid=\w+/mi, score: 2 },
+        { type: 'passwd', pattern: /^[^:]+:x:\d+:\d+:[^:]*:[^:]*:[^:]*$/m, score: 2 },
+        { type: 'shadow', pattern: /^[^:]+:\$\d+\$[^:]+:/m, score: 2 },
+        { type: 'nmap', pattern: /Nmap scan report|PORT\s+STATE\s+SERVICE/mi, score: 2 },
+        { type: 'generic', pattern: /./, score: 1 }
     ];
-    
-    // Tester chaque pattern
-    for (const test of detectionTests) {
-        if (test.pattern.test(rawOutput.value) && test.score > confidence) {
-            detectedType = test.type;
-            confidence = test.score;
+    detectionTests.forEach(test => {
+        if (test.pattern.test(rawOutput.value)) {
+            if (test.score > confidence) {
+                detectedType = test.type;
+                confidence = test.score;
+            }
         }
-    }
-    
-    // Mettre à jour l'affichage avec animation
-    detectedElement.style.color = confidence > 5 ? 'var(--grep-success)' : 'var(--grep-warning)';
+    });
     detectedElement.textContent = detectedType;
-    
-    outputTypeSelect.value = detectedType;
-    
-    // Animation de confirmation
-    if (confidence > 5) {
-        detectedElement.style.animation = 'pulse 0.5s ease-in-out';
-        setTimeout(() => {
-            detectedElement.style.animation = '';
-        }, 500);
-    }
+    detectedElement.style.opacity = 1;
 }
 
 // Mise à jour des statistiques
@@ -271,39 +241,37 @@ function updateStats() {
 function updateExtractionCounts() {
     const rawOutput = document.getElementById('rawOutput').value;
     const outputType = document.getElementById('outputType').value;
-    
+    const types = ['users', 'hashes', 'passwords', 'domains', 'ips', 'emails'];
+
     if (!rawOutput.trim()) {
-        // Réinitialiser tous les compteurs
-        document.querySelectorAll('.count-badge').forEach(badge => {
-            badge.textContent = '0';
-            badge.style.display = 'none';
+        types.forEach(type => {
+            const countSpan = document.getElementById(type + 'Count');
+            const badge = document.getElementById(type + 'Badge');
+            if (countSpan) countSpan.textContent = '0';
+            if (badge) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            }
         });
         return;
     }
-    
-    // Calculer les compteurs pour chaque type
+
     const counts = {
-        users: extractUsers(rawOutput, outputType).length,
-        hashes: extractHashes(rawOutput, outputType).length,
-        passwords: extractPasswords(rawOutput, outputType).length,
-        domains: extractDomains(rawOutput, outputType).length,
-        ips: extractIps(rawOutput, outputType).length,
-        emails: extractEmails(rawOutput, outputType).length
+        users: countUsers(rawOutput, outputType),
+        hashes: countHashes(rawOutput, outputType),
+        passwords: countPasswords(rawOutput, outputType),
+        domains: countDomains(rawOutput, outputType),
+        ips: countIps(rawOutput, outputType),
+        emails: countEmails(rawOutput, outputType)
     };
-    
-    // Mettre à jour l'affichage des compteurs
-    Object.keys(counts).forEach(type => {
-        const button = document.getElementById(`extract${type.charAt(0).toUpperCase() + type.slice(1)}`);
-        if (button) {
-            let badge = button.querySelector('.count-badge');
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'count-badge';
-                button.appendChild(badge);
-            }
-            
+
+    types.forEach(type => {
+        const countSpan = document.getElementById(type + 'Count');
+        const badge = document.getElementById(type + 'Badge');
+        if (countSpan) countSpan.textContent = counts[type];
+        if (badge) {
             badge.textContent = counts[type];
-            badge.style.display = counts[type] > 0 ? 'inline-block' : 'none';
+            badge.style.display = counts[type] > 0 ? 'flex' : 'none';
         }
     });
 }
@@ -528,7 +496,7 @@ function extractData(type) {
         currentExtractionType = type;
         
         displayResults(type, currentResults);
-        addToHistory(type, currentResults.length);
+        addToHistory(type, currentResults.length, currentResults);
         
         showNotification(`${currentResults.length} ${type} extraits!`, 'success');
         
@@ -922,14 +890,20 @@ function displayResults(results, type) {
     
     if (!resultsSection || !resultsTitle || !resultsCount || !resultsType) return;
     
+    // Titre simplifié
     const typeNames = {
         users: '👤 Utilisateurs',
         hashes: '🔐 Hashes',
         passwords: '🔑 Mots de passe',
         domains: '🌐 Domaines',
-        ips: '🌍 Adresses IP',
+        ips: '🌍 IPs',
         emails: '📧 Emails',
-        credentials: '🎯 Credentials'
+        credentials: '🎯 Credentials',
+        kerberos: '🎫 Kerberos',
+        secrets: '🔒 Secrets',
+        machineaccounts: '🖥️ Comptes Machine',
+        services: '⚙️ Services',
+        ports: '🚪 Ports'
     };
     
     resultsTitle.textContent = typeNames[type] || type;
@@ -1083,13 +1057,15 @@ function clearResults() {
 }
 
 // Gestion de l'historique
-function addToHistory(type, count) {
+function addToHistory(type, count, results = []) {
     const historyItem = {
         id: Date.now(),
         type: type,
         count: count,
         timestamp: new Date().toLocaleString(),
-        outputType: document.getElementById('outputType')?.value || 'auto'
+        outputType: document.getElementById('outputType')?.value || 'auto',
+        results: results.slice(0, 10), // Garder seulement les 10 premiers résultats
+        fullResults: results // Sauvegarder tous les résultats
     };
     
     extractionHistory.unshift(historyItem);
@@ -1126,12 +1102,12 @@ function updateHistoryDisplay() {
         hashes: '🔐 Hashes',
         passwords: '🔑 Mots de passe',
         domains: '🌐 Domaines',
-        ips: '🌍 Adresses IP',
+        ips: '🌍 IPs',
         emails: '📧 Emails',
         credentials: '🎯 Credentials',
-        kerberos: '🎫 Tickets Kerberos',
-        secrets: '🔒 Secrets LSA',
-        machineAccounts: '🖥️ Comptes Machine',
+        kerberos: '🎫 Kerberos',
+        secrets: '🔒 Secrets',
+        machineaccounts: '🖥️ Comptes Machine',
         services: '⚙️ Services',
         ports: '🚪 Ports'
     };
@@ -1141,11 +1117,16 @@ function updateHistoryDisplay() {
             <div class="history-content">
                 <div class="history-title">${typeNames[item.type] || item.type}</div>
                 <div class="history-meta">
-                    ${item.count} éléments • ${item.outputType} • ${item.timestamp}
+                    ${item.count} éléments • ${item.timestamp} • ${item.outputType}
                 </div>
             </div>
             <div class="history-actions">
-                <button class="btn btn-secondary" onclick="deleteHistoryItem(${item.id})">🗑️</button>
+                <button class="btn btn-sm btn-primary" onclick="viewHistoryItem(${item.id})">
+                    👁️ Voir
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="deleteHistoryItem(${item.id})">
+                    🗑️
+                </button>
             </div>
         </div>
     `).join('');
@@ -1190,6 +1171,26 @@ function exportHistory() {
     
     showNotification('Historique exporté!', 'success');
 }
+
+// Fonction globale pour afficher une extraction de l'historique
+window.showHistoryExtraction = function(id) {
+    const item = extractionHistory.find(h => h.id === id);
+    if (!item) return;
+    // Restaurer les résultats
+    currentResults = item.fullResults || item.results || [];
+    currentExtractionType = item.type;
+    
+    // Afficher les résultats
+    displayResults(currentResults, item.type);
+    
+    // Restaurer le type de sortie
+    const outputType = document.getElementById('outputType');
+    if (outputType) {
+        outputType.value = item.outputType;
+    }
+    
+    showNotification(`Résultats restaurés: ${item.count} éléments`, 'success');
+};
 
 // Utilitaires
 function escapeHtml(text) {
