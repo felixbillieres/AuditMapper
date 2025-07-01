@@ -48,6 +48,44 @@
     margin-bottom: 2rem;
 }
 
+.view-controls-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.view-controls {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--tools-bg-card);
+    padding: 0.5rem;
+    border-radius: var(--tools-radius);
+    border: 1px solid var(--tools-border);
+    box-shadow: var(--tools-shadow);
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--tools-text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--tools-transition);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.view-btn:hover {
+    background: var(--tools-bg-secondary);
+    color: var(--tools-text-primary);
+}
+
+.view-btn.active {
+    background: var(--tools-primary);
+    color: white;
+}
+
 .filters-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -245,62 +283,7 @@
 /* SECTION INSTALLATION RAPIDE HARMONISÉE                */
 /* ====================================================== */
 
-.section-description {
-    color: var(--tools-text-secondary);
-    margin-bottom: 1.5rem;
-    font-style: italic;
-}
 
-.install-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--tools-border);
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.install-tab {
-    background: transparent;
-    border: none;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    color: var(--tools-text-secondary);
-    border-bottom: 2px solid transparent;
-    transition: var(--tools-transition);
-    font-weight: 500;
-}
-
-.install-tab:hover {
-    color: var(--tools-primary);
-    background-color: var(--tools-bg-secondary);
-}
-
-.install-tab.active {
-    color: var(--tools-primary);
-    border-bottom-color: var(--tools-primary);
-    background-color: var(--tools-bg-secondary);
-}
-
-.install-content {
-    min-height: 200px;
-}
-
-.install-commands {
-    background: var(--tools-bg-secondary);
-    border: 1px solid var(--tools-border);
-    border-radius: var(--tools-radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    overflow-x: auto;
-}
-
-.install-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
 
 /* ====================================================== */
 /* MESSAGE AUCUN OUTIL HARMONISÉ                         */
@@ -413,7 +396,6 @@ body.dark-theme {
 
 body.dark-theme .stat-card,
 body.dark-theme .tool-card,
-body.dark-theme .install-commands,
 body.dark-theme .code-block pre {
     background-color: var(--tools-bg-card);
     border-color: var(--tools-border);
@@ -436,10 +418,7 @@ body.dark-theme .filter-select {
     color: var(--tools-text-primary);
 }
 
-body.dark-theme .install-tab.active,
-body.dark-theme .install-tab:hover {
-    background-color: var(--tools-bg-secondary);
-}
+
 
 /* ====================================================== */
 /* RESPONSIVITÉ HARMONISÉE                               */
@@ -464,30 +443,24 @@ body.dark-theme .install-tab:hover {
         padding: 1rem;
     }
     
-    .filters-grid {
+    .page-controls {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .view-controls-section {
+        justify-content: center;
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
     }
     
     .tools-grid {
         grid-template-columns: 1fr;
     }
     
-    .install-tabs {
-        flex-direction: column;
-    }
-    
-    .install-tab {
-        border-bottom: 1px solid var(--tools-border);
-        border-radius: 0;
-    }
-    
-    .install-tab.active {
-        border-bottom-color: var(--tools-primary);
-    }
+
     
     .tools-header {
         flex-direction: column;
@@ -513,9 +486,7 @@ body.dark-theme .install-tab:hover {
         grid-template-columns: 1fr;
     }
     
-    .install-actions {
-        flex-direction: column;
-    }
+
 }
 
 .main-header {

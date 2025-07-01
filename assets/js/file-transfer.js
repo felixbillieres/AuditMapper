@@ -34,6 +34,10 @@ function initializeEventListeners() {
     document.getElementById('resetConfig').addEventListener('click', resetConfig);
     document.getElementById('clearHistory').addEventListener('click', clearHistory);
     document.getElementById('exportHistory').addEventListener('click', exportHistory);
+    
+    // Boutons de dépliage/repliage
+    document.getElementById('expandAll').addEventListener('click', expandAllMethods);
+    document.getElementById('collapseAll').addEventListener('click', collapseAllMethods);
 }
 
 // Gestion des changements de configuration
@@ -448,43 +452,109 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Notifications
+// Fonction pour afficher une notification
 function showNotification(message, type = 'info') {
+    // Créer l'élément de notification
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    
-    const colors = {
-        success: '#10b981',
-        error: '#ef4444',
-        warning: '#f59e0b',
-        info: '#6366f1'
-    };
-
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${colors[type] || colors.info};
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 10000;
-        animation: slideIn 0.3s ease-out;
-        font-weight: 500;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-message">${message}</span>
+            <button class="notification-close">×</button>
+        </div>
     `;
-
+    
+    // Ajouter au DOM
     document.body.appendChild(notification);
-
+    
+    // Animation d'entrée
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-in';
+        notification.classList.add('show');
+    }, 100);
+    
+    // Fermer automatiquement après 3 secondes
+    setTimeout(() => {
+        notification.classList.remove('show');
         setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
+            document.body.removeChild(notification);
         }, 300);
-    }, 4000);
+    }, 3000);
+    
+    // Fermer manuellement
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    });
+}
+
+// Fonction pour déplier toutes les méthodes
+function expandAllMethods() {
+    // Utiliser Bootstrap collapse pour déplier toutes les méthodes
+    const collapseElements = document.querySelectorAll('.collapse');
+    collapseElements.forEach(collapse => {
+        if (!collapse.classList.contains('show')) {
+            // Créer une instance Bootstrap Collapse et la montrer
+            const bsCollapse = new bootstrap.Collapse(collapse, {
+                toggle: false
+            });
+            bsCollapse.show();
+        }
+    });
+    
+    // Mettre à jour les boutons toggle
+    const methodToggles = document.querySelectorAll('.method-toggle');
+    methodToggles.forEach(toggle => {
+        toggle.classList.remove('collapsed');
+        toggle.setAttribute('aria-expanded', 'true');
+    });
+    
+    // Feedback visuel
+    const expandBtn = document.getElementById('expandAll');
+    expandBtn.innerHTML = '✅ Tout Déplié';
+    expandBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+    expandBtn.style.color = 'white';
+    
+    setTimeout(() => {
+        expandBtn.innerHTML = '📖 Tout Déplier';
+        expandBtn.style.background = '';
+        expandBtn.style.color = '';
+    }, 2000);
+}
+
+// Fonction pour replier toutes les méthodes
+function collapseAllMethods() {
+    // Utiliser Bootstrap collapse pour replier toutes les méthodes
+    const collapseElements = document.querySelectorAll('.collapse');
+    collapseElements.forEach(collapse => {
+        if (collapse.classList.contains('show')) {
+            // Créer une instance Bootstrap Collapse et la cacher
+            const bsCollapse = new bootstrap.Collapse(collapse, {
+                toggle: false
+            });
+            bsCollapse.hide();
+        }
+    });
+    
+    // Mettre à jour les boutons toggle
+    const methodToggles = document.querySelectorAll('.method-toggle');
+    methodToggles.forEach(toggle => {
+        toggle.classList.add('collapsed');
+        toggle.setAttribute('aria-expanded', 'false');
+    });
+    
+    // Feedback visuel
+    const collapseBtn = document.getElementById('collapseAll');
+    collapseBtn.innerHTML = '✅ Tout Replié';
+    collapseBtn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+    collapseBtn.style.color = 'white';
+    
+    setTimeout(() => {
+        collapseBtn.innerHTML = '📕 Tout Replier';
+        collapseBtn.style.background = '';
+        collapseBtn.style.color = '';
+    }, 2000);
 }
 
 // Styles pour les animations et améliorations

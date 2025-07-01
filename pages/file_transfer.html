@@ -197,10 +197,6 @@
                 </div>
 
                 <div class="scenario-actions">
-                    <div class="view-controls">
-                        <button id="quickMode" class="view-btn active" title="Mode rapide">⚡</button>
-                        <button id="advancedMode" class="view-btn" title="Mode avancé">🔧</button>
-                    </div>
                     <button id="generateCommands" class="btn btn-primary btn-lg">
                         🚀 Générer les Commandes
                     </button>
@@ -253,7 +249,11 @@
                                     <div class="step-item">
                                         <div class="step-number">1</div>
                                         <div class="step-content">
-                                            <h5>🖥️ Sur votre machine attaquant</h5>
+                                            <h5 class="step-title attacker-step">
+                                                <span class="step-icon">🖥️</span>
+                                                <span class="step-text">Sur votre machine attaquant</span>
+                                                <span class="step-badge">ATTACKBOX</span>
+                                            </h5>
                                             <p class="step-description">
                                                 Démarrez un serveur HTTP dans le dossier contenant votre fichier
                                             </p>
@@ -300,7 +300,11 @@
                                     <div class="step-item">
                                         <div class="step-number">2</div>
                                         <div class="step-content">
-                                            <h5>🎯 Sur la machine cible</h5>
+                                            <h5 class="step-title target-step">
+                                                <span class="step-icon">🎯</span>
+                                                <span class="step-text">Sur la machine cible</span>
+                                                <span class="step-badge">TARGET</span>
+                                            </h5>
                                             <p class="step-description">
                                                 Téléchargez le fichier depuis votre serveur HTTP
                                             </p>

@@ -123,61 +123,13 @@
 
     <!-- Contenu Principal -->
     <div id="main-content" class="main-content">
-        <!-- Section de Contrôles et Filtres -->
+        <!-- Section de Contrôles -->
         <div class="page-controls">
-            <div class="filters-section">
+            <div class="view-controls-section">
                 <div class="form-section">
-                    <h3>🔧 Filtres & Recherche</h3>
-                    <div class="filters-grid">
-                        <div class="filter-group">
-                            <label for="categoryFilter">Catégorie:</label>
-                            <select id="categoryFilter" class="filter-select form-control">
-                                <option value="">Toutes les catégories</option>
-                                <option value="reconnaissance">🔍 Reconnaissance</option>
-                                <option value="scanning">📡 Scanning</option>
-                                <option value="exploitation">💥 Exploitation</option>
-                                <option value="post-exploitation">🔓 Post-Exploitation</option>
-                                <option value="privilege-escalation">⬆️ Escalade de Privilèges</option>
-                                <option value="lateral-movement">↔️ Mouvement Latéral</option>
-                                <option value="persistence">🔒 Persistance</option>
-                                <option value="defense-evasion">🥷 Évasion de Défense</option>
-                                <option value="credential-access">🔑 Accès aux Identifiants</option>
-                                <option value="discovery">🗺️ Découverte</option>
-                                <option value="collection">📦 Collection</option>
-                                <option value="exfiltration">📤 Exfiltration</option>
-                                <option value="forensics">🔬 Forensics</option>
-                                <option value="utilities">⚙️ Utilitaires</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="platformFilter">Plateforme:</label>
-                            <select id="platformFilter" class="filter-select form-control">
-                                <option value="">Toutes les plateformes</option>
-                                <option value="linux">🐧 Linux</option>
-                                <option value="windows">🪟 Windows</option>
-                                <option value="macos">🍎 macOS</option>
-                                <option value="web">🌐 Web</option>
-                                <option value="mobile">📱 Mobile</option>
-                                <option value="network">🌐 Réseau</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="difficultyFilter">Difficulté:</label>
-                            <select id="difficultyFilter" class="filter-select form-control">
-                                <option value="">Toutes les difficultés</option>
-                                <option value="beginner">🟢 Débutant</option>
-                                <option value="intermediate">🟡 Intermédiaire</option>
-                                <option value="advanced">🔴 Avancé</option>
-                                <option value="expert">⚫ Expert</option>
-                            </select>
-                        </div>
-                        <div class="view-controls">
-                            <button id="gridView" class="view-btn active" title="Vue grille">⊞</button>
-                            <button id="listView" class="view-btn" title="Vue liste">☰</button>
-                        </div>
-                        <div class="filter-actions">
-                            <button id="clearFilters" class="btn btn-secondary">🗑️ Effacer les filtres</button>
-                        </div>
+                    <div class="view-controls">
+                        <button id="gridView" class="view-btn active" title="Vue grille">⊞</button>
+                        <button id="listView" class="view-btn" title="Vue liste">☰</button>
                     </div>
                 </div>
             </div>
@@ -229,31 +181,7 @@
             </div>
         </div>
 
-        <!-- Section Installation Rapide -->
-        <div class="quick-install-section">
-            <div class="form-section">
-                <h3>🚀 Installation Rapide</h3>
-                <p class="section-description">Commandes d'installation pour les outils populaires selon votre système d'exploitation</p>
-                
-                <div class="install-tabs">
-                    <button class="install-tab active" data-os="debian">🐧 Debian/Ubuntu</button>
-                    <button class="install-tab" data-os="redhat">🎩 RedHat/CentOS</button>
-                    <button class="install-tab" data-os="arch">🏛️ Arch Linux</button>
-                    <button class="install-tab" data-os="macos">🍎 macOS</button>
-                    <button class="install-tab" data-os="windows">🪟 Windows</button>
-                </div>
-                
-                <div class="install-content">
-                    <div id="installCommands" class="install-commands">
-                        <!-- Les commandes d'installation seront générées dynamiquement -->
-                    </div>
-                    <div class="install-actions">
-                        <button id="copyInstallCommands" class="btn btn-success">📋 Copier les commandes</button>
-                        <button id="downloadInstallScript" class="btn btn-info">💾 Télécharger le script</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <!-- Modal pour les détails d'un outil -->

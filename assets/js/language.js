@@ -5,6 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const languageOptions = document.querySelectorAll('.language-option');
     const currentLanguageText = document.getElementById('currentLanguage');
     
+    // Vérifier si les éléments existent avant de les utiliser
+    if (!languageDropdown || !languageMenu) {
+        console.log('Éléments de sélection de langue non trouvés sur cette page');
+        return;
+    }
+    
     // Ouvrir/fermer le menu déroulant
     languageDropdown.addEventListener('click', function() {
         languageMenu.classList.toggle('show');
@@ -23,8 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const lang = this.getAttribute('data-lang');
             const langName = this.textContent;
             
-            // Mettre à jour l'affichage
-            currentLanguageText.textContent = langName;
+            // Mettre à jour l'affichage seulement si l'élément existe
+            if (currentLanguageText) {
+                currentLanguageText.textContent = langName;
+            }
             
             // Sauvegarder la préférence dans localStorage
             localStorage.setItem('preferredLanguage', lang);
@@ -43,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Trouver l'option correspondante et simuler un clic
         const selectedOption = document.querySelector(`.language-option[data-lang="${savedLang}"]`);
-        if (selectedOption) {
+        if (selectedOption && currentLanguageText) {
             currentLanguageText.textContent = selectedOption.textContent;
             loadTranslations(savedLang);
         }

