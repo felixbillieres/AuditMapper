@@ -136,6 +136,7 @@ export class NetworkMap {
 
         this.setupEventListeners();
         this.updateNetwork();
+        this.updateFilterOptions(); // Initialiser les options de filtres
         
         // Ajouter la fonction toggle globale
         window.toggleNetworkLegend = () => this.toggleLegend();
@@ -155,6 +156,12 @@ export class NetworkMap {
         const clearSearchBtn = document.getElementById('networkClearSearch');
         const closeInfoBtn = document.getElementById('closeNodeInfo');
 
+        // Filtres intégrés
+        const filterCategory = document.getElementById('filterCategory');
+        const filterTag = document.getElementById('filterTag');
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
         if (zoomInBtn) zoomInBtn.addEventListener('click', () => this.zoomIn());
         if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this.zoomOut());
         if (fitBtn) fitBtn.addEventListener('click', () => this.fitNetwork());
@@ -166,6 +173,11 @@ export class NetworkMap {
         if (searchInput) searchInput.addEventListener('input', (e) => this.searchNodes(e.target.value));
         if (clearSearchBtn) clearSearchBtn.addEventListener('click', () => this.clearSearch());
         if (closeInfoBtn) closeInfoBtn.addEventListener('click', () => this.hideNodeInfo());
+
+        // Event listeners pour les filtres
+        if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', () => this.clearFilters());
+        if (filterCategory) filterCategory.addEventListener('change', () => this.updateFilterOptions());
 
         // Raccourcis clavier
         document.addEventListener('keydown', (e) => {
@@ -440,7 +452,7 @@ export class NetworkMap {
             btn.classList.toggle('active', this.isClustered);
         }
         
-        // Implémentation basique du clustering
+        // Implémentation améliorée du clustering avec expansion/réduction
         if (this.network && this.isClustered) {
             // Grouper par catégorie
             const categories = {};
@@ -452,7 +464,7 @@ export class NetworkMap {
                 categories[category].push(node.id);
             });
             
-            // Créer des clusters
+            // Créer des clusters avec gestion des événements
             Object.keys(categories).forEach(category => {
                 if (categories[category].length > 1) {
                     this.network.cluster({
@@ -461,25 +473,73 @@ export class NetworkMap {
                         },
                         clusterNodeProperties: {
                             id: `cluster_${category}`,
-                            label: `📁 ${category}`,
+                            label: `📁 ${category} (${categories[category].length})`,
                             color: '#6c757d',
-                            size: 40
+                            size: 40,
+                            font: {
+                                size: 14,
+                                color: '#ffffff',
+                                face: 'Arial'
+                            },
+                            borderWidth: 2,
+                            borderColor: '#495057'
                         }
                     });
                 }
             });
+            
+            // Ajouter un gestionnaire d'événements pour les clusters
+            this.network.on('click', (params) => {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    if (nodeId.startsWith('cluster_')) {
+                        // C'est un cluster, l'ouvrir
+                        this.network.openCluster(nodeId, {
+                            releaseFunction: (clusterPosition, containedNodesPositions) => {
+                                return containedNodesPositions;
+                            }
+                        });
+                        
+                        // Mettre à jour le bouton pour indiquer qu'on peut réduire
+                        if (btn) {
+                            btn.innerHTML = '🔗 Cluster (Réduire)';
+                            btn.title = 'Réduire les clusters';
+                        }
+                    }
+                }
+            });
+            
         } else if (this.network && !this.isClustered) {
+            // Réduire tous les clusters
             this.network.openCluster('cluster_*');
+            
+            // Remettre le bouton en état normal
+            if (btn) {
+                btn.innerHTML = '🔗 Cluster';
+                btn.title = 'Regroupement automatique des systèmes similaires';
+            }
         }
     }
 
     toggleFullscreen() {
         const networkSection = document.querySelector('.network-section');
+        const networkControls = document.querySelector('.network-controls');
+        const networkHelp = document.querySelector('.network-help-section');
+        const networkLegend = document.querySelector('.network-legend-integrated');
         
         if (!this.isFullscreen) {
-            // Entrer en plein écran
+            // Entrer en plein écran - masquer les contrôles et garder seulement la carte
             networkSection.classList.add('network-fullscreen');
-            this.container.style.height = 'calc(100vh - 120px)';
+            
+            // Masquer les éléments d'interface
+            if (networkControls) networkControls.style.display = 'none';
+            if (networkHelp) networkHelp.style.display = 'none';
+            if (networkLegend) networkLegend.style.display = 'none';
+            
+            // Ajuster la hauteur du container
+            this.container.style.height = 'calc(100vh - 60px)';
+            this.container.style.width = '100%';
+            
             this.isFullscreen = true;
             
             // Mettre à jour le bouton
@@ -488,10 +548,26 @@ export class NetworkMap {
                 fullscreenBtn.innerHTML = '🔲 Quitter';
                 fullscreenBtn.title = 'Quitter le plein écran (Échap)';
             }
+            
+            // Ajouter un bouton de sortie visible en mode plein écran
+            this.createFullscreenExitButton();
+            
+            // Ajouter un overlay avec instructions
+            this.createFullscreenOverlay();
+            
         } else {
-            // Quitter le plein écran
+            // Quitter le plein écran - restaurer l'interface
             networkSection.classList.remove('network-fullscreen');
+            
+            // Restaurer les éléments d'interface
+            if (networkControls) networkControls.style.display = '';
+            if (networkHelp) networkHelp.style.display = '';
+            if (networkLegend) networkLegend.style.display = '';
+            
+            // Restaurer les dimensions
             this.container.style.height = '600px';
+            this.container.style.width = '';
+            
             this.isFullscreen = false;
             
             // Mettre à jour le bouton
@@ -500,6 +576,10 @@ export class NetworkMap {
                 fullscreenBtn.innerHTML = '🔲 Plein écran';
                 fullscreenBtn.title = 'Plein écran (F11)';
             }
+            
+            // Supprimer les éléments de plein écran
+            this.removeFullscreenExitButton();
+            this.removeFullscreenOverlay();
         }
         
         // Redimensionner le réseau
@@ -509,6 +589,105 @@ export class NetworkMap {
                 this.network.fit({ animation: true });
             }
         }, 300);
+    }
+
+    createFullscreenExitButton() {
+        // Supprimer le bouton existant s'il y en a un
+        this.removeFullscreenExitButton();
+        
+        const exitBtn = document.createElement('button');
+        exitBtn.id = 'fullscreen-exit-btn';
+        exitBtn.innerHTML = '❌ Quitter le plein écran';
+        exitBtn.title = 'Quitter le mode plein écran';
+        exitBtn.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10001;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        `;
+        
+        // Effet hover
+        exitBtn.addEventListener('mouseenter', () => {
+            exitBtn.style.background = 'rgba(220, 53, 69, 1)';
+            exitBtn.style.transform = 'scale(1.05)';
+        });
+        
+        exitBtn.addEventListener('mouseleave', () => {
+            exitBtn.style.background = 'rgba(220, 53, 69, 0.9)';
+            exitBtn.style.transform = 'scale(1)';
+        });
+        
+        // Event listener pour quitter
+        exitBtn.addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
+        
+        document.body.appendChild(exitBtn);
+    }
+
+    removeFullscreenExitButton() {
+        const exitBtn = document.getElementById('fullscreen-exit-btn');
+        if (exitBtn && exitBtn.parentNode) {
+            exitBtn.parentNode.removeChild(exitBtn);
+        }
+    }
+
+    createFullscreenOverlay() {
+        // Supprimer l'overlay existant s'il y en a un
+        this.removeFullscreenOverlay();
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'fullscreen-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10000;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        `;
+        
+        overlay.innerHTML = `
+            <div style="margin-bottom: 5px;"><strong>Mode Plein Écran</strong></div>
+            <div>• Clic sur un node pour l'éditer</div>
+            <div>• Échap pour quitter</div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Faire disparaître l'overlay après 3 secondes
+        setTimeout(() => {
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    if (overlay && overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+
+    removeFullscreenOverlay() {
+        const overlay = document.getElementById('fullscreen-overlay');
+        if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+        }
     }
 
     searchNodes(term) {
@@ -954,38 +1133,165 @@ export class NetworkMap {
     }
 
     resetHighlight() {
-        if (!this.network || !this.nodes) return;
+        if (!this.nodes) return;
         
-        try {
-            // Restaurer les couleurs originales
-            const hostData = this.hostManager.getData();
-            const allNodes = this.nodes.get();
-            
-            const updatedNodes = allNodes.map(node => {
-                const categoryColor = this.getCategoryColor(node.categoryName);
-                const compromiseLevel = node.hostData?.compromiseLevel || 'None';
-                const compromiseBorderColor = this.compromiseColors[compromiseLevel];
-                
-                return {
-                    ...node,
-                    color: {
-                        background: categoryColor,
-                        border: compromiseBorderColor,
-                        highlight: {
-                            background: this.lightenColor(categoryColor, 0.2),
-                            border: this.darkenColor(compromiseBorderColor, 0.3)
-                        },
-                        hover: {
-                            background: this.lightenColor(categoryColor, 0.1),
-                            border: compromiseBorderColor
-                        }
-                    }
-                };
-            });
-            
-            this.nodes.update(updatedNodes);
-        } catch (error) {
-            console.warn('Error in resetHighlight:', error);
+        const allNodes = this.nodes.get();
+        const updatedNodes = allNodes.map(node => ({
+            ...node,
+            color: {
+                ...node.color,
+                border: this.compromiseColors[node.hostData?.compromiseLevel || 'None']
+            }
+        }));
+        
+        this.nodes.update(updatedNodes);
+    }
+
+    // Méthodes pour les filtres intégrés
+    applyFilters() {
+        const categoryFilter = document.getElementById('filterCategory')?.value || '';
+        const tagFilter = document.getElementById('filterTag')?.value || '';
+        
+        console.log('Applying filters:', { categoryFilter, tagFilter });
+        
+        if (!this.nodes) {
+            console.warn('No nodes available for filtering');
+            return;
         }
+        
+        const allNodes = this.nodes.get();
+        console.log('Total nodes before filtering:', allNodes.length);
+        
+        const updatedNodes = allNodes.map(node => {
+            const hostData = node.hostData;
+            let isVisible = true;
+            
+            // Filtre par catégorie
+            if (categoryFilter && node.categoryName !== categoryFilter) {
+                console.log(`Hiding node ${node.id} - category mismatch: ${node.categoryName} vs ${categoryFilter}`);
+                isVisible = false;
+            }
+            
+            // Filtre par tag
+            if (tagFilter && isVisible && hostData.tags) {
+                const tags = Array.isArray(hostData.tags) ? hostData.tags : [hostData.tags];
+                const tagMatch = tags.some(tag => 
+                    tag && tag.toLowerCase().includes(tagFilter.toLowerCase())
+                );
+                if (!tagMatch) {
+                    console.log(`Hiding node ${node.id} - no tag match for: ${tagFilter}`);
+                    isVisible = false;
+                }
+            }
+            
+            return {
+                ...node,
+                hidden: !isVisible
+            };
+        });
+        
+        const visibleNodes = updatedNodes.filter(node => !node.hidden);
+        console.log('Visible nodes after filtering:', visibleNodes.length);
+        
+        this.nodes.update(updatedNodes);
+        
+        // Ajuster la vue après filtrage
+        setTimeout(() => {
+            if (this.network) {
+                this.network.fit({ animation: true });
+            }
+        }, 100);
+    }
+
+    clearFilters() {
+        const categorySelect = document.getElementById('filterCategory');
+        const tagInput = document.getElementById('filterTag');
+        
+        if (categorySelect) categorySelect.value = '';
+        if (tagInput) tagInput.value = '';
+        
+        // Afficher tous les nodes
+        if (this.nodes) {
+            const allNodes = this.nodes.get();
+            const updatedNodes = allNodes.map(node => ({
+                ...node,
+                hidden: false
+            }));
+            this.nodes.update(updatedNodes);
+        }
+        
+        // Ajuster la vue
+        setTimeout(() => {
+            if (this.network) {
+                this.network.fit({ animation: true });
+            }
+        }, 100);
+    }
+
+    updateFilterOptions() {
+        const categorySelect = document.getElementById('filterCategory');
+        if (!categorySelect) return;
+        
+        const hostData = this.hostManager.getData();
+        if (!hostData || !hostData.categories) return;
+        
+        // Vider les options existantes sauf "Toutes les catégories"
+        categorySelect.innerHTML = '<option value="">Toutes les catégories</option>';
+        
+        // Ajouter les catégories disponibles
+        Object.keys(hostData.categories).forEach(categoryName => {
+            const option = document.createElement('option');
+            option.value = categoryName;
+            option.textContent = categoryName;
+            categorySelect.appendChild(option);
+        });
+    }
+
+    // Méthode de test pour vérifier les filtres
+    testFilters() {
+        console.log('🧪 Test des filtres...');
+        
+        // Vérifier que les éléments existent
+        const categorySelect = document.getElementById('filterCategory');
+        const tagInput = document.getElementById('filterTag');
+        const applyBtn = document.getElementById('applyFiltersBtn');
+        const clearBtn = document.getElementById('clearFiltersBtn');
+        
+        console.log('Éléments trouvés:', {
+            categorySelect: !!categorySelect,
+            tagInput: !!tagInput,
+            applyBtn: !!applyBtn,
+            clearBtn: !!clearBtn
+        });
+        
+        // Vérifier les données
+        const hostData = this.hostManager.getData();
+        console.log('Données disponibles:', {
+            categories: Object.keys(hostData?.categories || {}),
+            totalHosts: Object.values(hostData?.categories || {}).reduce((acc, cat) => 
+                acc + Object.keys(cat.hosts || {}).length, 0
+            )
+        });
+        
+        // Tester un filtre par catégorie
+        if (categorySelect && Object.keys(hostData?.categories || {}).length > 0) {
+            const firstCategory = Object.keys(hostData.categories)[0];
+            categorySelect.value = firstCategory;
+            console.log(`Test filtre catégorie: ${firstCategory}`);
+            this.applyFilters();
+        }
+        
+        // Tester le filtre par tag
+        if (tagInput) {
+            tagInput.value = 'test';
+            console.log('Test filtre tag: test');
+            this.applyFilters();
+        }
+        
+        // Nettoyer
+        setTimeout(() => {
+            this.clearFilters();
+            console.log('✅ Test des filtres terminé');
+        }, 2000);
     }
 } 

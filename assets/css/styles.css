@@ -1681,7 +1681,7 @@ body.dark-theme #network-map {
     background: var(--card-bg);
     border-left: 1px solid var(--border-color);
     box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    z-index: 1050;
+    z-index: 10002; /* Augmenté pour être au-dessus du bouton de sortie plein écran */
     overflow-y: auto;
     transition: right 0.3s ease-in-out;
     padding: 20px;
@@ -1710,7 +1710,7 @@ body.dark-theme #network-map {
     font-size: 24px;
     color: var(--text-color);
     cursor: pointer;
-    z-index: 1051;
+    z-index: 10003; /* Augmenté pour être au-dessus du panneau */
     width: 30px;
     height: 30px;
     display: flex;
@@ -5098,4 +5098,170 @@ body.dark-theme .report-type-card.active {
     border: 2px solid #28a745 !important;
     background: linear-gradient(135deg, #155724, #1e7e34) !important;
     box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4) !important;
+}
+
+/* Styles pour les filtres intégrés dans la carte réseau */
+.network-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.network-filters .form-group {
+    margin-bottom: 0;
+}
+
+.network-filters .form-control-sm {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.network-filters .btn-sm {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Dark theme pour les filtres */
+body.dark-theme .network-filters {
+    background-color: rgba(44, 47, 51, 0.9);
+    border-color: #40444b;
+}
+
+body.dark-theme .network-filters .form-control-sm {
+    background-color: #2c2f33;
+    border-color: #40444b;
+    color: #e0e0e0;
+}
+
+body.dark-theme .network-filters .form-control-sm::placeholder {
+    color: #adb5bd;
+}
+
+body.dark-theme .network-filters .form-control-sm:focus {
+    background-color: #36393f;
+    border-color: #7289da;
+    color: #e0e0e0;
+}
+
+/* Responsive pour les filtres */
+@media (max-width: 768px) {
+    .network-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    
+    .network-filters .form-group {
+        width: 100%;
+    }
+    
+    .network-filters .form-control-sm {
+        width: 100%;
+    }
+    
+    .network-filters .btn-sm {
+        width: 100%;
+    }
+}
+
+/* Mode plein écran amélioré */
+.network-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    background: #f8f9fa !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 10px !important;
+}
+
+body.dark-theme .network-fullscreen {
+    background: #2c2f33 !important;
+}
+
+.network-fullscreen .card-header {
+    background: transparent !important;
+    border: none !important;
+    padding: 5px 0 !important;
+    margin-bottom: 10px !important;
+}
+
+.network-fullscreen .card-header h5 {
+    font-size: 16px !important;
+    margin: 0 !important;
+    color: #6c757d !important;
+}
+
+body.dark-theme .network-fullscreen .card-header h5 {
+    color: #adb5bd !important;
+}
+
+.network-fullscreen .card-body {
+    padding: 0 !important;
+    height: calc(100vh - 80px) !important;
+}
+
+.network-fullscreen #networkContainer {
+    height: 100% !important;
+    width: 100% !important;
+    border: none !important;
+    border-radius: 8px !important;
+}
+
+/* Overlay plein écran */
+#fullscreen-overlay {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+/* Animation d'entrée/sortie */
+.network-section {
+    transition: all 0.3s ease-in-out;
+}
+
+.network-fullscreen {
+    animation: fullscreenEnter 0.3s ease-out;
+}
+
+@keyframes fullscreenEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive pour le plein écran */
+@media (max-width: 768px) {
+    .network-fullscreen {
+        padding: 5px !important;
+    }
+    
+    .network-fullscreen .card-body {
+        height: calc(100vh - 60px) !important;
+    }
+    
+    #fullscreen-overlay {
+        top: 5px !important;
+        right: 5px !important;
+        font-size: 11px !important;
+        padding: 8px 12px !important;
+    }
 }

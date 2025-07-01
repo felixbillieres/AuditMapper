@@ -316,29 +316,7 @@
             </div>
         </div>
 
-        <!-- Filtres & Actions Globales (DÉPLACÉ ICI) -->
-        <div class="card mb-3"> <!-- Ajout de mb-3 pour l'espacement -->
-            <div class="card-header">
-                Filtres & Actions
-            </div>
-            <div class="card-body form-inline flex-wrap">
-                <div class="form-group mr-3 mb-2">
-                    <label for="filterCategory" class="mr-2">Filtrer par Catégorie:</label>
-                    <select id="filterCategory" class="form-control form-control-sm">
-                        <option value="">Toutes</option>
-                    </select>
-                </div>
-                <div class="form-group mr-3 mb-2">
-                    <label for="filterTag" class="mr-2">Filtrer par Tag:</label>
-                    <input type="text" id="filterTag" class="form-control form-control-sm" placeholder="ex: important, todo">
-                </div>
-                <button id="applyFiltersBtn" class="btn btn-primary btn-sm mr-3 mb-2">Appliquer Filtres</button>
 
-                <div class="ml-auto d-flex flex-wrap">
-                    <!-- Les boutons d'export/import ont été déplacés dans la section "Export & Import Complet" -->
-                </div>
-            </div>
-        </div>
 
         <!-- Section Carte Réseau -->
         <div class="card network-section">
@@ -374,6 +352,20 @@
                         <button id="networkClustering" class="btn btn-outline-warning" title="Regroupement automatique des nodes similaires">
                             🔗 Cluster
                         </button>
+                    </div>
+                    
+                    <!-- Filtres intégrés -->
+                    <div class="network-filters ml-2">
+                        <div class="form-group mb-0 mr-2">
+                            <select id="filterCategory" class="form-control form-control-sm" style="width: 150px;">
+                                <option value="">Toutes les catégories</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-0 mr-2">
+                            <input type="text" id="filterTag" class="form-control form-control-sm" placeholder="Filtrer par tag..." style="width: 150px;">
+                        </div>
+                        <button id="applyFiltersBtn" class="btn btn-outline-secondary btn-sm mr-2">Filtrer</button>
+                        <button id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm">Effacer</button>
                     </div>
                     
                     <div class="input-group input-group-sm ml-2" style="width: 200px;">

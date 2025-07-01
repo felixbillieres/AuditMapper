@@ -47,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configuration des onglets principaux
     if (navTabs.length > 0 && tabContents.length > 0) {
         navTabs.forEach(button => {
-            button.addEventListener('click', function() {
-                // Désactiver tous les onglets
+        button.addEventListener('click', function() {
+            // Désactiver tous les onglets
                 navTabs.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Activer l'onglet cliqué
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Activer l'onglet cliqué
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
                 const targetTab = document.getElementById(tabId);
                 if (targetTab) {
                     targetTab.classList.add('active');
@@ -75,21 +75,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configuration des onglets de sortie
     if (outputTabs.length > 0) {
-        outputTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
+    outputTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
                 const parentSection = this.closest('.output-content');
                 if (!parentSection) return;
                 
-                const outputTabs = parentSection.querySelectorAll('.output-tab');
+            const outputTabs = parentSection.querySelectorAll('.output-tab');
                 const outputAreas = parentSection.querySelectorAll('.output-content-area');
-                
-                // Désactiver tous les onglets et contenus
-                outputTabs.forEach(t => t.classList.remove('active'));
+            
+            // Désactiver tous les onglets et contenus
+            outputTabs.forEach(t => t.classList.remove('active'));
                 outputAreas.forEach(c => c.classList.remove('active'));
-                
-                // Activer l'onglet cliqué
-                this.classList.add('active');
-                const format = this.getAttribute('data-format');
+            
+            // Activer l'onglet cliqué
+            this.classList.add('active');
+            const format = this.getAttribute('data-format');
                 const targetArea = parentSection.querySelector(`.${format}-format`);
                 if (targetArea) {
                     targetArea.classList.add('active');
@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const templateName = templateItem.getAttribute('data-template');
                 console.log('Nom du template:', templateName);
                 loadTemplate(templateName);
-            });
         });
+    });
     } else {
         console.log('Aucun bouton de template trouvé');
     }
@@ -130,40 +130,40 @@ document.addEventListener('DOMContentLoaded', function() {
     let screenshots = [];
     
     if (browseScreenshotsButton && screenshotInput) {
-        browseScreenshotsButton.addEventListener('click', function() {
-            screenshotInput.click();
-        });
-        
-        screenshotInput.addEventListener('change', handleScreenshots);
+    browseScreenshotsButton.addEventListener('click', function() {
+        screenshotInput.click();
+    });
+    
+    screenshotInput.addEventListener('change', handleScreenshots);
     }
     
     // Configuration du drag and drop
     if (screenshotDropzone) {
-        screenshotDropzone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
+    screenshotDropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    
+    screenshotDropzone.addEventListener('dragleave', function() {
+        this.classList.remove('dragover');
+    });
+    
+    screenshotDropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
         
-        screenshotDropzone.addEventListener('dragleave', function() {
-            this.classList.remove('dragover');
-        });
-        
-        screenshotDropzone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            if (e.dataTransfer.files.length > 0) {
-                handleFiles(e.dataTransfer.files);
-            } else if (e.dataTransfer.items) {
-                // Gestion du copier-coller d'images
-                Array.from(e.dataTransfer.items).forEach(item => {
-                    if (item.type.indexOf('image') !== -1) {
-                        const file = item.getAsFile();
-                        processScreenshot(file);
-                    }
-                });
-            }
-        });
+        if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+        } else if (e.dataTransfer.items) {
+            // Gestion du copier-coller d'images
+            Array.from(e.dataTransfer.items).forEach(item => {
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    processScreenshot(file);
+                }
+            });
+        }
+    });
     }
     
     // Également permettre le copier-coller dans le document
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestion de la vulnérabilité unique
     if (generateVulnButton) {
-        generateVulnButton.addEventListener('click', function() {
+    generateVulnButton.addEventListener('click', function() {
             const title = vulnTitleInput ? vulnTitleInput.value : '';
             const severity = vulnSeveritySelect ? vulnSeveritySelect.value : 'medium';
             const cvss = vulnCVSSInput ? vulnCVSSInput.value : '';
@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
             textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
-            document.execCommand('copy');
+        document.execCommand('copy');
             document.body.removeChild(textArea);
         });
     }

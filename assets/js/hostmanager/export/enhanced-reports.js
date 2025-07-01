@@ -177,10 +177,16 @@ export class EnhancedReportGenerator {
     updateReportStats() {
         const stats = this.calculateReportStats();
         
-        document.getElementById('reportStatsHosts').textContent = stats.totalHosts;
-        document.getElementById('reportStatsVulns').textContent = stats.totalVulnerabilities;
-        document.getElementById('reportStatsCreds').textContent = stats.totalCredentials;
-        document.getElementById('reportStatsPages').textContent = stats.estimatedPages;
+        // Vérifier l'existence des éléments avant de les modifier
+        const hostsElement = document.getElementById('reportStatsHosts');
+        const vulnsElement = document.getElementById('reportStatsVulns');
+        const credsElement = document.getElementById('reportStatsCreds');
+        const pagesElement = document.getElementById('reportStatsPages');
+        
+        if (hostsElement) hostsElement.textContent = stats.totalHosts;
+        if (vulnsElement) vulnsElement.textContent = stats.totalVulnerabilities;
+        if (credsElement) credsElement.textContent = stats.totalCredentials;
+        if (pagesElement) pagesElement.textContent = stats.estimatedPages;
     }
 
     calculateReportStats() {

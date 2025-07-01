@@ -446,7 +446,7 @@ class NetworkVisualizer {
                 <div class="node-info attacker-info">
                     <div class="info-header">
                         <h5>🔥 Machine Attaquante</h5>
-                    </div>
+                        </div>
                     <div class="info-details">
                         <div class="info-item">
                             <span class="info-label">IP:</span>
@@ -460,9 +460,9 @@ class NetworkVisualizer {
                             <span class="info-label">Rôle:</span>
                             <span class="info-value">Point de départ des attaques</span>
                         </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
         } else if (nodeId.startsWith('host_')) {
             // Host depuis le Host Manager
             const hostIP = nodeId.replace('host_', '');
@@ -470,7 +470,7 @@ class NetworkVisualizer {
                 <div class="node-info host-info">
                     <div class="info-header">
                         <h5>🖥️ Host: ${hostIP}</h5>
-                    </div>
+                        </div>
                     <div class="info-details">
                         <div class="info-item">
                             <span class="info-label">IP:</span>
@@ -492,16 +492,16 @@ class NetworkVisualizer {
                             <span class="info-label">Réseau:</span>
                             <span class="info-value">${node.group}</span>
                         </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
         } else if (nodeId === 'target1') {
             const config = this.pivotMaster.config.target1;
             infoHTML = `
                 <div class="node-info target-info">
                     <div class="info-header">
                         <h5>🎯 Target 1 (Premier Pivot)</h5>
-                    </div>
+                        </div>
                     <div class="info-details">
                         <div class="info-item">
                             <span class="info-label">IP:</span>
@@ -523,16 +523,16 @@ class NetworkVisualizer {
                             <span class="info-label">Rôle:</span>
                             <span class="info-value">Point d'entrée et premier pivot</span>
                         </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
         } else if (nodeId === 'target2') {
             const config = this.pivotMaster.config.target2;
             infoHTML = `
                 <div class="node-info target-info">
                     <div class="info-header">
                         <h5>🎯 Target 2 (Second Pivot)</h5>
-                    </div>
+                        </div>
                     <div class="info-details">
                         <div class="info-item">
                             <span class="info-label">IP:</span>
@@ -554,16 +554,16 @@ class NetworkVisualizer {
                             <span class="info-label">Rôle:</span>
                             <span class="info-value">Second pivot vers le réseau cible</span>
                         </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
         } else if (nodeId === 'target3') {
             const config = this.pivotMaster.config.target3;
             infoHTML = `
                 <div class="node-info target-info">
                     <div class="info-header">
                         <h5>🎯 Target 3 (Double Pivot)</h5>
-                    </div>
+                            </div>
                     <div class="info-details">
                         <div class="info-item">
                             <span class="info-label">IP:</span>
@@ -577,9 +577,9 @@ class NetworkVisualizer {
                             <span class="info-label">Rôle:</span>
                             <span class="info-value">Cible finale via double pivot</span>
                         </div>
-                    </div>
-                </div>
-            `;
+                            </div>
+                        </div>
+                    `;
         }
 
         infoPanel.innerHTML = infoHTML;
@@ -730,12 +730,12 @@ class PivotMaster {
             doublePivotCheckbox.addEventListener('change', () => {
                 try {
                     this.toggleDoublePivot();
-                    this.saveConfig();
+                this.saveConfig();
                     this.updateNetworkVisualization();
                 } catch (error) {
                     console.error('Erreur lors de la gestion du double pivot:', error);
                 }
-            });
+        });
         }
     }
 
@@ -1107,8 +1107,8 @@ class PivotMaster {
         try {
             // Valider les entrées
             if (!this.validateInput()) {
-                return;
-            }
+            return;
+        }
 
             // Mettre à jour la configuration depuis le formulaire
             this.updateConfigFromForm();
@@ -1135,7 +1135,7 @@ class PivotMaster {
 
             // Afficher les résultats
             this.displayResults(allCommands);
-            
+
             // Sauvegarder la configuration
             this.saveConfig();
             
@@ -1441,7 +1441,7 @@ class PivotMaster {
             });
 
             // Sauvegarder la configuration
-            this.saveConfig();
+        this.saveConfig();
 
             // Mettre à jour l'interface
             this.toggleDoublePivot();
