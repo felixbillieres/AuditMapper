@@ -128,6 +128,8 @@ export class ZipExporter {
                 const isLastHost = hostIndex === hosts.length - 1;
                 const hostPrefix = isLastHost ? '└──' : '├──';
                 structure += `${subPrefix}${hostPrefix} 📄 ${hostId}.md\n`;
+                structure += `${subPrefix}${isLastHost ? '    ' : '│   '}    └── 📁 screenshots/\n`;
+                structure += `${subPrefix}${isLastHost ? '    ' : '│   '}        └── (screenshots des étapes)\n`;
             });
         });
         
@@ -137,7 +139,7 @@ export class ZipExporter {
         structure += `│   ├── all_hashes.txt\n`;
         structure += `│   └── credentials_by_host.csv\n`;
         structure += `├── 🖼️ screenshots/\n`;
-        structure += `│   └── (captures d'écran des étapes d'exploitation)\n`;
+        structure += `│   └── (organisés par host dans leurs dossiers respectifs)\n`;
         structure += `├── 📁 outputs/\n`;
         structure += `│   └── (outputs bruts par catégorie/host)\n`;
         structure += `└── 🔗 network/\n`;
@@ -487,27 +489,56 @@ Cet export est compatible avec :
             for (const [hostId, host] of Object.entries(category.hosts || {})) {
                 const hostOutputFolder = categoryOutputFolder.folder(hostId);
                 
-                // Screenshots des étapes d'exploitation
+                // Screenshots des étapes d'exploitation - organisés dans le dossier du host
                 if (host.exploitationSteps && host.exploitationSteps.length > 0) {
-                    // Dossier global pour tous les screenshots
-                    const hostScreenshotFolder = screenshotsFolder.folder(`${categoryName}_${hostId}`);
-                    
-                    // Dossier dans l'host spécifique pour organisation par notes
-                    const hostSpecificScreenshotFolder = hostOutputFolder.folder('screenshots');
+                    // Dossier screenshots dans le dossier du host (à côté du fichier .md)
+                    const hostScreenshotFolder = hostOutputFolder.folder('screenshots');
                     
                     host.exploitationSteps.forEach((step, index) => {
-                        if (step.screenshotUrl) {
-                            const screenshotInfo = `Screenshot URL: ${step.screenshotUrl}\nStep: ${step.title || step.description}`;
+                        if (step.screenshots && Array.isArray(step.screenshots) && step.screenshots.length > 0) {
+                            // Gérer les screenshots multiples
+                            step.screenshots.forEach((screenshot, screenshotIndex) => {
+                                const fileName = `step_${index + 1}_screenshot_${screenshotIndex + 1}.png`;
+                                
+                                // Vérifier si c'est une image base64
+                                if (screenshot.startsWith('data:image/')) {
+                                    try {
+                                        // Extraire les données base64
+                                        const base64Data = screenshot.split(',')[1];
+                                        const binaryData = atob(base64Data);
+                                        const bytes = new Uint8Array(binaryData.length);
+                                        for (let i = 0; i < binaryData.length; i++) {
+                                            bytes[i] = binaryData.charCodeAt(i);
+                                        }
+                                        
+                                        // Ajouter l'image dans le dossier screenshots du host
+                                        hostScreenshotFolder.file(fileName, bytes);
+                                        
+                                        // Créer un fichier de métadonnées
+                                        const metadata = {
+                                            step: step.title || step.description || `Étape ${index + 1}`,
+                                            screenshotIndex: screenshotIndex + 1,
+                                            fileName: fileName,
+                                            timestamp: new Date().toISOString()
+                                        };
+                                        hostScreenshotFolder.file(`${fileName}.json`, JSON.stringify(metadata, null, 2));
+                                        
+                                    } catch (error) {
+                                        console.warn(`Erreur lors du traitement du screenshot ${fileName}:`, error);
+                                        // Fallback: sauvegarder l'URL comme texte
+                                        hostScreenshotFolder.file(`${fileName}.txt`, `Screenshot URL: ${screenshot}\nStep: ${step.title || step.description}`);
+                                    }
+                                } else if (step.screenshotUrl) {
+                                    // Ancien format (compatibilité)
+                                    const screenshotInfo = `Screenshot URL: ${step.screenshotUrl}\nStep: ${step.title || step.description}`;
+                                    hostScreenshotFolder.file(fileName.replace('.png', '.txt'), screenshotInfo);
+                                }
+                            });
+                        } else if (step.screenshotUrl) {
+                            // Ancien format (compatibilité)
                             const fileName = `step_${index + 1}_screenshot.txt`;
-                            
-                            // Note: Pour les vraies images, il faudrait les télécharger
-                            // Ici on documente l'URL dans les deux endroits
-                            
-                            // Dossier global screenshots
+                            const screenshotInfo = `Screenshot URL: ${step.screenshotUrl}\nStep: ${step.title || step.description}`;
                             hostScreenshotFolder.file(fileName, screenshotInfo);
-                            
-                            // Dossier spécifique à l'host pour organisation par notes
-                            hostSpecificScreenshotFolder.file(fileName, screenshotInfo);
                         }
                     });
                 }
@@ -699,5 +730,100 @@ ${Object.entries(hostData.categories || {}).map(([categoryName, category]) => {
         }
 
         return analysis;
+    }
+
+    // Fonction de test pour vérifier l'export avec screenshots
+    async testExportWithScreenshots() {
+        console.log("🧪 Test d'export avec screenshots...");
+        
+        // Créer des données de test avec screenshots
+        const testData = {
+            categories: {
+                "Domain Controllers": {
+                    hosts: {
+                        "DC01.vulncorp.local": {
+                            ip: "192.168.1.10",
+                            system: "Windows Server 2019",
+                            role: "Domain Controller",
+                            zone: "DMZ",
+                            compromiseLevel: "High",
+                            services: ["LDAP", "DNS", "Kerberos"],
+                            tags: ["critical", "dc"],
+                            notes: "Contrôleur de domaine principal",
+                            credentials: [
+                                {
+                                    username: "Administrator",
+                                    password: "P@ssw0rd123!",
+                                    hash: "aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0"
+                                }
+                            ],
+                            exploitationSteps: [
+                                {
+                                    title: "Découverte du service LDAP",
+                                    description: "Scan des ports LDAP",
+                                    content: "Nmap scan révèle le port 389 ouvert",
+                                    order: 1,
+                                    screenshots: [
+                                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" // 1x1 pixel transparent
+                                    ]
+                                },
+                                {
+                                    title: "Exploitation via Kerberoasting",
+                                    description: "Attaque Kerberoasting réussie",
+                                    content: "Récupération de tickets TGS",
+                                    order: 2,
+                                    screenshots: [
+                                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                                    ]
+                                }
+                            ],
+                            outputs: [
+                                {
+                                    type: "nmap",
+                                    subType: "port_scan",
+                                    content: "Starting Nmap 7.80 ( https://nmap.org )\nNmap scan report for 192.168.1.10\nHost is up (0.00047s latency).\n\nPORT    STATE SERVICE\n389/tcp open  ldap\n636/tcp open  ldaps\n"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "Workstations": {
+                    hosts: {
+                        "WS01.vulncorp.local": {
+                            ip: "192.168.1.20",
+                            system: "Windows 10",
+                            role: "Workstation",
+                            zone: "Internal",
+                            compromiseLevel: "Medium",
+                            services: ["SMB", "RDP"],
+                            tags: ["workstation", "user"],
+                            notes: "Poste de travail utilisateur",
+                            exploitationSteps: [
+                                {
+                                    title: "Accès via SMB",
+                                    description: "Connexion SMB réussie",
+                                    content: "Accès au partage C$",
+                                    order: 1,
+                                    screenshots: [
+                                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            edges: [
+                { from: "DC01.vulncorp.local", to: "WS01.vulncorp.local", label: "LDAP" }
+            ]
+        };
+        
+        // Simuler l'export avec ces données
+        this.hostManager.updateData(testData);
+        this.exportName = "Test_Export_Screenshots";
+        await this.executeZipExport();
+        
+        console.log("✅ Test d'export terminé");
     }
 } 

@@ -14,30 +14,17 @@ export class ImportManager {
     }
 
     setupEventListeners() {
-        // Ajouter un bouton d'import ZIP dans l'interface existante
-        this.addImportZipButton();
+        // Event listener pour le bouton d'import ZIP
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'importZipBtn') {
+                this.showImportZipDialog();
+            }
+        });
         
         // Gérer l'import de session existant pour supporter les ZIP
         const importSessionInput = document.getElementById('importSessionInput');
         if (importSessionInput) {
-            importSessionInput.addEventListener('change', (e) => this.handleFileImport(e));
-        }
-    }
-
-    addImportZipButton() {
-        // Trouver la section d'import existante
-        const importSessionLabel = document.querySelector('label[for="importSessionInput"]');
-        if (importSessionLabel) {
-            // Ajouter un bouton spécifique pour l'import ZIP
-            const importZipBtn = document.createElement('button');
-            importZipBtn.className = 'btn btn-info btn-sm mr-2 mb-2';
-            importZipBtn.innerHTML = '📦 Importer Archive ZIP';
-            importZipBtn.title = 'Importer un export ZIP complet';
-            
-            importZipBtn.addEventListener('click', () => this.showImportZipDialog());
-            
-            // Insérer après le bouton d'import session existant
-            importSessionLabel.parentNode.insertBefore(importZipBtn, importSessionLabel.nextSibling);
+            importSessionInput.addEventListener('change', (event) => this.handleFileImport(event));
         }
     }
 
@@ -287,7 +274,14 @@ export class ImportManager {
                     reconstructedData.categories[categoryName] = { hosts: {} };
                 }
                 
-                reconstructedData.categories[categoryName].hosts[hostId] = this.parseHostMarkdown(content);
+                const hostData = this.parseHostMarkdown(content);
+                
+                // Importer les screenshots si l'option est activée
+                if (options.importExploitation) {
+                    await this.importScreenshotsForHost(zip, categoryName, hostId, hostData);
+                }
+                
+                reconstructedData.categories[categoryName].hosts[hostId] = hostData;
                 
             } catch (error) {
                 console.warn(`Erreur parsing host file ${hostFile.name}:`, error);
@@ -308,6 +302,67 @@ export class ImportManager {
         }
         
         return reconstructedData;
+    }
+
+    async importScreenshotsForHost(zip, categoryName, hostId, hostData) {
+        try {
+            // Chercher les screenshots dans le dossier screenshots du host
+            const screenshotFiles = zip.file(new RegExp(`hosts/${categoryName}/${hostId}/screenshots/.*\\.png$`));
+            
+            if (screenshotFiles.length > 0) {
+                // Organiser les screenshots par étape d'exploitation
+                const screenshotsByStep = {};
+                
+                for (const screenshotFile of screenshotFiles) {
+                    const fileName = screenshotFile.name;
+                    const match = fileName.match(/step_(\d+)_screenshot_(\d+)\.png$/);
+                    
+                    if (match) {
+                        const stepIndex = parseInt(match[1]) - 1;
+                        const screenshotIndex = parseInt(match[2]) - 1;
+                        
+                        if (!screenshotsByStep[stepIndex]) {
+                            screenshotsByStep[stepIndex] = [];
+                        }
+                        
+                        // Convertir le fichier PNG en base64
+                        const arrayBuffer = await screenshotFile.async('arraybuffer');
+                        const base64 = this.arrayBufferToBase64(arrayBuffer);
+                        const dataUrl = `data:image/png;base64,${base64}`;
+                        
+                        screenshotsByStep[stepIndex][screenshotIndex] = dataUrl;
+                    }
+                }
+                
+                // Appliquer les screenshots aux étapes d'exploitation
+                if (hostData.exploitationSteps) {
+                    hostData.exploitationSteps.forEach((step, stepIndex) => {
+                        if (screenshotsByStep[stepIndex]) {
+                            // Filtrer les éléments undefined et trier par index
+                            step.screenshots = screenshotsByStep[stepIndex]
+                                .filter(screenshot => screenshot !== undefined)
+                                .sort((a, b) => {
+                                    const aIndex = screenshotsByStep[stepIndex].indexOf(a);
+                                    const bIndex = screenshotsByStep[stepIndex].indexOf(b);
+                                    return aIndex - bIndex;
+                                });
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn(`Erreur import screenshots pour ${categoryName}/${hostId}:`, error);
+        }
+    }
+
+    arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
     }
 
     parseHostMarkdown(markdown) {
