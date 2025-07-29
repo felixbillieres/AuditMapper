@@ -302,9 +302,115 @@
         <div class="category-section">
             <div class="category-header">
                 <h4>Gestion des Hôtes par Catégorie</h4>
-                <button id="addCategoryBtn" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nouvelle Catégorie
-                </button>
+                <div class="category-header-buttons">
+                    <button id="addCategoryBtn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Nouvelle Catégorie
+                    </button>
+                    <button id="toggleAutoParseBtn" class="btn btn-outline-secondary btn-sm" data-toggle="collapse" data-target="#autoParseSection">
+                        🚀 Parsing Auto
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Section Parsing Automatique (déroulante) -->
+            <div class="collapse" id="autoParseSection">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">🚀 Parsing Automatique d'Outputs</h6>
+                        <small class="text-muted">Collez vos outputs de balayage pour créer automatiquement les hosts</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="autoParseCategory">Catégorie cible:</label>
+                                    <select id="autoParseCategory" class="form-control">
+                                        <option value="">Sélectionnez une catégorie...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="autoParseType">Type d'output:</label>
+                                    <select id="autoParseType" class="form-control">
+                                        <option value="fping">fping -agq (IPs simples)</option>
+                                        <option value="netexec">Netexec/SMB (détails complets)</option>
+                                        <option value="nmap">Nmap (format standard)</option>
+                                        <option value="custom">Format personnalisé</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="autoParseInput">Output à parser:</label>
+                            <textarea id="autoParseInput" class="form-control" rows="6" 
+                                      placeholder="Collez ici votre output de balayage...
+
+Exemples:
+• fping -agq 192.168.110.0/24
+192.168.110.1
+192.168.110.51
+
+• Netexec/SMB
+SMB         192.168.1.101    445    DC2012A          [*] Windows Server 2012 R2 Standard
+
+• Nmap
+Nmap scan report for 192.168.1.1
+Host is up (0.0005s latency)."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="autoParseZone">Zone par défaut:</label>
+                                    <input type="text" id="autoParseZone" class="form-control" placeholder="ex: DMZ, LAN, WAN" value="LAN">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="autoParseSystem">Système par défaut:</label>
+                                    <select id="autoParseSystem" class="form-control">
+                                        <option value="Unknown">Unknown</option>
+                                        <option value="Windows">Windows</option>
+                                        <option value="Linux">Linux</option>
+                                        <option value="macOS">macOS</option>
+                                        <option value="Network Device">Network Device</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="autoParsePreview" checked>
+                                <label class="custom-control-label" for="autoParsePreview">
+                                    Afficher l'aperçu avant création
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="button" id="parseOutputBtn" class="btn btn-primary">
+                                🔍 Parser l'Output
+                            </button>
+                            <button type="button" id="createHostsBtn" class="btn btn-success" style="display: none;">
+                                ✅ Créer les Hosts
+                            </button>
+                            <button type="button" id="clearParseBtn" class="btn btn-secondary">
+                                🗑️ Effacer
+                            </button>
+                        </div>
+                        
+                        <!-- Aperçu des hosts à créer -->
+                        <div id="parsePreviewContainer" class="mt-3" style="display: none;">
+                            <h6>📋 Aperçu des hosts à créer:</h6>
+                            <div id="parsePreviewList" class="border rounded p-3 bg-light">
+                                <!-- Les hosts parsés seront affichés ici -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div class="category-tabs-container">
@@ -315,6 +421,8 @@
                 <p class="text-muted text-center">Sélectionnez une catégorie ou créez-en une nouvelle pour commencer.</p>
             </div>
         </div>
+
+
 
 
 
@@ -876,7 +984,7 @@
 
     <!-- MODALE POUR LES DÉTAILS D'UNE ÉTAPE D'EXPLOITATION (Initialement cachée) -->
     <div class="modal fade" id="exploitationStepDetailModal" tabindex="-1" aria-labelledby="exploitationStepDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg"> <!-- modal-lg pour plus d'espace -->
+        <div class="modal-dialog modal-xl"> <!-- modal-xl pour plus d'espace -->
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exploitationStepDetailModalLabel">Détails de l'Étape</h5>
@@ -887,20 +995,89 @@
                 <div class="modal-body">
                     <form id="exploitationStepDetailForm">
                         <input type="hidden" id="stepDetailModalStepId">
+                        
+                        <!-- Informations de base -->
                         <div class="form-group row">
                             <label for="stepDetailModalOrder" class="col-sm-2 col-form-label">Ordre:</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input type="number" class="form-control form-control-sm" id="stepDetailModalOrder" min="1" step="1" required>
                             </div>
-                             <label for="stepDetailModalTitle" class="col-sm-1 col-form-label">Titre:</label>
-                             <div class="col-sm-6">
+                            <label for="stepDetailModalTitle" class="col-sm-2 col-form-label">Titre:</label>
+                            <div class="col-sm-6">
                                 <input type="text" class="form-control form-control-sm" id="stepDetailModalTitle" placeholder="Ex: Scan Initial, Escalade Privilèges..." required>
-                             </div>
+                            </div>
                         </div>
+
+                        <!-- CVE et Outil -->
+                        <div class="form-group row">
+                            <label for="stepDetailModalCVE" class="col-sm-2 col-form-label">CVE:</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control form-control-sm" id="stepDetailModalCVE" placeholder="Ex: CVE-2021-44228">
+                            </div>
+                            <label for="stepDetailModalTool" class="col-sm-2 col-form-label">Outil:</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control form-control-sm" id="stepDetailModalTool" placeholder="Ex: nmap, metasploit, sqlmap">
+                            </div>
+                        </div>
+
+                        <!-- Sévérité -->
+                        <div class="form-group row">
+                            <label for="stepDetailModalSeverity" class="col-sm-2 col-form-label">Sévérité:</label>
+                            <div class="col-sm-4">
+                                <select class="form-control form-control-sm" id="stepDetailModalSeverity">
+                                    <option value="Low">🟢 Low</option>
+                                    <option value="Medium" selected>🟡 Medium</option>
+                                    <option value="High">🟠 High</option>
+                                    <option value="Critical">🔴 Critical</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
                         <div class="form-group">
-                            <label for="stepDetailModalContent">Contenu (Commandes, Notes, etc.):</label>
-                            <textarea class="form-control" id="stepDetailModalContent" rows="10" placeholder="Détaillez les commandes exécutées, les résultats importants, les observations..."></textarea>
+                            <label for="stepDetailModalDescription">Description:</label>
+                            <textarea class="form-control" id="stepDetailModalDescription" rows="3" placeholder="Description détaillée de l'étape d'exploitation..."></textarea>
                         </div>
+
+                        <!-- Commande -->
+                        <div class="form-group">
+                            <label for="stepDetailModalCommand">Commande utilisée:</label>
+                            <textarea class="form-control" id="stepDetailModalCommand" rows="3" placeholder="Collez ici la commande exacte utilisée..."></textarea>
+                        </div>
+
+                        <!-- Output/Résultat -->
+                        <div class="form-group">
+                            <label for="stepDetailModalOutput">Output/Résultat:</label>
+                            <textarea class="form-control" id="stepDetailModalOutput" rows="6" placeholder="Collez ici l'output de la commande ou les résultats obtenus..."></textarea>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group">
+                            <label for="stepDetailModalNotes">Notes additionnelles:</label>
+                            <textarea class="form-control" id="stepDetailModalNotes" rows="2" placeholder="Notes, observations, liens utiles..."></textarea>
+                        </div>
+
+                        <!-- Screenshots -->
+                        <div class="form-group">
+                            <label>📸 Screenshots:</label>
+                            <div class="screenshots-container" id="stepDetailModalScreenshotsContainer">
+                                <div class="screenshot-upload-area" id="stepDetailModalScreenshotUploadArea">
+                                    <div class="upload-instructions">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <p>Collez une image (Ctrl+V) ou glissez-déposez un fichier</p>
+                                        <input type="file" id="stepDetailModalScreenshotFile" accept="image/*" multiple style="display: none;">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('stepDetailModalScreenshotFile').click()">
+                                            <i class="fas fa-folder-open"></i> Choisir des fichiers
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="stepDetailModalScreenshotsPreview" class="screenshots-preview">
+                                    <!-- Les screenshots seront ajoutés ici -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URL Screenshot (fallback) -->
                         <div class="form-group">
                             <label for="stepDetailModalScreenshotUrl">URL/Chemin Capture d'écran (Optionnel):</label>
                             <input type="text" class="form-control form-control-sm" id="stepDetailModalScreenshotUrl" placeholder="Ex: /screenshots/step1.png ou http://.../image.jpg">

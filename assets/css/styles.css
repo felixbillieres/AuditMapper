@@ -5265,3 +5265,207 @@ body.dark-theme .network-fullscreen .card-header h5 {
         padding: 8px 12px !important;
     }
 }
+
+/* Styles pour la section screenshots dans la modale d'exploitation */
+#stepDetailModalScreenshotsContainer {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+#stepDetailModalScreenshotsContainer:hover {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+#stepDetailModalScreenshotUploadArea {
+    text-align: center;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#stepDetailModalScreenshotUploadArea:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+#stepDetailModalScreenshotUploadArea.drag-over {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+#stepDetailModalScreenshotUploadArea .upload-instructions {
+    color: #666;
+}
+
+#stepDetailModalScreenshotUploadArea .upload-instructions i {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+#stepDetailModalScreenshotsPreview {
+    margin-top: 15px;
+}
+
+#stepDetailModalScreenshotsPreview .screenshot-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+
+#stepDetailModalScreenshotsPreview .screenshot-preview-container img {
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+#stepDetailModalScreenshotsPreview .screenshot-preview-container img:hover {
+    transform: scale(1.05);
+}
+
+#stepDetailModalScreenshotsPreview .screenshot-controls {
+    margin-top: 8px;
+}
+
+#stepDetailModalScreenshotsPreview .screenshot-controls .btn {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+/* Styles pour le mode sombre */
+body.dark-theme #stepDetailModalScreenshotsContainer {
+    background-color: #2c2f33;
+    border-color: #40444b;
+}
+
+body.dark-theme #stepDetailModalScreenshotsContainer:hover {
+    border-color: #007bff;
+    background-color: #1a1d21;
+}
+
+body.dark-theme #stepDetailModalScreenshotUploadArea {
+    background-color: #36393f;
+    border-color: #40444b;
+}
+
+body.dark-theme #stepDetailModalScreenshotUploadArea:hover {
+    border-color: #007bff;
+    background-color: #2c2f33;
+}
+
+body.dark-theme #stepDetailModalScreenshotUploadArea.drag-over {
+    border-color: #007bff;
+    background-color: #1a1d21;
+}
+
+body.dark-theme #stepDetailModalScreenshotUploadArea .upload-instructions {
+    color: #b9bbbe;
+}
+
+body.dark-theme #stepDetailModalScreenshotsPreview .screenshot-item {
+    background-color: #36393f;
+    border-color: #40444b;
+}
+
+/* Styles pour la section de parsing automatique */
+.category-header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#toggleAutoParseBtn {
+    transition: all 0.3s ease;
+}
+
+#toggleAutoParseBtn:hover {
+    transform: translateY(-1px);
+}
+
+#autoParseSection {
+    transition: all 0.3s ease;
+}
+
+#autoParseSection .card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#parsePreviewContainer {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#parsePreviewList {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+}
+
+#parsePreviewList .border-bottom:last-child {
+    border-bottom: none !important;
+}
+
+#autoParseInput {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+#autoParseInput::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Styles pour le mode sombre */
+body.dark-theme #autoParseSection .card {
+    background-color: #2c2f33;
+    border-color: #40444b;
+}
+
+body.dark-theme #parsePreviewList {
+    background-color: #2c2f33;
+    border-color: #40444b;
+}
+
+body.dark-theme #autoParseInput {
+    background-color: #2c2f33;
+    border-color: #40444b;
+    color: #dcddde;
+}
+
+body.dark-theme #autoParseInput::placeholder {
+    color: #72767d;
+}
+
+/* Animation pour les boutons */
+#parseOutputBtn:hover,
+#createHostsBtn:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+/* Styles pour les badges dans l'aperçu */
+#parsePreviewList .badge {
+    font-size: 0.75em;
+}
+
+/* Responsive design pour la section parsing */
+@media (max-width: 768px) {
+    .card-body .row .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    #autoParseInput {
+        font-size: 0.8em;
+    }
+}
