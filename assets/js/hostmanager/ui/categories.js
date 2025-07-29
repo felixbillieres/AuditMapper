@@ -41,6 +41,16 @@ export class CategoryUI {
             tab.textContent = categoryName;
             tab.addEventListener('click', () => this.selectCategory(categoryName));
 
+            // Bouton d'édition
+            const editBtn = document.createElement('span');
+            editBtn.className = 'edit-category-btn';
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Modifier le nom de la catégorie';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editCategory(categoryName);
+            });
+
             // Bouton de suppression
             const deleteBtn = document.createElement('span');
             deleteBtn.className = 'delete-category-btn';
@@ -51,6 +61,7 @@ export class CategoryUI {
                 this.deleteCategory(categoryName);
             });
 
+            tab.appendChild(editBtn);
             tab.appendChild(deleteBtn);
             this.categoryTabs.appendChild(tab);
         });
@@ -164,6 +175,33 @@ export class CategoryUI {
         this.hostManager.updateData(hostData);
         this.renderCategories();
         this.selectCategory(trimmedName);
+    }
+
+    editCategory(categoryName) {
+        const newName = prompt(`Modifier le nom de la catégorie "${categoryName}":`, categoryName);
+        
+        if (newName && newName.trim() && newName.trim() !== categoryName) {
+            const hostData = this.hostManager.getData();
+            
+            // Vérifier que le nouveau nom n'existe pas déjà
+            if (hostData.categories[newName.trim()]) {
+                alert('Une catégorie avec ce nom existe déjà.');
+                return;
+            }
+            
+            // Déplacer la catégorie avec le nouveau nom
+            hostData.categories[newName.trim()] = hostData.categories[categoryName];
+            delete hostData.categories[categoryName];
+            
+            this.hostManager.updateData(hostData);
+            
+            // Si c'était la catégorie active, mettre à jour
+            if (this.hostManager.getActiveCategory() === categoryName) {
+                this.hostManager.setActiveCategory(newName.trim());
+            }
+            
+            this.renderCategories();
+        }
     }
 
     deleteCategory(categoryName) {

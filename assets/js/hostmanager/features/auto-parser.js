@@ -230,6 +230,7 @@ Exemple:
         const lines = input.split('\n').filter(line => line.trim());
         const hosts = [];
         let currentHost = null;
+        let currentPorts = [];
 
         lines.forEach(line => {
             const trimmedLine = line.trim();
@@ -237,7 +238,9 @@ Exemple:
             // Détecter une nouvelle ligne d'hôte
             const hostMatch = trimmedLine.match(/^Nmap scan report for (.+)$/);
             if (hostMatch) {
+                // Sauvegarder l'hôte précédent avec ses ports
                 if (currentHost) {
+                    currentHost.notes = `Parsé automatiquement depuis Nmap\nPorts ouverts: ${currentPorts.join(', ')}`;
                     hosts.push(currentHost);
                 }
                 
@@ -257,22 +260,53 @@ Exemple:
                     name = hostInfo;
                 }
 
+                // Détecter le système d'après les services
+                let detectedSystem = system;
+                let detectedRole = 'Unknown';
+
                 currentHost = {
                     id: this.generateHostId(ip),
                     ip: ip,
                     name: this.generateHostName(ip, name),
-                    system: system,
+                    system: detectedSystem,
                     zone: zone,
-                    role: 'Unknown',
+                    role: detectedRole,
                     compromiseLevel: 'None',
                     notes: 'Parsé automatiquement depuis Nmap',
                     tags: ['auto-parsed', 'nmap'],
                     timestamp: new Date().toISOString()
                 };
+                
+                currentPorts = [];
+            }
+            
+            // Détecter les ports ouverts
+            const portMatch = trimmedLine.match(/^(\d+)\/tcp\s+open\s+(.+)$/);
+            if (portMatch && currentHost) {
+                const [, port, service] = portMatch;
+                currentPorts.push(`${port}/${service}`);
+                
+                // Détecter le système d'après les services
+                if (service.includes('microsoft-ds') || service.includes('msrpc') || service.includes('netbios')) {
+                    currentHost.system = 'Windows';
+                } else if (service.includes('ssh') || service.includes('domain')) {
+                    currentHost.system = 'Linux';
+                }
+                
+                // Détecter le rôle d'après les services
+                if (service.includes('ldap') || service.includes('kerberos')) {
+                    currentHost.role = 'Domain Controller';
+                } else if (service.includes('http') || service.includes('https')) {
+                    currentHost.role = 'Web Server';
+                } else if (service.includes('domain')) {
+                    currentHost.role = 'DNS Server';
+                }
             }
         });
 
+        // Sauvegarder le dernier hôte
         if (currentHost) {
+            currentHost.notes = `Parsé automatiquement depuis Nmap\nPorts ouverts: ${currentPorts.join(', ')}`;
             hosts.push(currentHost);
         }
 
