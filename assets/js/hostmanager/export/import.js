@@ -102,7 +102,10 @@ export class ImportManager {
         `;
 
         document.body.appendChild(modal);
-        $(modal).modal('show');
+        
+        // Afficher le modal avec Bootstrap vanilla JS
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
 
         // Event listeners
         const zipFileInput = modal.querySelector('#zipFileInput');
@@ -112,7 +115,7 @@ export class ImportManager {
         confirmImportBtn.addEventListener('click', () => this.executeZipImport(modal));
 
         // Nettoyer après fermeture
-        $(modal).on('hidden.bs.modal', () => {
+        modal.addEventListener('hidden.bs.modal', () => {
             document.body.removeChild(modal);
         });
     }
@@ -382,9 +385,12 @@ export class ImportManager {
         };
 
         const lines = markdown.split('\n');
+        let currentSection = '';
+        let notesContent = [];
+        let inNotesSection = false;
         
         // Parser les métadonnées de base
-        lines.forEach(line => {
+        lines.forEach((line, index) => {
             if (line.startsWith('**IP/Nom :**')) {
                 host.ip = line.replace('**IP/Nom :**', '').trim();
             } else if (line.startsWith('**Système :**')) {
@@ -406,10 +412,26 @@ export class ImportManager {
                     host.tags = tags.split(',').map(t => t.trim());
                 }
             }
+            
+            // Détecter le début de la section Notes
+            if (line.startsWith('## 📝 Notes')) {
+                inNotesSection = true;
+                notesContent = [];
+            } else if (inNotesSection && line.startsWith('## ')) {
+                // Détecter la fin de la section Notes (début d'une autre section)
+                inNotesSection = false;
+            } else if (inNotesSection && line !== '## 📝 Notes') {
+                // Collecter le contenu des notes
+                notesContent.push(line);
+            }
+            
+
         });
 
-        // Parser les sections (notes, credentials, etc.)
-        // Note: Implémentation simplifiée - pourrait être améliorée pour parser complètement
+        // Joindre le contenu des notes
+        if (notesContent.length > 0) {
+            host.notes = notesContent.join('\n').trim();
+        }
         
         return host;
     }

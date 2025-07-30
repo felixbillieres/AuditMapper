@@ -85,6 +85,24 @@ export class HostUI {
         if (generateReportBtn) {
             generateReportBtn.addEventListener('click', () => this.generateHostReport());
         }
+
+        // Bouton éditer notes
+        const openNotesEditorBtn = document.getElementById('openNotesEditorBtn');
+        if (openNotesEditorBtn) {
+            openNotesEditorBtn.addEventListener('click', () => {
+                // Vérifier qu'un hôte est sélectionné
+                const hostIdElement = document.getElementById('editHostId');
+                if (!hostIdElement || !hostIdElement.value) {
+                    this.showNotification("Veuillez d'abord sélectionner un hôte pour éditer ses notes", "warning");
+                    return;
+                }
+                this.openNotesEditor();
+            });
+            
+            // Désactiver le bouton par défaut
+            openNotesEditorBtn.disabled = true;
+            openNotesEditorBtn.title = "Sélectionnez un hôte pour éditer ses notes";
+        }
     }
 
     addHost() {
@@ -183,11 +201,18 @@ export class HostUI {
 
         // Remplir les champs de base
         document.getElementById('editHostId').value = hostId;
+        document.getElementById('editHostCategory').value = this.currentEditingHost.category || 'Aucune catégorie';
         document.getElementById('editSystem').value = host.system || '';
         document.getElementById('editRole').value = host.role || '';
         document.getElementById('editZone').value = host.zone || '';
         document.getElementById('editCompromiseLevel').value = host.compromiseLevel || 'None';
-        document.getElementById('editNotes').value = host.notes || '';
+
+        // Activer le bouton d'édition des notes
+        const openNotesEditorBtn = document.getElementById('openNotesEditorBtn');
+        if (openNotesEditorBtn) {
+            openNotesEditorBtn.disabled = false;
+            openNotesEditorBtn.title = "Éditer les notes de cet hôte";
+        }
 
         // Mise à jour des titres avec emojis
         const credentialsTitle = document.querySelector('#credentialsSection h6');
@@ -205,18 +230,12 @@ export class HostUI {
             exploitationTitle.innerHTML = '<i class="fas fa-crosshairs"></i> ⚔️ Étapes d\'exploitation';
         }
 
-        const outputsTitle = document.querySelector('#outputsSection h6');
-        if (outputsTitle) {
-            outputsTitle.innerHTML = '<i class="fas fa-terminal"></i> 📄 Sorties / Dumps';
-        }
-
         // Remplir les sections
         this.populateTagsSection(host.tags || []);
         this.populateCredentialsSection(host.credentials || []);
         this.populateEdgesSection(this.getHostEdges(hostId));
         this.hostManager.modules.exploitation.populateExploitationStepsSection(host.exploitationSteps || []);
-        this.populateOutputsSection(host.outputs || []);
-        this.populateVulnerabilitiesSection(host.vulnerabilities || []);
+        this.updateNotesPreview(host.notes || '');
     }
 
     populateTagsSection(tags) {
@@ -294,14 +313,12 @@ export class HostUI {
         const roleInput = document.getElementById('editRole');
         const zoneInput = document.getElementById('editZone');
         const compromiseLevelSelect = document.getElementById('editCompromiseLevel');
-        const notesTextarea = document.getElementById('editNotes');
 
         // Mettre à jour les données de l'hôte
         if (systemInput) this.currentEditingHost.data.system = systemInput.value.trim();
         if (roleInput) this.currentEditingHost.data.role = roleInput.value.trim();
         if (zoneInput) this.currentEditingHost.data.zone = zoneInput.value.trim();
         if (compromiseLevelSelect) this.currentEditingHost.data.compromiseLevel = compromiseLevelSelect.value;
-        if (notesTextarea) this.currentEditingHost.data.notes = notesTextarea.value.trim();
 
         // Sauvegarder dans le storage
         const hostData = this.hostManager.getData();
@@ -475,6 +492,14 @@ export class HostUI {
     closeEditPanel() {
         if (this.editPanel) {
             this.editPanel.classList.remove('active');
+            this.editPanel.classList.add('hidden');
+            
+            // Désactiver le bouton d'édition des notes
+            const openNotesEditorBtn = document.getElementById('openNotesEditorBtn');
+            if (openNotesEditorBtn) {
+                openNotesEditorBtn.disabled = true;
+                openNotesEditorBtn.title = "Sélectionnez un hôte pour éditer ses notes";
+            }
         }
         this.currentEditingHost = null;
     }
@@ -510,7 +535,7 @@ export class HostUI {
         // Vérifier si les éléments critiques existent vraiment
         const criticalElements = [
             'editHostId', 'editSystem', 'editRole', 'editZone', 
-            'editCompromiseLevel', 'editNotes', 'editPanelTitle'
+            'editCompromiseLevel', 'editPanelTitle'
         ];
         
         let allElementsExist = true;
@@ -554,6 +579,11 @@ export class HostUI {
                             </div>
                             
                             <div class="form-group">
+                                <label for="editHostCategory">Catégorie:</label>
+                                <input type="text" id="editHostCategory" class="form-control" readonly>
+                            </div>
+                            
+                            <div class="form-group">
                                 <label for="editSystem">Système:</label>
                                 <input type="text" id="editSystem" class="form-control" placeholder="ex: Windows Server 2019">
                             </div>
@@ -576,11 +606,6 @@ export class HostUI {
                                     <option value="Partial">🔓 Accès partiel</option>
                                     <option value="Full">👑 Accès root/admin</option>
                                 </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="editNotes">Notes:</label>
-                                <textarea id="editNotes" class="form-control" rows="3" placeholder="Notes sur cet hôte..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -642,41 +667,17 @@ export class HostUI {
                         </div>
                     </div>
 
-                    <!-- Sorties/Outputs -->
+                    <!-- Notes Markdown -->
                     <div class="card mb-3">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-terminal"></i> Sorties/Outputs</h5>
-                            <button type="button" id="addOutputBtn" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-plus"></i> Ajouter output
+                            <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h5>
+                            <button type="button" id="openNotesEditorBtn" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-edit"></i> Éditer Notes
                             </button>
                         </div>
                         <div class="card-body">
-                            <div id="outputsList"></div>
-                        </div>
-                    </div>
-
-                    <!-- Vulnérabilités -->
-                    <div class="card mb-3">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0"><i class="fas fa-bug"></i> Vulnérabilités</h5>
-                            <button type="button" id="addVulnerabilityBtn" class="btn btn-outline-warning btn-sm">
-                                <i class="fas fa-plus"></i> Ajouter vulnérabilité
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="vulnerabilitiesList"></div>
-                        </div>
-                    </div>
-
-                    <!-- Services -->
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-cogs"></i> Services</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="editServices">Services détectés:</label>
-                                <textarea id="editServices" class="form-control" rows="2" placeholder="ex: 80/tcp (HTTP), 443/tcp (HTTPS)"></textarea>
+                            <div id="notesPreview" class="notes-preview">
+                                <p class="text-muted">Aucune note pour cet hôte. Cliquez sur "Éditer Notes" pour commencer.</p>
                             </div>
                         </div>
                     </div>
@@ -717,6 +718,459 @@ export class HostUI {
         }, 50);
     }
 
+    // Créer le modal d'édition des notes
+    createNotesEditorModal() {
+        // Vérifier si le modal existe déjà
+        let modal = document.getElementById('notesEditorModal');
+        if (modal) {
+            // Si le modal existe, le supprimer pour le recréer
+            modal.remove();
+        }
+
+        // Créer un nouveau modal
+        modal = document.createElement('div');
+        modal.id = 'notesEditorModal';
+        modal.className = 'modal fade notes-editor-modal';
+        modal.setAttribute('data-bs-backdrop', 'static');
+        modal.setAttribute('data-bs-keyboard', 'false');
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('aria-labelledby', 'notesEditorModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h4 class="modal-title" id="notesEditorModalLabel">
+                            <i class="fas fa-sticky-note"></i> Notes - <span id="notesHostId"></span>
+                        </h4>
+                        <div class="modal-actions">
+                            <button type="button" id="templateNotesBtn" class="btn btn-warning btn-sm mr-2" title="Créer un template">
+                                <i class="fas fa-magic"></i> Template
+                            </button>
+                            <button type="button" id="saveNotesBtn" class="btn btn-success btn-sm mr-2">
+                                <i class="fas fa-save"></i> Sauvegarder
+                            </button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="notes-editor-container">
+                            <textarea id="notesEditor"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Ajouter le modal au DOM
+        document.body.appendChild(modal);
+        
+        // Attendre un petit délai pour s'assurer que le DOM est mis à jour
+        setTimeout(() => {
+            console.log("Modal créé avec succès:", modal);
+        }, 50);
+        
+        return modal;
+    }
+
+    // Ouvrir l'éditeur de notes
+    openNotesEditor() {
+        // Vérifier qu'un hôte est en cours d'édition
+        if (!this.currentEditingHost) {
+            this.showNotification("Aucun hôte en cours d'édition", "warning");
+            return;
+        }
+        
+        const hostId = this.currentEditingHost.id;
+        const currentCategory = this.currentEditingHost.category;
+        const currentHost = this.currentEditingHost.data;
+        
+        if (!hostId || !currentCategory || !currentHost) {
+            this.showNotification("Informations d'hôte incomplètes", "warning");
+            return;
+        }
+        
+        const currentNotes = currentHost.notes || '';
+        
+        // Sauvegarder le contexte this
+        const self = this;
+
+        // Créer le modal s'il n'existe pas
+        this.createNotesEditorModal();
+        
+        const modal = document.getElementById('notesEditorModal');
+        const notesEditor = document.getElementById('notesEditor');
+        const saveBtn = document.getElementById('saveNotesBtn');
+        const templateBtn = document.getElementById('templateNotesBtn');
+
+        // Vérifier que les éléments existent
+        if (!modal || !notesEditor || !saveBtn || !templateBtn) {
+            console.error("Éléments du modal non trouvés");
+            this.showNotification("Erreur lors de l'ouverture de l'éditeur", "error");
+            return;
+        }
+
+        // Initialiser l'éditeur markdown en mode aperçu direct
+        const easyMDE = new EasyMDE({
+            element: notesEditor,
+            spellChecker: false,
+            autofocus: true,
+            placeholder: `# Notes pour ${hostId}
+
+## 🎯 Objectifs
+- [ ] Objectif 1
+- [ ] Objectif 2
+
+## 🔍 Découverte
+### Ports ouverts
+- Port 80 (HTTP)
+- Port 22 (SSH)
+
+### Services détectés
+- Apache
+- SSH
+
+## ⚠️ Vulnérabilités
+### CVE-2021-44228
+**Description:** Log4Shell
+**Sévérité:** Critique
+**Status:** [ ] Non testé | [x] Testé | [ ] Exploité
+
+## 🛠️ Commandes utilisées
+\`\`\`bash
+nmap -sV ${hostId}
+dirb http://${hostId}
+\`\`\`
+
+## 📸 Captures d'écran
+![Screenshot](url_image)
+
+## 💡 Notes importantes
+- Note 1
+- Note 2
+
+## 📋 Checklist
+- [ ] Scan initial
+- [ ] Énumération
+- [ ] Exploitation
+- [ ] Post-exploitation
+- [ ] Documentation`,
+            toolbar: [
+                "bold", "italic", "heading", "|",
+                "quote", "unordered-list", "ordered-list", "|",
+                "link", "image", "|",
+                "side-by-side", "fullscreen", "preview", "|",
+                "guide"
+            ],
+            status: ["lines", "words", "cursor"],
+            theme: "dark",
+            sideBySideFullscreen: false,
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true
+            },
+            // Forcer le mode side-by-side par défaut
+            initialValue: currentNotes
+        });
+
+        // Forcer le mode side-by-side
+        easyMDE.toggleSideBySide();
+
+        // Raccourcis clavier personnalisés
+        easyMDE.codemirror.setOption('extraKeys', {
+            'Ctrl-S': () => {
+                const notesContent = easyMDE.value();
+                currentHost.notes = notesContent;
+                hostData.categories[currentCategory].hosts[hostId] = currentHost;
+                this.hostManager.updateData(hostData);
+                this.updateNotesPreview(notesContent);
+                self.showNotification("Sauvegarde rapide effectuée !", "success");
+            },
+            'Ctrl-Enter': () => {
+                const vulnerabilityTemplate = `
+### CVE-NEW-VULNERABILITY
+**Description:** Description de la vulnérabilité
+**Sévérité:** Critique/Haute/Moyenne/Basse
+**Status:** [ ] Non testé | [x] Testé | [ ] Exploité
+**POC:** 
+\`\`\`
+# Commande de test
+\`\`\`
+`;
+                const cursor = easyMDE.codemirror.getCursor();
+                easyMDE.codemirror.replaceRange(vulnerabilityTemplate, cursor);
+            },
+            'Ctrl-Shift-C': () => {
+                const codeTemplate = `
+\`\`\`bash
+# Votre commande ici
+\`\`\`
+`;
+                const cursor = easyMDE.codemirror.getCursor();
+                easyMDE.codemirror.replaceRange(codeTemplate, cursor);
+            },
+            'Ctrl-V': () => {
+                // Gestion spéciale du collage d'images
+                navigator.clipboard.read().then(data => {
+                    for (let item of data) {
+                        if (item.types.includes('image/png') || item.types.includes('image/jpeg') || item.types.includes('image/gif')) {
+                            item.getType('image/png').then(blob => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    // Optimiser l'image avant de l'insérer
+                                    self.optimizeImage(blob, (optimizedBase64) => {
+                                        const imageMarkdown = `![Image collée](${optimizedBase64})`;
+                                        const cursor = easyMDE.codemirror.getCursor();
+                                        easyMDE.codemirror.replaceRange(imageMarkdown, cursor);
+                                        self.showNotification("Image optimisée et collée !", "success");
+                                    });
+                                };
+                                reader.readAsDataURL(blob);
+                            });
+                            return;
+                        }
+                    }
+                    // Si pas d'image, collage normal
+                    easyMDE.codemirror.execCommand('paste');
+                }).catch(() => {
+                    // Fallback au collage normal
+                    easyMDE.codemirror.execCommand('paste');
+                });
+            }
+        });
+
+        // Ajouter un listener pour le collage d'images
+        notesEditor.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    
+                    // Optimiser l'image avant de la coller
+                    self.optimizeImage(file, (optimizedBase64) => {
+                        const imageMarkdown = `![Image collée](${optimizedBase64})`;
+                        const cursor = easyMDE.codemirror.getCursor();
+                        easyMDE.codemirror.replaceRange(imageMarkdown, cursor);
+                        self.showNotification("Image optimisée et collée !", "success");
+                    });
+                    return;
+                }
+            }
+        });
+
+        // Afficher le modal
+        let bootstrapModal;
+        try {
+            bootstrapModal = new bootstrap.Modal(modal, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            bootstrapModal.show();
+        } catch (error) {
+            console.error("Erreur lors de l'ouverture du modal:", error);
+            this.showNotification("Erreur lors de l'ouverture de l'éditeur", "error");
+            return;
+        }
+
+        // Gérer la sauvegarde
+        saveBtn.addEventListener('click', () => {
+            const notesContent = easyMDE.value();
+            currentHost.notes = notesContent;
+            
+            // Récupérer les données actuelles depuis le hostManager
+            const hostData = this.hostManager.getData();
+            
+            // Mettre à jour les données
+            hostData.categories[currentCategory].hosts[hostId] = currentHost;
+            this.hostManager.updateData(hostData);
+            
+            // Mettre à jour l'aperçu dans le panneau
+            this.updateNotesPreview(notesContent);
+            
+            // Notification de sauvegarde
+            self.showNotification("Notes sauvegardées avec succès !", "success");
+            
+            bootstrapModal.hide();
+        });
+
+        // Gérer le template
+        templateBtn.addEventListener('click', () => {
+            const template = this.createNotesTemplate(hostId);
+            easyMDE.value(template);
+            self.showNotification("Template créé !", "info");
+        });
+
+        // Gérer la fermeture du modal
+        const closeBtn = modal.querySelector('.btn-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                bootstrapModal.hide();
+            });
+        }
+
+        // Auto-sauvegarde toutes les 30 secondes
+        let autoSaveInterval = setInterval(() => {
+            const notesContent = easyMDE.value();
+            if (notesContent !== currentHost.notes) {
+                currentHost.notes = notesContent;
+                
+                // Récupérer les données actuelles depuis le hostManager
+                const hostData = this.hostManager.getData();
+                hostData.categories[currentCategory].hosts[hostId] = currentHost;
+                this.hostManager.updateData(hostData);
+                this.updateNotesPreview(notesContent);
+                console.log("Auto-sauvegarde des notes effectuée");
+            }
+        }, 30000);
+
+        // Nettoyer l'intervalle lors de la fermeture
+        modal.addEventListener('hidden.bs.modal', () => {
+            clearInterval(autoSaveInterval);
+        });
+    }
+
+    // Optimiser une image pour réduire sa taille
+    optimizeImage(file, callback) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calculer les nouvelles dimensions (max 600px de largeur pour plus de compression)
+            const maxWidth = 600;
+            const maxHeight = 400;
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            // Redimensionner l'image
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Appliquer un filtre pour améliorer la qualité
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convertir en base64 avec compression plus agressive
+            const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+            callback(optimizedBase64);
+        };
+        
+        img.onerror = () => {
+            // Fallback si l'optimisation échoue
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                callback(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        img.src = URL.createObjectURL(file);
+    }
+
+    // Mettre à jour l'aperçu des notes
+    updateNotesPreview(notesContent) {
+        const previewContainer = document.getElementById('notesPreview');
+        if (!previewContainer) return;
+
+        if (!notesContent || notesContent.trim() === '') {
+            previewContainer.innerHTML = '<p class="text-muted">Aucune note pour cet hôte. Cliquez sur "Éditer Notes" pour commencer.</p>';
+            return;
+        }
+
+        // Convertir markdown en HTML avec options améliorées
+        const htmlContent = marked.parse(notesContent, {
+            breaks: true,
+            gfm: true
+        });
+        
+        previewContainer.innerHTML = `
+            <div class="notes-content">
+                ${htmlContent}
+            </div>
+        `;
+
+        // Appliquer la coloration syntaxique aux blocs de code
+        previewContainer.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
+        // Ajouter des interactions pour les checkboxes
+        previewContainer.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+            checkbox.addEventListener('change', (e) => {
+                const li = e.target.closest('li');
+                if (e.target.checked) {
+                    li.style.textDecoration = 'line-through';
+                    li.style.opacity = '0.7';
+                } else {
+                    li.style.textDecoration = 'none';
+                    li.style.opacity = '1';
+                }
+            });
+        });
+    }
+
+    // Créer un template de notes automatique
+    createNotesTemplate(hostId) {
+        return `# Notes pour ${hostId}
+
+## 🎯 Objectifs
+- [ ] Scan initial
+- [ ] Énumération des services
+- [ ] Test des vulnérabilités
+- [ ] Exploitation
+- [ ] Post-exploitation
+
+## 🔍 Découverte
+### Ports ouverts
+- Port 80 (HTTP)
+- Port 22 (SSH)
+
+### Services détectés
+- Apache
+- SSH
+
+## ⚠️ Vulnérabilités
+### CVE-2021-44228
+**Description:** Log4Shell
+**Sévérité:** Critique
+**Status:** [ ] Non testé | [x] Testé | [ ] Exploité
+
+## 🛠️ Commandes utilisées
+\`\`\`bash
+nmap -sV ${hostId}
+dirb http://${hostId}
+\`\`\`
+
+## 📸 Captures d'écran
+![Screenshot](url_image)
+
+## 💡 Notes importantes
+- Note 1
+- Note 2
+
+## 📋 Checklist
+- [ ] Scan initial
+- [ ] Énumération
+- [ ] Exploitation
+- [ ] Post-exploitation
+- [ ] Documentation`;
+    }
+
+    // Méthodes existantes pour les credentials, vulnérabilités, etc.
     addCredential() {
         if (!this.currentEditingHost) return;
 
@@ -937,12 +1391,6 @@ export class HostUI {
         this.hostManager.modules.outputs.showOutputTypeSelection();
     }
 
-
-
-
-
-
-
     editExploitationStep(index) {
         if (!this.currentEditingHost?.data.exploitationSteps || !this.currentEditingHost.data.exploitationSteps[index]) {
             return;
@@ -957,8 +1405,6 @@ export class HostUI {
         this.hostManager.modules.exploitation.removeExploitationStep(index);
     }
 
-
-
     getSeverityColor(severity) {
         const colors = {
             'Low': 'success',
@@ -968,10 +1414,6 @@ export class HostUI {
         };
         return colors[severity] || 'secondary';
     }
-
-
-
-
 
     addVulnerability() {
         if (!this.currentEditingHost) return;
@@ -1065,8 +1507,6 @@ export class HostUI {
             alert('Module de rapports non disponible');
         }
     }
-
-
 
     getHostEdges(hostId) {
         const hostData = this.hostManager.getData();
